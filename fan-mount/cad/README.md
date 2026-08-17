@@ -131,3 +131,34 @@ Die kleine Passprobe `passprobe_A.stl` klärt das in 45 min statt in 2 h.
 Der Lüfter liegt über die Auflageecken am Blech an und überträgt Vibration
 in ein großes dünnes Blech. Wenn es brummt: `z_auflage` erhöhen und einen
 Streifen Moosgummi unterlegen.
+
+---
+
+## Druckbarkeit
+
+Geprueft an der gedrehten Drucklage (`halter_A_gedreht.stl`). Massgeblich ist
+nicht die **Flaeche** eines Ueberhangs, sondern seine **Spannweite** — und ob
+er frei in der Luft beginnt oder als Bruecke zwischen zwei Waenden spannt.
+
+| Stelle | z | Spannweite | Art |
+|---|---|---|---|
+| Rippen (2×) | 10,0 mm | **12 mm** | Bruecke zwischen den Zargenwaenden |
+| Auflageecken (4×) | 10,0 mm | **14 mm** | haengen an der Zargenwand |
+| Klammernasen (2×) | 13,4 mm | **2 mm** | Bruecke |
+
+Alle unter der 20-mm-Grenze, alle beidseitig angebunden. **Kein
+Stuetzmaterial noetig**, keine Flaeche beginnt frei in der Luft.
+
+### Warum einteilig
+
+Eine zweiteilige Variante (Zarge + aufschiebbare Klammern mit
+Schwalbenschwanz) wurde durchgerechnet und wieder verworfen. Der Grund ist
+strukturell: die Zarge ist 127 mm breit, das Blech nur 65 mm. Jede Verbindung
+zwischen beiden ueberbrueckt 31 mm je Seite — die Bruecke verschwindet nicht,
+sie wandert nur. Getrennte Teile brachten in Summe **mehr** Ueberhang
+(2538 mm² statt 4179 mm² bei groesserer Spannweite) und zusaetzlich eine
+Fuegestelle.
+
+Einteilig bleibt es, solange die Spannweiten unter 20 mm liegen. Wuerde die
+Zarge einmal deutlich hoeher (dickerer Luefter), sind die Rippen die Stelle,
+die zuerst kritisch wird.
