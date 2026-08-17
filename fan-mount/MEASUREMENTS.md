@@ -30,9 +30,9 @@ the sill directly above it. Photos: `IMG_7172`–`IMG_7177`.
 | `manufacturer` | | `open` | Look for a label on the end cap or behind the front panel |
 | `length` | 1800–2200 mm | `photo` | Proportion against the window opening only (7172) |
 | `height` | 220–230 mm | `photo` | Rule spans the full front face, both edges readable (7177) |
-| `depth` | **135 mm** | `measured` | Confirms the photo estimate (7176) |
-| `slot_width` | | `open` | |
-| `channel_gap` | | `open` | Critical — see below |
+| `depth` | **136 mm** | `measured` | Summe der Teilstuecke, 2026-08-17 (frueher 135/137 geschaetzt) |
+| `slot_width` | **8,0 mm** | `measured` | Steg dazwischen 5,0 mm, Raster 13,0 mm |
+| `channel_gap` | **22 mm** | `measured` | Ungelochter Mittelsteg zwischen den beiden Lochfeldern |
 | `top_lip` | | `open` | |
 | `grille_removable` | | `open` | **Priority 1** — see checklist |
 | `side_covers_removable` | | `open` | |
@@ -58,9 +58,9 @@ beside it. Photos: `IMG_7178`–`IMG_7181`.
 | `manufacturer` | | `open` | |
 | `length` | 2000–2400 mm | `photo` | Proportion against the window (7178) |
 | `height` | 360–380 mm | `photo` | Rule shorter than the face, scaled by ratio (7179) |
-| `depth` | **100 mm** | `measured` | |
-| `slot_width` | | `open` | Grille bar pitch is 5–6 mm (`photo`, 7180) |
-| `channel_gap` | 10–15 mm | `photo` | Rule crosses both fin banks, edges soft (7181) |
+| `depth` | **101 mm** | `measured` | Summe der Teilstuecke, 2026-08-17 |
+| `slot_width` | **7,7 mm** | `measured` | Steg dazwischen 3,3 mm, Raster 11,0 mm |
+| `channel_gap` | n/a | `measured` | Nur EIN Lochfeld (75 mm), kein Mittelsteg |
 | `top_lip` | | `open` | |
 | `grille_removable` | | `open` | **Priority 1** |
 | `side_covers_removable` | | `open` | |
@@ -86,15 +86,15 @@ it — access is poor. Photos: `IMG_7161`–`IMG_7164`.
 | `manufacturer` | | `open` | |
 | `length` | ~2000 mm | `photo` | Very rough (7161) |
 | `height` | | `open` | |
-| `depth` | **60 mm** | `measured` | Shallowest of the four |
-| `slot_width` | | `open` | |
-| `channel_gap` | | `open` | May not have one — 60 mm is thin for a Type 22 |
+| `depth` | **65 mm** | `measured` | Summe der Teilstuecke, 2026-08-17 (Lineal legte 62 nahe) |
+| `slot_width` | **7,6 mm** | `measured` | Steg dazwischen 3,4 mm, Raster 11,0 mm |
+| `channel_gap` | n/a | `measured` | Nur EIN Lochfeld (39 mm), kein Mittelsteg |
 | `top_lip` | | `open` | |
 | `grille_removable` | | `open` | |
 | `side_covers_removable` | | `open` | |
 | `headroom` | 40–70 mm | `photo` | Rule was in a different plane — unreliable (7161) |
 | `floor_clearance` | | `open` | |
-| `wall_standoff` | | `open` | |
+| `wall_standoff` | **~25 mm** | `measured` | Eng — Luefter muss asymmetrisch nach vorne sitzen |
 | `fan_count` | | `open` | |
 
 **Fan fit — problem case.** A 120 mm fan is twice as wide as this radiator is
@@ -186,6 +186,52 @@ just not flat. Note the corrosion before investing effort in this one.
 
 ---
 
+## Lochblech-Geometrie (gemessen 2026-08-17)
+
+Draufsicht quer zur Wand. Aufbau: `Rand | Lochfeld | [Mittelsteg | Lochfeld] | Rand`.
+Die Tiefe ist die **Summe** dieser Teilstuecke — bei allen dreien geht sie auf.
+
+| | A — Buero | B — Wohnzimmer | C — Esszimmer |
+|---|---|---|---|
+| Tiefe (Summe) | 65 mm | 101 mm | 136 mm |
+| Randstreifen | 13 | 13 | 17 |
+| Lochfeld | 39 | 75 | 40 (×2) |
+| Mittelsteg | — | — | 22 |
+| Schlitzbreite | 7,6 | 7,7 | 8,0 |
+| Steg zwischen Schlitzen | 3,4 | 3,3 | 5,0 |
+| **Raster** | **11,0** | **11,0** | **13,0** |
+
+**A und B sind dieselbe Bauart in zwei Groessen** — gleiches 11-mm-Raster,
+gleicher Randstreifen. C hat ein eigenes 13-mm-Raster und als einziger einen
+ungelochten Mittelsteg, auf dem sich ein Halter abstuetzen kann.
+
+Maschinenlesbar in [cad/lochblech.csv](cad/lochblech.csv).
+
+### Noch offen an den Lochblechen
+
+- **Schlitzlaenge in Wandrichtung** — kurze Langloecher oder durchgehend?
+  Entscheidet, ob Zapfen ins Raster ueberhaupt moeglich sind.
+- **Blechdicke** — 0,8 oder 1,0 mm? Die Passprobe nimmt 1,0 mm an.
+- **Freie Blechkante?** Der Randumgriff braucht eine Kante, die er fassen
+  kann. Geht das Gitter in eine Sicke oder ein Seitenblech ueber, scheitert
+  das Prinzip — das prueft die Passprobe als Erstes.
+
+### Bauhoehen-Budget
+
+Freiraum minus Grundplatte (3 mm) minus Luefter ergibt den Ansaugraum;
+ein 120-mm-Luefter will davon ~30 mm.
+
+| | Freiraum | mit 15-mm-Slim | mit 25-mm-Luefter |
+|---|---|---|---|
+| A — Buero | ~55 mm | 37 mm — gut | 25 mm — knapp |
+| B — Wohnzimmer | 100 mm | 82 mm — gut | 70 mm — gut |
+| C — Esszimmer | 50 mm | 32 mm — gut | 20 mm — knapp |
+
+Auslegungspunkt daher **15-mm-Slim-Luefter, 3-mm-Grundplatte**. B ist der
+bequemste Fall, nicht der engste.
+
+---
+
 # Measurement checklist
 
 In priority order. Items 1 and 2 can still change what the parts are, so do them
@@ -199,7 +245,11 @@ first.
       collar into an internal cradle. Also settles whether these are panel
       radiators or convector casings.
 
-- [ ] **2. `channel_gap`, all four panel radiators.**
+- [x] **2. `channel_gap` — erledigt fuer A, B, C** (2026-08-17).
+      C hat 22 mm Mittelsteg; A und B haben nur ein Lochfeld, also keinen.
+      Offen nur noch fuer das Gaeste-WC.
+
+      ~~Original:~~
       Caliper jaws down through the top slot until they touch the fin tips on
       both sides. *Not* the sheet-metal slot above it — they differ. In
       `IMG_7181` this is the dark band running between the two rows of wavy
@@ -217,7 +267,10 @@ first.
       middle — sills are rarely level. The guest WC may have no sill at all, in
       which case it is unlimited.
 
-- [ ] **5. `slot_width`, all four.**
+- [x] **5. `slot_width` — erledigt fuer A, B, C** (2026-08-17): 7,6 / 7,7 /
+      8,0 mm, siehe Lochblech-Tabelle oben. Offen fuer das Gaeste-WC.
+
+      ~~Original:~~
       Rule flat across the top, measuring the opening in the pressed steel —
       the feature seen edge-on in `IMG_7163` and `IMG_7166`. Sets the collar
       footprint if the seal-on-grille approach wins.

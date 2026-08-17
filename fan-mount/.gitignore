@@ -3,3 +3,6 @@
 # Fotos bleiben lokal (Originale + konvertierte JPEGs)
 doc/*.HEIC
 doc/jpg/
+
+# FreeCAD-Sicherungskopien
+*.FCBak
