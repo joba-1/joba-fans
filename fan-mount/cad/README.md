@@ -66,6 +66,18 @@ von 2 mm; unter ihm ist **kein Boden**, er bläst direkt aufs Blech. Eine
 Grundplatte mit Durchlass wäre eine Drosselstelle unmittelbar an der
 Druckseite — genau dort, wo ein Axiallüfter am empfindlichsten ist.
 
+### Rippen statt Boden
+
+Zarge und Klammer sind durch **zwei Rippen** verbunden, die auf den
+ungelochten Randstreifen (13 mm bei A) sitzen. Ein durchgehender Steg ueber
+die volle Blechtiefe verdeckte in der ersten Fassung **64 % des
+Luefteraustritts** — und zwar genau den Teil ueber dem Lochfeld, also den
+einzigen, der etwas nuetzt. Mit Rippen sind es 25 %, alles davon Zargenwand
+und Auflageecken am Rand; **ueber dem Lochfeld ist es zu 100 % offen**.
+
+Die Pruefung `Lochfeld offen` im Skript testet das an 99 Punkten. Sie fehlte
+zunaechst, weshalb der Boden erst am Bild auffiel.
+
 ### Asymmetrischer Sitz
 
 Ein 120-mm-Lüfter auf 65 mm Blechtiefe steht 55 mm über. Bei nur ~25 mm
@@ -104,7 +116,7 @@ kobra-slice halter_A_gedreht.stl -o /tmp/halter_A.gcode \
     --timelapse 0 --no-orient
 ```
 
-74 Lagen, 1 h 57 min, 36 g. Fertiger Gcode liegt auf job6 unter
+74 Lagen, 1 h 25 min, 26 g. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
 ### Vor dem Druck zu prüfen

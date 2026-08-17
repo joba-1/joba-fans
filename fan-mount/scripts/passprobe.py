@@ -77,7 +77,7 @@ print("Fehler:", [o.Name for o in d.Objects if o.isValid() is False])
 # Halter: Passprobe + Zarge (Luefteraufnahme) in einem Teil
 # ---------------------------------------------------------------------------
 
-def halter(tiefe, hinten_ueber, x0=0.0):
+def halter(tiefe, hinten_ueber, rand, x0=0.0):
     """Klammer + Zarge.
 
     Koordinaten: y=0 ist die Blech-HINTERKANTE (Wandseite), y=tiefe die
@@ -101,7 +101,12 @@ def halter(tiefe, hinten_ueber, x0=0.0):
     teile.append(Part.makeBox(br, bd, h, FreeCAD.Vector(xk, tiefe, -h)))     # Backe vorne
     teile.append(Part.makeBox(br, nase_l, nase_h, FreeCAD.Vector(xk, 0, -h)))
     teile.append(Part.makeBox(br, nase_l, nase_h, FreeCAD.Vector(xk, tiefe - nase_l, -h)))
-    teile.append(Part.makeBox(br, tiefe + 2 * bd, ah, FreeCAD.Vector(xk, -bd, 0)))  # Steg
+    # RIPPEN statt eines durchgehenden Stegs: nur auf den ungelochten
+    # Randstreifen. Ein Vollsteg ueber die ganze Tiefe verdeckt 64 % des
+    # Luefteraustritts - genau den Teil, der ueber dem Lochfeld liegt.
+    rb = g("rippe_b")
+    teile.append(Part.makeBox(br, rb + bd, ah, FreeCAD.Vector(xk, -bd, 0)))
+    teile.append(Part.makeBox(br, rb + bd, ah, FreeCAD.Vector(xk, tiefe - rb, 0)))
 
     r = teile[0]
     for t in teile[1:]:
@@ -109,8 +114,8 @@ def halter(tiefe, hinten_ueber, x0=0.0):
     return r.removeSplitter()
 
 
-def pruefe_halter(s, tiefe, hinten_ueber):
-    """Vier Bedingungen, die das Teil erfuellen muss."""
+def pruefe_halter(s, tiefe, hinten_ueber, rand):
+    """Fuenf Bedingungen, die das Teil erfuellen muss."""
     maul, zi, ah = g("maulweite"), g("z_innen"), g("z_auflage")
     x = s.BoundBox.XMin + g("z_aussen") / 2
     ins = lambda xx, yy, zz: s.isInside(FreeCAD.Vector(xx, yy, zz), 1e-6, True)
@@ -124,15 +129,21 @@ def pruefe_halter(s, tiefe, hinten_ueber):
         "Auflagen tragen": all(ins(xx, yy, ah / 2) for xx, yy
                                in ((3, -hi + 3), (zi - 3, -hi + 3),
                                    (3, -hi + zi - 3), (zi - 3, -hi + zi - 3))),
+        # Der Weg vom Luefter zum Lochfeld muss frei sein. Fehlt diese
+        # Pruefung, faellt ein Boden unter dem Luefter nicht auf.
+        "Lochfeld offen": not any(
+            ins(s.BoundBox.XMin + g("z_dicke") + zi * (i + 0.5) / 9,
+                rand + (tiefe - 2 * rand) * (j + 0.5) / 11, ah / 2)
+            for i in range(9) for j in range(11)),
     }
 
 
 if __name__ != "nicht_ausfuehren":
     o = d.getObject("Halter_A") or d.addObject("Part::Feature", "Halter_A")
-    o.Shape = halter(g("a_tiefe"), g("a_hinten"))
+    o.Shape = halter(g("a_tiefe"), g("a_hinten"), g("a_rand"))
     o.Label = "Halter A (Buero, %.0f-mm-Luefter)" % g("luefterhoehe")
     d.recompute()
-    res = pruefe_halter(o.Shape, g("a_tiefe"), g("a_hinten"))
+    res = pruefe_halter(o.Shape, g("a_tiefe"), g("a_hinten"), g("a_rand"))
     for k, v in res.items():
         print("  %-16s %s" % (k, "OK" if v else "FEHLER"))
     m = MeshPart.meshFromShape(Shape=o.Shape, LinearDeflection=0.05,
