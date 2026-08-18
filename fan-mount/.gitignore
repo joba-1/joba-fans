@@ -6,3 +6,6 @@ doc/jpg/
 
 # FreeCAD-Sicherungskopien
 *.FCBak
+
+# Fotos bleiben lokal (auch in Unterordnern)
+doc/**/*.HEIC

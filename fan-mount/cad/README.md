@@ -102,29 +102,22 @@ hätte, aber brauchbar. Wird es zu laut, sind 15-mm-Slim-Lüfter der Hebel;
 
 ### Drucklage
 
-**`halter_A_gedreht.stl` ist die Druckdatei**, nicht `halter_A.stl`. Auf den
-Kopf gedreht liegt die Zargenoberseite auf dem Bett, die Klammernasen zeigen
-nach oben und werden getragen. In der Konstruktionslage hingen sie in der
-Luft und bräuchten Stützmaterial.
-
-Mit `--no-orient` slicen — der Auto-Orienter stellt das Teil sonst hochkant
-(126 mm hoch, 633 Lagen statt 74).
+`halter_A.stl` wird **flach gedruckt, ohne Drehen und ohne Sonderflags** —
+das Teil endet bei z=0 und jede Fläche wird von unten getragen.
 
 ```
-kobra-slice halter_A_gedreht.stl -o /tmp/halter_A.gcode \
-    --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 \
-    --timelapse 0 --no-orient
+kobra-slice halter_A.stl -o /tmp/halter_A.gcode \
+    --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-74 Lagen, 1 h 25 min, 26 g. Fertiger Gcode liegt auf job6 unter
+60 Lagen, 1 h 19 min, 23 g. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
-### Vor dem Druck zu prüfen
+### Befestigung
 
-Die Klammer setzt eine **freie Blechkante** voraus. Geht das Gitter vorne
-oder hinten in eine Sicke oder ein Seitenblech über, greift die Backe ins
-Leere — dann wäre das Zapfenprinzip nötig, wofür die Schlitzlänge fehlt.
-Die kleine Passprobe `passprobe_A.stl` klärt das in 45 min statt in 2 h.
+Der Halter **liegt lose auf** dem Blech. Der ursprüngliche Randumgriff
+(Backen und Nasen unterhalb z=0) ist entfernt: er machte das Teil
+druckunfreundlich, und die Befestigung übernimmt ein eigenes zweites Teil.
 
 ### Mögliche Nebenwirkung
 
