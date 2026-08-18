@@ -114,6 +114,13 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     rb, dy = g("rippe_b"), g("rippe_dy")
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, dy, 0)))
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, tiefe - rb + dy, 0)))
+    # BLENDE: deckt links und rechts die Nachbarschlitze ab, damit die Luft
+    # nicht durch sie zurueck nach oben kurzschliesst, statt durch die
+    # Konvektorbleche nach unten zu gehen. Nur ueber der Blechtiefe, damit
+    # nichts frei in der Luft haengt.
+    bb_ = g("blende_b")
+    teile.append(Part.makeBox(bb_, tiefe, ah, FreeCAD.Vector(xk - bb_, 0, 0)))
+    teile.append(Part.makeBox(bb_, tiefe, ah, FreeCAD.Vector(xk + za, 0, 0)))
 
     r = teile[0]
     for t in teile[1:]:
@@ -125,13 +132,16 @@ def pruefe_halter(s, tiefe, hinten_ueber, rand):
     """Vier Bedingungen an die flache Zarge (Teil endet bei z=0)."""
     zi, ah, zd = g("z_innen"), g("z_auflage"), g("z_dicke")
     ins = lambda xx, yy, zz: s.isInside(FreeCAD.Vector(xx, yy, zz), 1e-6, True)
-    hi, x = hinten_ueber, s.BoundBox.XMin + 3.0
+    # Bezug ist die ZARGE bei x=0, nicht die BoundBox - die waechst mit der
+    # Blende und verschiebt sonst alle Pruefpunkte.
+    hi, x = hinten_ueber, 3.0
 
     def durchgehend(y0, y1):
         return all(ins(x, y0 + (y1 - y0) * (i + 0.5) / 40, ah / 2) for i in range(40))
 
     return {
         "flach ab z=0":    abs(s.BoundBox.ZMin) < 1e-6,
+        "passt aufs Bett": max(s.BoundBox.XLength, s.BoundBox.YLength) <= g("druckbett"),
         "keine Ueberhaenge": not any(
             f.Surface.__class__.__name__ == "Plane"
             and f.normalAt(0.5, 0.5).z <= -0.9 and f.BoundBox.ZMin > 0.01
@@ -139,7 +149,7 @@ def pruefe_halter(s, tiefe, hinten_ueber, rand):
         # Der Weg vom Luefter zum Lochfeld muss frei sein. Fehlt diese
         # Pruefung, faellt ein Boden unter dem Luefter nicht auf.
         "Lochfeld offen": not any(
-            ins(s.BoundBox.XMin + zd + zi * (i + 0.5) / 9,
+            ins(zi * (i + 0.5) / 9,
                 rand + (tiefe - 2 * rand) * (j + 0.5) / 11, ah / 2)
             for i in range(9) for j in range(11)),
         # Rippe 1 muss nahtlos an die vordere Auflage anschliessen.

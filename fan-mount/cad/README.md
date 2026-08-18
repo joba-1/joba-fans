@@ -117,8 +117,24 @@ kobra-slice halter_A.stl -o /tmp/halter_A.gcode \
     --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-60 Lagen, 1 h 14 min, 22 g. Fertiger Gcode liegt auf job6 unter
+60 Lagen, 1 h 59 min, 35 g. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
+
+### Blende gegen Kurzschlussströmung
+
+Links und rechts schließen je **50 mm Bodenfläche** an (`blende_b`). Sie decken
+die Nachbarschlitze ab, damit die Luft nicht durch sie zurück nach oben
+kurzschließt, statt durch die Konvektorbleche nach unten zu gehen.
+
+Die Blende reicht nur über die Blechtiefe (y = 0…65), nicht über die volle
+Zargentiefe — sonst hingen 62 mm frei in der Luft. Dicke wie die Auflagen,
+2 mm.
+
+Damit wird das Teil **226,6 mm breit** bei 230 mm nutzbarem Bett: nur 3,4 mm
+Reserve. Die Zelle `bett_rest` in der Tabelle rechnet das mit, und die
+Prüfung `passt aufs Bett` schlägt an, bevor ein zu breites Teil im Slicer
+landet. Für Heizkörper B und C, die breitere Bleche haben, muss die Blende
+in Segmenten gedruckt und aneinandergereiht werden.
 
 ### Befestigung
 
