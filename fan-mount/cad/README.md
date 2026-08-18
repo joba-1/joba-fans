@@ -86,12 +86,19 @@ Wandabstand muss er nach vorne ausweichen:
 | | mm |
 |---|---|
 | Überstand gesamt | 55 |
-| davon nach hinten (Wandseite) | 17 |
-| davon nach vorne (in den Raum) | 38 |
-| Luft zur Wand | 5 |
+| davon nach hinten (Wandseite) | 14 |
+| davon nach vorne (in den Raum) | 41 |
+| Luft zur Wand | 8 |
 
-Die Tabelle rechnet das selbst aus (`a_hinten = wandabstand − wandluft −
-z_dicke`). Ändert sich der Wandabstand, wandert der Lüfter mit.
+`a_hinten = z_ecke` — der hintere Überstand ist an die Ecklänge der
+Auflagen gekoppelt. Dadurch ist `rippe_dy = 0` und **beide Rippen liegen
+vollständig auf den ungelochten Randstreifen** des Blechs, während die
+vordere Auflage nahtlos in Rippe 1 übergeht.
+
+Der Wandabstand ist damit nicht mehr die bestimmende Größe, sondern
+Kontrollwert: `wandluft_ist = wandabstand − a_hinten − z_dicke` = 8 mm,
+Vorgabe mindestens 5 mm. Wird der Halter für einen Heizkörper mit weniger
+Wandabstand abgeleitet, ist diese Zelle die Stelle, an der es auffällt.
 
 ### Bauhöhe
 
@@ -110,7 +117,7 @@ kobra-slice halter_A.stl -o /tmp/halter_A.gcode \
     --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-60 Lagen, 1 h 19 min, 23 g. Fertiger Gcode liegt auf job6 unter
+60 Lagen, 1 h 14 min, 22 g. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
 ### Befestigung
