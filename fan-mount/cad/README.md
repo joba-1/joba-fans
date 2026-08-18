@@ -120,6 +120,21 @@ kobra-slice halter_A.stl -o /tmp/halter_A.gcode \
 60 Lagen, 1 h 59 min, 35 g. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
+### Verschraubung
+
+Vier Bohrungen **⌀6 mm** in den Auflageecken, Lochabstand **105 × 105 mm** —
+das Normmaß für 120-mm-Lüfter (Lochmitte 7,5 mm von jeder Lüfterkante).
+
+Der Bezug ist die Lüfterecke, nicht die Auflage: ändert sich `z_spiel` oder
+die Lüfterlage, wandern die Löcher korrekt mit. Für andere Lüftergrößen ist
+`schraub_lk` die Stellschraube (92 mm beim 92er, 71,5 mm beim 80er).
+
+Zwischen Lochrand und Auflagekante bleiben **3,2 mm** stehen. Das ist dünn —
+Lüfterschrauben sind normalerweise M4, für die ein 4,5-mm-Loch reichen würde
+und 4,0 mm Steg bliebe. Bei ⌀6 hat eine M4-Schraube Spiel; mit Unterlegscheibe
+oder Mutter von unten ist das kein Problem, für eine selbstschneidende
+Verschraubung direkt ins PLA wäre 3,5 mm richtig.
+
 ### Blende gegen Kurzschlussströmung
 
 Links und rechts schließen je **50 mm Bodenfläche** an (`blende_b`). Sie decken

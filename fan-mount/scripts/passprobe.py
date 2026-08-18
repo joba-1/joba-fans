@@ -125,7 +125,36 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     r = teile[0]
     for t in teile[1:]:
         r = r.fuse(t)
+
+    # Verschraubungsloecher nach Luefternorm: Lochabstand schraub_lk (105 mm
+    # beim 120er), also (lueftergroesse - schraub_lk)/2 von jeder Luefterkante.
+    # Bezug ist die Luefterecke, nicht die Auflage - so wandern die Loecher
+    # korrekt mit, wenn sich Luefterlage oder Zargenspiel aendert.
+    sp = g("z_spiel") / 2
+    lx0, ly0 = x0 + sp, -hinten_ueber + sp
+    off = (g("lueftergroesse") - g("schraub_lk")) / 2
+    for dx, dy2 in ((0, 0), (1, 0), (0, 1), (1, 1)):
+        c = FreeCAD.Vector(lx0 + off + g("schraub_lk") * dx,
+                           ly0 + off + g("schraub_lk") * dy2, -1)
+        r = r.cut(Part.makeCylinder(g("schraub_d") / 2, ah + 2, c))
     return r.removeSplitter()
+
+
+def _loecher_ok(s, hinten_ueber):
+    """Alle vier Bohrungen offen, und rundum bleibt Material stehen."""
+    sp, ah, zi, al = g("z_spiel") / 2, g("z_auflage"), g("z_innen"), g("z_ecke")
+    lk, dm = g("schraub_lk"), g("schraub_d")
+    off = (g("lueftergroesse") - lk) / 2
+    ins = lambda p: s.isInside(p, 1e-6, True)
+    for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+        cx, cy = sp + off + lk * dx, -hinten_ueber + sp + off + lk * dy
+        if ins(FreeCAD.Vector(cx, cy, ah / 2)):
+            return False                       # Loch nicht durchgehend
+        for ex, ey in ((dm / 2 + 1.2, 0), (-dm / 2 - 1.2, 0),
+                       (0, dm / 2 + 1.2), (0, -dm / 2 - 1.2)):
+            if not ins(FreeCAD.Vector(cx + ex, cy + ey, ah / 2)):
+                return False                   # Rand ausgebrochen
+    return True
 
 
 def pruefe_halter(s, tiefe, hinten_ueber, rand):
@@ -154,6 +183,8 @@ def pruefe_halter(s, tiefe, hinten_ueber, rand):
             for i in range(9) for j in range(11)),
         # Rippe 1 muss nahtlos an die vordere Auflage anschliessen.
         "Naht vorne":     durchgehend(-hi, g("rippe_dy") + g("rippe_b")),
+        # Die vier Schraubloecher muessen frei sein und in den Auflagen liegen.
+        "Schraubloecher": _loecher_ok(s, hinten_ueber),
     }
 
 
