@@ -102,20 +102,18 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
 
     teile = [Part.makeBox(za, za, zh, FreeCAD.Vector(xk, -hinten_ueber - zd, 0)).cut(
                  Part.makeBox(zi, zi, zh + 2, FreeCAD.Vector(x0, -hinten_ueber, -1)))]
-    # Auflagen reichen in Y bis an die jeweilige Rippe heran. Eine feste
-    # Ecklaenge liess schmale Spalte stehen (3,0 mm vorne, 24,6 mm hinten),
-    # die sich weder drucken noch nutzen lassen.
-    ev, eh = g("ecke_v"), g("ecke_h")
-    for dx in (0, 1):
-        ex = x0 + (zi - al) * dx
-        teile.append(Part.makeBox(al, ev, ah, FreeCAD.Vector(ex, -hinten_ueber, 0)))
-        teile.append(Part.makeBox(al, eh, ah, FreeCAD.Vector(ex, tiefe, 0)))
+    # Vier quadratische Luefterauflagen in den Zargenecken.
+    for dx, dy2 in ((0, 0), (1, 0), (0, 1), (1, 1)):
+        teile.append(Part.makeBox(al, al, ah, FreeCAD.Vector(
+            x0 + (zi - al) * dx, -hinten_ueber + (zi - al) * dy2, 0)))
     # RIPPEN statt eines durchgehenden Stegs: nur auf den ungelochten
     # Randstreifen. Ein Vollsteg ueber die ganze Tiefe verdeckt 64 % des
     # Luefteraustritts - genau den Teil, der ueber dem Lochfeld liegt.
-    rb = g("rippe_b")
-    teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, 0, 0)))
-    teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, tiefe - rb, 0)))
+    # Beide Rippen um rippe_dy verschoben, damit Rippe 1 nahtlos an die
+    # vordere Auflage anschliesst; ihr gegenseitiger Abstand bleibt gleich.
+    rb, dy = g("rippe_b"), g("rippe_dy")
+    teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, dy, 0)))
+    teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, tiefe - rb + dy, 0)))
 
     r = teile[0]
     for t in teile[1:]:
@@ -144,8 +142,8 @@ def pruefe_halter(s, tiefe, hinten_ueber, rand):
             ins(s.BoundBox.XMin + zd + zi * (i + 0.5) / 9,
                 rand + (tiefe - 2 * rand) * (j + 0.5) / 11, ah / 2)
             for i in range(9) for j in range(11)),
-        # Auflagen muessen bis an die Rippen reichen, sonst bleiben Spalte.
-        "keine Spalte":   durchgehend(-hi, 0.0) and durchgehend(tiefe, -hi + zi),
+        # Rippe 1 muss nahtlos an die vordere Auflage anschliessen.
+        "Naht vorne":     durchgehend(-hi, g("rippe_dy") + g("rippe_b")),
     }
 
 
