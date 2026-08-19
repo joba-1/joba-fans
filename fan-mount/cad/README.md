@@ -151,11 +151,34 @@ Prüfung `passt aufs Bett` schlägt an, bevor ein zu breites Teil im Slicer
 landet. Für Heizkörper B und C, die breitere Bleche haben, muss die Blende
 in Segmenten gedruckt und aneinandergereiht werden.
 
-### Befestigung
+### Befestigung — Zapfen (`zapfen_A.stl`, 2× nötig)
 
-Der Halter **liegt lose auf** dem Blech. Der ursprüngliche Randumgriff
-(Backen und Nasen unterhalb z=0) ist entfernt: er machte das Teil
-druckunfreundlich, und die Befestigung übernimmt ein eigenes zweites Teil.
+Hohler Quader, unten offen, der **formschlüssig in einen Heizungsschlitz**
+fasst. Außenmaß 7,4 × 39 mm — das ist die Schlitzbreite minus 0,2 mm Spiel
+mal die volle Lochfeldbreite. Er kann sich damit weder drehen noch wandern.
+
+| | mm |
+|---|---|
+| Außen | 7,4 × 39,0 |
+| Höhe | 7,0 |
+| Wandstärke | 2,0 |
+| Kantenradius (4 senkrechte Kanten) | 2,0 |
+| Schraubloch | ⌀3,5 |
+
+Der Zapfen wird von unten durch den Schlitz gesteckt und mit **einer Schraube
+durch die Blende** in seinen Deckel verschraubt. Klemmlänge Blende + Deckel
+= 4 mm; 5 mm des Zapfens stecken im Blech.
+
+Das zugehörige Loch in jeder Blende sitzt mittig zur Heizungstiefe
+(y = 32,5) und mittig in der Blende — beide fluchten.
+
+Der ursprüngliche Randumgriff (Backen und Nasen unterhalb z=0) ist entfernt:
+er machte das Teil druckunfreundlich, und die Fixierung übernehmen jetzt
+diese zwei Teile.
+
+**Zu prüfen beim ersten Anhalten:** ob 7,4 mm wirklich in den Schlitz gehen.
+Gedruckte Außenmaße fallen in PLA gern 0,1–0,2 mm zu groß aus; `zapfen_spiel`
+in der Tabelle ist die Stellschraube.
 
 ### Mögliche Nebenwirkung
 

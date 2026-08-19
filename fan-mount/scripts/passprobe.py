@@ -137,6 +137,13 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
         c = FreeCAD.Vector(lx0 + off + g("schraub_lk") * dx,
                            ly0 + off + g("schraub_lk") * dy2, -1)
         r = r.cut(Part.makeCylinder(g("schraub_d") / 2, ah + 2, c))
+
+    # Je ein Schraubloch pro Blende fuer den Zapfen darunter: mittig zur
+    # Heizungstiefe (y) und mittig in der Blende (x).
+    bb_ = g("blende_b")
+    for cx in (xk - bb_ / 2, xk + za + bb_ / 2):
+        r = r.cut(Part.makeCylinder(g("zapfen_sd") / 2, ah + 2,
+                                    FreeCAD.Vector(cx, tiefe / 2, -1)))
     return r.removeSplitter()
 
 
@@ -203,3 +210,49 @@ if __name__ != "nicht_ausfuehren":
     print("  Halter A %.0fx%.0fx%.0f mm  %.1f cm3  solid=%s  %s" % (
         bb.XLength, bb.YLength, bb.ZLength, o.Shape.Volume / 1000, m.isSolid(),
         "BESTANDEN" if all(res.values()) else "FEHLGESCHLAGEN"))
+
+
+# ---------------------------------------------------------------------------
+# Zapfen: hohle Quader, die formschluessig in die Heizungsschlitze fassen
+# ---------------------------------------------------------------------------
+
+def zapfen():
+    """Hohler Quader, unten offen, alle Aussenkanten gerundet.
+
+    Aussenmass = Schlitzbreite minus Spiel x Lochfeldbreite, sitzt also
+    formschluessig im Schlitz und kann sich weder drehen noch wandern.
+    Wird von oben durch die Blende verschraubt.
+    """
+    b, l = g("zapfen_b"), g("zapfen_l")
+    h, w = g("zapfen_h"), g("zapfen_w")
+    rad, sd = g("zapfen_r"), g("zapfen_sd")
+
+    aussen = Part.makeBox(b, l, h)
+    # Nur die vier SENKRECHTEN Kanten runden - die waagerechten bleiben, damit
+    # der Deckel plan auf der Blende aufliegt und unten eine Kante zum
+    # Einfuehren bleibt.
+    senk = [e for e in aussen.Edges
+            if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > h - 1e-6]
+    koerper = aussen.makeFillet(rad, senk)
+    # aushoehlen: von unten bis unter den Deckel
+    innen = Part.makeBox(b - 2 * w, l - 2 * w, h - w, FreeCAD.Vector(w, w, -1))
+    koerper = koerper.cut(innen)
+    # Schraubloch mittig durch den Deckel. Der Deckel sitzt OBEN
+    # (z = h-w .. h), das Loch muss also dort durch, nicht durch den
+    # offenen Boden.
+    koerper = koerper.cut(Part.makeCylinder(
+        sd / 2, w + 2, FreeCAD.Vector(b / 2, l / 2, h - w - 1)))
+    return koerper.removeSplitter()
+
+
+if __name__ != "nicht_ausfuehren":
+    oz = d.getObject("Zapfen_A") or d.addObject("Part::Feature", "Zapfen_A")
+    oz.Shape = zapfen()
+    oz.Label = "Zapfen A (2x benoetigt)"
+    d.recompute()
+    bb = oz.Shape.BoundBox
+    mz = MeshPart.meshFromShape(Shape=oz.Shape, LinearDeflection=0.05,
+                                AngularDeflection=0.5, Relative=False)
+    mz.write(os.path.join(out, "zapfen_A.stl"))
+    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  solid=%s" % (
+        bb.XLength, bb.YLength, bb.ZLength, oz.Shape.Volume / 1000, mz.isSolid()))
