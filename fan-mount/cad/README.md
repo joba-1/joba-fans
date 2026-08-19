@@ -112,12 +112,37 @@ hätte, aber brauchbar. Wird es zu laut, sind 15-mm-Slim-Lüfter der Hebel;
 `halter_A.stl` wird **flach gedruckt, ohne Drehen und ohne Sonderflags** —
 das Teil endet bei z=0 und jede Fläche wird von unten getragen.
 
+**Material: weißes PETG** (Slot 2). PETG statt PLA, weil PLA schon bei etwa
+60 °C erweicht und der Halter auf einem Heizkörper sitzt. Weiß passt zur
+Farbe der Heizkörper.
+
 ```
 kobra-slice halter_A_komplett.stl -o /tmp/halter_A.gcode \
-    --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 --timelapse 0
+    --filament "eSUN PETG" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-60 Lagen, 2 h 10 min, 37 g — Halter und beide Zapfen zusammen. Fertiger Gcode liegt auf job6 unter
+140 Lagen, 3 h 09 min, 60 g — Halter und beide Zapfen zusammen.
+Düse 265 °C, Bett 75 °C.
+
+### Zargenhöhe und Sichtschutz
+
+`zarge_innen` = 26 mm **ab Lüfterauflage** gemessen, also `z_hoehe` = 28 mm
+ab Blech. Die Lüfteroberkante liegt bei 2 + 25 = 27 mm — der schwarze Lüfter
+verschwindet damit vollständig hinter der Zarge, mit 1 mm Überstand.
+
+Alle senkrechten Außenkanten und die obere Umlaufkante sind mit
+`kanten_r` = 1,5 mm gebrochen.
+
+Preis dafür ist Ansaugraum. Bei einem 120-mm-Lüfter wären ~30 mm ideal:
+
+| | Freiraum | über der Zarge |
+|---|---|---|
+| A — Büro | ~55 mm | 27 mm |
+| B — Wohnzimmer | 100 mm | 72 mm |
+| C — Esszimmer | 50 mm | **22 mm** |
+
+Im Esszimmer wird es damit eng — der Lüfter wird dort lauter und liefert
+weniger. Falls das stört, ist `zarge_innen` die Stellschraube. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
 ### Verschraubung

@@ -126,6 +126,63 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     for t in teile[1:]:
         r = r.fuse(t)
 
+    # Aussenkanten brechen - erst verschmelzen, dann runden, sonst trifft der
+    # Radius Kanten, die spaeter ohnehin verschwinden. Nur senkrechte Kanten
+    # am Aussenumriss und die obere Umlaufkante der Zarge; Auflageflaechen
+    # und die Unterseite bleiben plan.
+    rad = g("kanten_r")
+    bb = r.BoundBox
+    kanten = []
+    for e in r.Edges:
+        eb = e.BoundBox
+        senkrecht = eb.ZLength > 1e-6 and eb.XLength < 1e-6 and eb.YLength < 1e-6
+        aussen = (abs(eb.XMin - bb.XMin) < 1e-6 or abs(eb.XMax - bb.XMax) < 1e-6
+                  or abs(eb.YMin - bb.YMin) < 1e-6 or abs(eb.YMax - bb.YMax) < 1e-6)
+        oben = abs(eb.ZMin - bb.ZMax) < 1e-6 and abs(eb.ZLength) < 1e-6
+        if (senkrecht and aussen) or oben:
+            kanten.append(e)
+    # Aussenkanten brechen. Nur GERADE senkrechte Kanten am Aussenumriss und
+    # die obere Umlaufkante - Auflageflaechen und Unterseite bleiben plan.
+    # Einzeln runden: OCCT scheitert an der ganzen Liste, an einzelnen Kanten
+    # fast nie. Nach jedem Fillet neu suchen, denn die Indizes wandern.
+    rad = g("kanten_r")
+
+    def _kandidat(shape):
+        b = shape.BoundBox
+        for e in shape.Edges:
+            try:
+                if e.Curve.__class__.__name__ != "Line":
+                    continue                    # schon gerundet
+            except TypeError:
+                continue                        # Kantentyp ohne Curve
+            eb = e.BoundBox
+            senk = eb.ZLength > rad and eb.XLength < 1e-6 and eb.YLength < 1e-6
+            rand = (abs(eb.XMin - b.XMin) < 1e-6 or abs(eb.XMax - b.XMax) < 1e-6
+                    or abs(eb.YMin - b.YMin) < 1e-6 or abs(eb.YMax - b.YMax) < 1e-6)
+            oben = (abs(eb.ZMin - b.ZMax) < 1e-6 and eb.ZLength < 1e-6
+                    and e.Length > rad)
+            if (senk and rand) or oben:
+                yield e
+
+    gerundet, versucht = 0, set()
+    while True:
+        ziel = None
+        for e in _kandidat(r):
+            kennung = (round(e.BoundBox.XMin, 2), round(e.BoundBox.YMin, 2),
+                       round(e.BoundBox.ZMin, 2), round(e.Length, 2))
+            if kennung not in versucht:
+                ziel, marke = e, kennung
+                break
+        if ziel is None:
+            break
+        versucht.add(marke)
+        try:
+            r = r.makeFillet(rad, [ziel])
+            gerundet += 1
+        except Exception:
+            pass                                # Kante zu kurz fuer den Radius
+    print("  Kanten gerundet: %d" % gerundet)
+
     # Verschraubungsloecher nach Luefternorm: Lochabstand schraub_lk (105 mm
     # beim 120er), also (lueftergroesse - schraub_lk)/2 von jeder Luefterkante.
     # Bezug ist die Luefterecke, nicht die Auflage - so wandern die Loecher
