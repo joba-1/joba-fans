@@ -113,11 +113,11 @@ hätte, aber brauchbar. Wird es zu laut, sind 15-mm-Slim-Lüfter der Hebel;
 das Teil endet bei z=0 und jede Fläche wird von unten getragen.
 
 ```
-kobra-slice halter_A.stl -o /tmp/halter_A.gcode \
+kobra-slice halter_A_komplett.stl -o /tmp/halter_A.gcode \
     --filament "Amazon Basics PLA" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-60 Lagen, 1 h 59 min, 35 g. Fertiger Gcode liegt auf job6 unter
+60 Lagen, 2 h 10 min, 37 g — Halter und beide Zapfen zusammen. Fertiger Gcode liegt auf job6 unter
 `~/halter_A.gcode` (PLA schwarz, Slot 3).
 
 ### Verschraubung
@@ -151,26 +151,31 @@ Prüfung `passt aufs Bett` schlägt an, bevor ein zu breites Teil im Slicer
 landet. Für Heizkörper B und C, die breitere Bleche haben, muss die Blende
 in Segmenten gedruckt und aneinandergereiht werden.
 
-### Befestigung — Zapfen (`zapfen_A.stl`, 2× nötig)
+### Befestigung — Zapfen (2× im Komplett-STL enthalten)
 
-Hohler Quader, unten offen, der **formschlüssig in einen Heizungsschlitz**
-fasst. Außenmaß 7,4 × 39 mm — das ist die Schlitzbreite minus 0,2 mm Spiel
-mal die volle Lochfeldbreite. Er kann sich damit weder drehen noch wandern.
+**Massiver** Quader mit gerundeten Kanten, der **formschlüssig in einen
+Heizungsschlitz** fasst. Außenmaß 7,4 × 39 mm — Schlitzbreite minus 0,2 mm
+Spiel mal die volle Lochfeldbreite. Er kann sich damit weder drehen noch
+wandern.
 
 | | mm |
 |---|---|
 | Außen | 7,4 × 39,0 |
 | Höhe | 7,0 |
-| Wandstärke | 2,0 |
 | Kantenradius (4 senkrechte Kanten) | 2,0 |
-| Schraubloch | ⌀3,5 |
+| Kernloch M3, selbstschneidend | ⌀2,5, 5,5 tief |
 
-Der Zapfen wird von unten durch den Schlitz gesteckt und mit **einer Schraube
-durch die Blende** in seinen Deckel verschraubt. Klemmlänge Blende + Deckel
-= 4 mm; 5 mm des Zapfens stecken im Blech.
+Der Zapfen wird von unten durch den Schlitz gesteckt und mit **einer M3 durch
+die Blende** in sein Kernloch geschraubt. Das Loch ist nicht durchgehend —
+unten bleiben 1,5 mm Material, damit die Schraube Fleisch zum Schneiden hat.
 
 Das zugehörige Loch in jeder Blende sitzt mittig zur Heizungstiefe
 (y = 32,5) und mittig in der Blende — beide fluchten.
+
+**Montage vs. Druck:** montiert werden die Zapfen unter den Blenden. Für den
+Druck liegen sie in `halter_A_komplett.stl` frei in der Lüfteröffnung, wo der
+Halter ohnehin leer ist — ein STL darf mehrere getrennte Volumenkörper
+enthalten, der Slicer behandelt sie als eigene Objekte.
 
 Der ursprüngliche Randumgriff (Backen und Nasen unterhalb z=0) ist entfernt:
 er machte das Teil druckunfreundlich, und die Fixierung übernehmen jetzt

@@ -216,43 +216,54 @@ if __name__ != "nicht_ausfuehren":
 # Zapfen: hohle Quader, die formschluessig in die Heizungsschlitze fassen
 # ---------------------------------------------------------------------------
 
-def zapfen():
-    """Hohler Quader, unten offen, alle Aussenkanten gerundet.
+def zapfen(x0=0.0, y0=0.0):
+    """Massiver Quader mit gerundeten Kanten, der formschluessig in einen
+    Heizungsschlitz fasst.
 
     Aussenmass = Schlitzbreite minus Spiel x Lochfeldbreite, sitzt also
     formschluessig im Schlitz und kann sich weder drehen noch wandern.
-    Wird von oben durch die Blende verschraubt.
+    Wird von oben durch die Blende verschraubt; zapfen_sd ist das KERNLOCH
+    fuer eine selbstschneidende M3, kein Durchgangsloch.
     """
     b, l = g("zapfen_b"), g("zapfen_l")
-    h, w = g("zapfen_h"), g("zapfen_w")
-    rad, sd = g("zapfen_r"), g("zapfen_sd")
+    h, rad, sd = g("zapfen_h"), g("zapfen_r"), g("zapfen_sd")
 
-    aussen = Part.makeBox(b, l, h)
-    # Nur die vier SENKRECHTEN Kanten runden - die waagerechten bleiben, damit
-    # der Deckel plan auf der Blende aufliegt und unten eine Kante zum
-    # Einfuehren bleibt.
+    aussen = Part.makeBox(b, l, h, FreeCAD.Vector(x0, y0, 0))
+    # Nur die vier SENKRECHTEN Kanten runden - oben bleibt die Flaeche plan
+    # zur Anlage an der Blende, unten die Kante zum Einfuehren.
     senk = [e for e in aussen.Edges
             if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > h - 1e-6]
     koerper = aussen.makeFillet(rad, senk)
-    # aushoehlen: von unten bis unter den Deckel
-    innen = Part.makeBox(b - 2 * w, l - 2 * w, h - w, FreeCAD.Vector(w, w, -1))
-    koerper = koerper.cut(innen)
-    # Schraubloch mittig durch den Deckel. Der Deckel sitzt OBEN
-    # (z = h-w .. h), das Loch muss also dort durch, nicht durch den
-    # offenen Boden.
+    # Kernloch von oben, nicht durchgehend: unten bleiben 1,5 mm Material,
+    # damit die Schraube Fleisch zum Schneiden hat und nicht durchrutscht.
     koerper = koerper.cut(Part.makeCylinder(
-        sd / 2, w + 2, FreeCAD.Vector(b / 2, l / 2, h - w - 1)))
+        sd / 2, h - 1.5 + 1, FreeCAD.Vector(x0 + b / 2, y0 + l / 2, 1.5)))
     return koerper.removeSplitter()
 
 
 if __name__ != "nicht_ausfuehren":
+    # Die beiden Zapfen werden fuer den DRUCK in die Luefteroeffnung gelegt -
+    # dort ist der Halter ohnehin leer, also kostet es keine Bettflaeche.
+    # Montiert werden sie unter den Blenden, an deren vorhandenen Loechern.
+    zi = g("z_innen")
+    zb, zl = g("zapfen_b"), g("zapfen_l")
+    ymid = g("a_tiefe") / 2 - zl / 2                  # mittig zur Blechtiefe
+    zapfen_paar = [zapfen(zi * f - zb / 2, ymid) for f in (1 / 3, 2 / 3)]
+
     oz = d.getObject("Zapfen_A") or d.addObject("Part::Feature", "Zapfen_A")
-    oz.Shape = zapfen()
-    oz.Label = "Zapfen A (2x benoetigt)"
+    oz.Shape = zapfen_paar[0].fuse(zapfen_paar[1])
+    oz.Label = "Zapfen A (2x, in der Luefteroeffnung platziert)"
     d.recompute()
-    bb = oz.Shape.BoundBox
-    mz = MeshPart.meshFromShape(Shape=oz.Shape, LinearDeflection=0.05,
+    bbz = oz.Shape.BoundBox
+    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  (2 Stueck)" % (
+        bbz.XLength, bbz.YLength, bbz.ZLength, oz.Shape.Volume / 1000))
+
+    # Eine Datei mit allen drei Koerpern: Halter + 2 Zapfen. Ein STL darf
+    # mehrere getrennte Volumen enthalten, der Slicer behandelt sie als
+    # eigene Objekte.
+    ges = d.getObject("Halter_A").Shape.fuse(oz.Shape)
+    mg = MeshPart.meshFromShape(Shape=ges, LinearDeflection=0.05,
                                 AngularDeflection=0.5, Relative=False)
-    mz.write(os.path.join(out, "zapfen_A.stl"))
-    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  solid=%s" % (
-        bb.XLength, bb.YLength, bb.ZLength, oz.Shape.Volume / 1000, mz.isSolid()))
+    mg.write(os.path.join(out, "halter_A_komplett.stl"))
+    print("  Komplett: %d Volumenkoerper, %.2f cm3, solid=%s" % (
+        len(ges.Solids), ges.Volume / 1000, mg.isSolid()))
