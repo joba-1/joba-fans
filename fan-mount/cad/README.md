@@ -163,11 +163,23 @@ wandern.
 | Außen | 7,4 × 39,0 |
 | Höhe | 7,0 |
 | Kantenradius (4 senkrechte Kanten) | 2,0 |
-| Kernloch M3, selbstschneidend | ⌀2,5, 5,5 tief |
+| Kernloch M3, selbstschneidend | ⌀2,5, **durchgehend** |
 
 Der Zapfen wird von unten durch den Schlitz gesteckt und mit **einer M3 durch
-die Blende** in sein Kernloch geschraubt. Das Loch ist nicht durchgehend —
-unten bleiben 1,5 mm Material, damit die Schraube Fleisch zum Schneiden hat.
+die Blende** in sein Kernloch geschraubt.
+
+Die zwei Durchmesser gehören zusammen und dürfen nicht gleich sein:
+
+| | ⌀ | Funktion |
+|---|---|---|
+| Blende (`blende_sd`) | 3,4 mm | Durchgang — die Schraube läuft frei durch |
+| Zapfen (`zapfen_sd`) | 2,5 mm | Kernloch — die Schraube schneidet ihr Gewinde |
+
+Wäre das Blendenloch ebenso eng, würde die Schraube auch dort schneiden und
+die beiden Teile nicht zusammenziehen.
+
+Das Kernloch geht **durch den ganzen Zapfen**: lässt das geschnittene Gewinde
+auf einer Seite nach, wird der Zapfen umgedreht und die andere Seite genutzt.
 
 Das zugehörige Loch in jeder Blende sitzt mittig zur Heizungstiefe
 (y = 32,5) und mittig in der Blende — beide fluchten.

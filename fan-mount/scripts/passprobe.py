@@ -142,7 +142,7 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     # Heizungstiefe (y) und mittig in der Blende (x).
     bb_ = g("blende_b")
     for cx in (xk - bb_ / 2, xk + za + bb_ / 2):
-        r = r.cut(Part.makeCylinder(g("zapfen_sd") / 2, ah + 2,
+        r = r.cut(Part.makeCylinder(g("blende_sd") / 2, ah + 2,
                                     FreeCAD.Vector(cx, tiefe / 2, -1)))
     return r.removeSplitter()
 
@@ -234,10 +234,10 @@ def zapfen(x0=0.0, y0=0.0):
     senk = [e for e in aussen.Edges
             if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > h - 1e-6]
     koerper = aussen.makeFillet(rad, senk)
-    # Kernloch von oben, nicht durchgehend: unten bleiben 1,5 mm Material,
-    # damit die Schraube Fleisch zum Schneiden hat und nicht durchrutscht.
+    # Kernloch DURCHGEHEND, damit der Zapfen beidseitig verwendbar ist:
+    # laesst das Gewinde auf einer Seite nach, wird er umgedreht.
     koerper = koerper.cut(Part.makeCylinder(
-        sd / 2, h - 1.5 + 1, FreeCAD.Vector(x0 + b / 2, y0 + l / 2, 1.5)))
+        sd / 2, h + 2, FreeCAD.Vector(x0 + b / 2, y0 + l / 2, -1)))
     return koerper.removeSplitter()
 
 
