@@ -319,7 +319,7 @@ if __name__ != "nicht_ausfuehren":
 # Zapfen: hohle Quader, die formschluessig in die Heizungsschlitze fassen
 # ---------------------------------------------------------------------------
 
-def zapfen(x0=0.0, y0=0.0):
+def zapfen(x0=0.0, y0=0.0, sd=None):
     """Massiver Quader mit gerundeten Kanten, der formschluessig in einen
     Heizungsschlitz fasst.
 
@@ -329,7 +329,9 @@ def zapfen(x0=0.0, y0=0.0):
     fuer eine selbstschneidende M3, kein Durchgangsloch.
     """
     b, l = g("zapfen_b"), g("zapfen_l")
-    h, rad, sd = g("zapfen_h"), g("zapfen_r"), g("zapfen_sd")
+    h, rad = g("zapfen_h"), g("zapfen_r")
+    if sd is None:
+        sd = g("zapfen_sd")
 
     aussen = Part.makeBox(b, l, h, FreeCAD.Vector(x0, y0, 0))
     # Nur die vier SENKRECHTEN Kanten runden - oben bleibt die Flaeche plan
@@ -351,15 +353,26 @@ if __name__ != "nicht_ausfuehren":
     zi = g("z_innen")
     zb, zl = g("zapfen_b"), g("zapfen_l")
     ymid = g("a_tiefe") / 2 - zl / 2                  # mittig zur Blechtiefe
-    zapfen_paar = [zapfen(zi * f - zb / 2, ymid) for f in (1 / 3, 2 / 3)]
+
+    # Je zwei Zapfen fuer M2, M3 und M4 - welche Schrauben da sind, zeigt
+    # sich erst beim Zusammenbau. Gleichmaessig ueber die Oeffnung verteilt.
+    saetze = [("M2", g("kern_m2")), ("M3", g("zapfen_sd")), ("M4", g("kern_m4"))]
+    stueck, n = [], 2 * len(saetze)
+    luecke = (zi - n * zb) / (n + 1)
+    for i, (_, kern) in enumerate([s for s in saetze for _ in range(2)]):
+        x = luecke + i * (zb + luecke)
+        stueck.append(zapfen(x, ymid, kern))
 
     oz = d.getObject("Zapfen_A") or d.addObject("Part::Feature", "Zapfen_A")
-    oz.Shape = zapfen_paar[0].fuse(zapfen_paar[1])
-    oz.Label = "Zapfen A (2x, in der Luefteroeffnung platziert)"
+    ges_z = stueck[0]
+    for t in stueck[1:]:
+        ges_z = ges_z.fuse(t)
+    oz.Shape = ges_z
+    oz.Label = "Zapfen A (je 2x M2/M3/M4)"
     d.recompute()
     bbz = oz.Shape.BoundBox
-    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  (2 Stueck)" % (
-        bbz.XLength, bbz.YLength, bbz.ZLength, oz.Shape.Volume / 1000))
+    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  (%d Stueck: je 2x M2/M3/M4)" % (
+        bbz.XLength, bbz.YLength, bbz.ZLength, oz.Shape.Volume / 1000, n))
 
     # Eine Datei mit allen drei Koerpern: Halter + 2 Zapfen. Ein STL darf
     # mehrere getrennte Volumen enthalten, der Slicer behandelt sie als

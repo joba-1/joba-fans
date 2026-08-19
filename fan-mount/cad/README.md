@@ -121,7 +121,7 @@ kobra-slice halter_A_komplett.stl -o /tmp/halter_A.gcode \
     --filament "eSUN PETG" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-140 Lagen, 3 h 07 min, 60 g — Halter und beide Zapfen zusammen.
+140 Lagen, 3 h 28 min, 65 g — Halter und alle sechs Zapfen zusammen.
 Düse 265 °C, Bett 75 °C.
 
 ### Zargenhöhe und Sichtschutz
@@ -186,7 +186,7 @@ Prüfung `passt aufs Bett` schlägt an, bevor ein zu breites Teil im Slicer
 landet. Für Heizkörper B und C, die breitere Bleche haben, muss die Blende
 in Segmenten gedruckt und aneinandergereiht werden.
 
-### Befestigung — Zapfen (2× im Komplett-STL enthalten)
+### Befestigung — Zapfen (6× im Komplett-STL: je 2× M2, M3, M4)
 
 **Massiver** Quader mit gerundeten Kanten, der **formschlüssig in einen
 Heizungsschlitz** fasst. Außenmaß 7,4 × 39 mm — Schlitzbreite minus 0,2 mm
@@ -198,7 +198,13 @@ wandern.
 | Außen | 7,4 × 39,0 |
 | Höhe | 7,0 |
 | Kantenradius (4 senkrechte Kanten) | 2,0 |
-| Kernloch M3, selbstschneidend | ⌀2,5, **durchgehend** |
+| Kernloch, selbstschneidend, durchgehend | ⌀1,6 (M2) / 2,5 (M3) / 3,3 (M4) |
+
+Gedruckt werden **je zwei Zapfen pro Schraubengröße**, weil erst beim
+Zusammenbau feststeht, welche Schrauben zur Hand sind. Verbaut werden zwei,
+der Rest ist Reserve. Reihenfolge auf dem Bett von links nach rechts:
+M2, M2, M3, M3, M4, M4. Der Steg neben dem Loch bleibt selbst bei M4 noch
+2,05 mm dick.
 
 Der Zapfen wird von unten durch den Schlitz gesteckt und mit **einer M3 durch
 die Blende** in sein Kernloch geschraubt.
