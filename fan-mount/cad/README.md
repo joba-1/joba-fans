@@ -134,9 +134,14 @@ Mit `kanten_r` = 1,5 mm gebrochen sind: alle senkrechten Außenkanten, die
 obere Umlaufkante der Zarge und die **drei freien Oberkanten je Blende**
 (zwei Längsseiten, eine Stirnseite).
 
-**Absichtlich scharf** bleibt die vierte Blendenkante — der Übergang zur
-Zarge. Dort ist die Materialanhäufung als Verstärkung erwünscht, weil die
-2 mm dünne Blende genau an dieser Stelle an der hohen Zargenwand hängt.
+Die vierte Blendenkante — der Übergang zur Zarge — bekommt stattdessen eine
+**Kehle** (`kehle_r` = 1,5 mm). Das ist eine *Innenkante*: die Rundung läuft
+andersherum als an den Außenkanten und **fügt Material hinzu**, statt es
+wegzunehmen. Sie versteift die 2 mm dünne Blende genau dort, wo sie an der
+28 mm hohen Zargenwand hängt.
+
+Die Kehle muss **nach** den Außenkanten gesetzt werden: die Längsrundungen
+der Blende laufen sonst bis an den Übergang durch und fressen sie weg.
 
 Preis dafür ist Ansaugraum. Bei einem 120-mm-Lüfter wären ~30 mm ideal:
 

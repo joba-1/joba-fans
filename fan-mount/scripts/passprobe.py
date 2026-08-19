@@ -196,6 +196,39 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
             pass                                # Kante zu kurz fuer den Radius
     print("  Kanten gerundet: %d" % gerundet)
 
+    # KEHLE am Uebergang Blende -> Zargenwand. Das ist eine Innenkante: die
+    # Rundung laeuft andersherum als an den Aussenkanten und fuegt Material
+    # hinzu statt es wegzunehmen. Sie versteift die 2 mm duenne Blende genau
+    # dort, wo sie an der 28 mm hohen Zargenwand haengt.
+    #
+    # Muss NACH den Aussenkanten kommen: die Laengsrundungen der Blende
+    # laufen sonst bis an den Uebergang durch und fressen die Kehle weg.
+    kr = g("kehle_r")
+    if kr > 0:
+        for _ in range(8):
+            ziel = None
+            for e in r.Edges:
+                try:
+                    if e.Curve.__class__.__name__ != "Line":
+                        continue
+                except TypeError:
+                    continue
+                eb = e.BoundBox
+                senkrecht_in_y = (abs(eb.XLength) < 1e-6 and abs(eb.ZLength) < 1e-6
+                                  and eb.YLength > kr)
+                am_uebergang = (abs(eb.ZMin - g("z_auflage")) < 1e-6
+                                and (abs(eb.XMin - xk) < 1e-6
+                                     or abs(eb.XMin - (xk + za)) < 1e-6))
+                if senkrecht_in_y and am_uebergang:
+                    ziel = e
+                    break
+            if ziel is None:
+                break
+            try:
+                r = r.makeFillet(kr, [ziel])
+            except Exception:
+                break
+
     # Verschraubungsloecher nach Luefternorm: Lochabstand schraub_lk (105 mm
     # beim 120er), also (lueftergroesse - schraub_lk)/2 von jeder Luefterkante.
     # Bezug ist die Luefterecke, nicht die Auflage - so wandern die Loecher
