@@ -161,12 +161,25 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
                     or abs(eb.YMin - b.YMin) < 1e-6 or abs(eb.YMax - b.YMax) < 1e-6)
             oben = (abs(eb.ZMin - b.ZMax) < 1e-6 and eb.ZLength < 1e-6
                     and e.Length > rad)
-            if (senk and rand) or oben:
+            # Die DREI freien Oberkanten je Blende: zwei Laengsseiten und die
+            # Stirnseite aussen. Sie liegen auf Auflagehoehe, nicht auf
+            # BoundBox.ZMax. Die vierte Kante - der Uebergang zur Zarge -
+            # bleibt scharf: dort ist eine Materialverstaerkung erwuenscht.
+            auf_hoehe = (abs(eb.ZMin - g("z_auflage")) < 1e-6
+                         and eb.ZLength < 1e-6 and e.Length > rad)
+            laengs = abs(eb.XLength) > 1e-6 and (
+                abs(eb.YMin - b.YMin) < 1e-6 or abs(eb.YMax - b.YMax) < 1e-6
+                or abs(eb.YMin) < 1e-6 or abs(eb.YMax - g("a_tiefe")) < 1e-6)
+            stirn = (abs(eb.XLength) < 1e-6
+                     and (abs(eb.XMin - b.XMin) < 1e-6
+                          or abs(eb.XMax - b.XMax) < 1e-6))
+            blende = auf_hoehe and (laengs or stirn)
+            if (senk and rand) or oben or blende:
                 yield e
 
     gerundet, versucht = 0, set()
-    while True:
-        ziel = None
+    for _ in range(60):                         # Obergrenze gegen Endlosschleife
+        ziel = marke = None
         for e in _kandidat(r):
             kennung = (round(e.BoundBox.XMin, 2), round(e.BoundBox.YMin, 2),
                        round(e.BoundBox.ZMin, 2), round(e.Length, 2))
@@ -175,9 +188,9 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
                 break
         if ziel is None:
             break
-        versucht.add(marke)
-        try:
-            r = r.makeFillet(rad, [ziel])
+        versucht.add(marke)                     # auch bei Misserfolg vermerken,
+        try:                                    # sonst blockiert eine einzelne
+            r = r.makeFillet(rad, [ziel])       # unrundbare Kante alle weiteren
             gerundet += 1
         except Exception:
             pass                                # Kante zu kurz fuer den Radius

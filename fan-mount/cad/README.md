@@ -121,7 +121,7 @@ kobra-slice halter_A_komplett.stl -o /tmp/halter_A.gcode \
     --filament "eSUN PETG" --layer 0.2 --max-speed 60 --timelapse 0
 ```
 
-140 Lagen, 3 h 09 min, 60 g — Halter und beide Zapfen zusammen.
+140 Lagen, 3 h 07 min, 60 g — Halter und beide Zapfen zusammen.
 Düse 265 °C, Bett 75 °C.
 
 ### Zargenhöhe und Sichtschutz
@@ -130,8 +130,13 @@ Düse 265 °C, Bett 75 °C.
 ab Blech. Die Lüfteroberkante liegt bei 2 + 25 = 27 mm — der schwarze Lüfter
 verschwindet damit vollständig hinter der Zarge, mit 1 mm Überstand.
 
-Alle senkrechten Außenkanten und die obere Umlaufkante sind mit
-`kanten_r` = 1,5 mm gebrochen.
+Mit `kanten_r` = 1,5 mm gebrochen sind: alle senkrechten Außenkanten, die
+obere Umlaufkante der Zarge und die **drei freien Oberkanten je Blende**
+(zwei Längsseiten, eine Stirnseite).
+
+**Absichtlich scharf** bleibt die vierte Blendenkante — der Übergang zur
+Zarge. Dort ist die Materialanhäufung als Verstärkung erwünscht, weil die
+2 mm dünne Blende genau an dieser Stelle an der hohen Zargenwand hängt.
 
 Preis dafür ist Ansaugraum. Bei einem 120-mm-Lüfter wären ~30 mm ideal:
 
