@@ -140,8 +140,19 @@ def zapfen(x0=0.0, y0=0.0, sd=None):
     senk = [e for e in aussen.Edges
             if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > h - 1e-6]
     koerper = aussen.makeFillet(rad, senk)
-    koerper = koerper.cut(Part.makeCylinder(
-        sd / 2, h + 2, FreeCAD.Vector(x0 + b / 2, y0 + l / 2, -1)))
+    cx, cy = x0 + b / 2, y0 + l / 2
+    koerper = koerper.cut(Part.makeCylinder(sd / 2, h + 2,
+                                           FreeCAD.Vector(cx, cy, -1)))
+    # Trichter an BEIDEN Enden: die Schraube findet den Anfang, ohne
+    # wegzukippen. Beginnt beim frueheren mittleren Durchmesser (2,5 mm)
+    # und laeuft auf das Kernloch zu. Beidseitig, weil der Zapfen
+    # umgedreht verwendbar bleiben soll.
+    td, tt = g("trichter_d"), g("trichter_t")
+    if td > sd:
+        koerper = koerper.cut(Part.makeCone(td / 2, sd / 2, tt,
+                                            FreeCAD.Vector(cx, cy, h - tt)))
+        koerper = koerper.cut(Part.makeCone(sd / 2, td / 2, tt,
+                                            FreeCAD.Vector(cx, cy, 0)))
     return koerper.removeSplitter()
 
 
@@ -173,13 +184,14 @@ if _ms > 0:
     ymid = _frei_von + (_frei_bis - _frei_von - zl) / 2
 else:
     ymid = g("a_tiefe") / 2 - zl / 2
-saetze = [g("kern_m2"), g("kern_m2"), g("zapfen_sd"), g("zapfen_sd"),
-          g("kern_m4"), g("kern_m4")]
+# Zwei Zapfen genuegen - beide Kernlochgroessen haben sich bewaehrt,
+# der neue Wert liegt dazwischen.
+saetze = [g("zapfen_sd"), g("zapfen_sd")]
 n = len(saetze)
-if _ms > 0:
-    # Zwei Lochfelder: die sechs Zapfen auf beide verteilen, drei je Reihe.
-    # In einer Reihe stossen sie bei 7,8 mm Breite sonst aneinander und
-    # verschmelzen beim fuse.
+if _ms > 0 and n > 2:
+    # Zwei Lochfelder: die Zapfen auf beide verteilen. In einer Reihe
+    # stossen sie bei 7,8 mm Breite sonst aneinander und verschmelzen
+    # beim fuse. Bei nur zwei Zapfen ist dafuer reichlich Platz.
     # Reihe 2 ebenso mittig in ihren freien Bereich: zwischen Mittelrippe
     # und hinterer Rippe.
     _f2_von = g("a_rand") + g("a_lochfeld") + _ms
