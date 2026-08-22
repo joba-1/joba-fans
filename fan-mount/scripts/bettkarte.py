@@ -25,6 +25,10 @@ DATEN = {
              0.00, 30),
     "z020": ("28,55,33, 14,50,45, 30,33,45, 43,45,35,30,34,45,48, 42,42,41, 44,46,48, 46,50,48",
              0.20, 55),
+    # ab hier SCHWARZES PETG - nicht direkt mit den Weiss-Messungen
+    # vergleichbar, das Material traegt bei gleichem Offset mehr auf.
+    "z002s": ("26,50,39, 9,44,35, 26,27,34, 35,34,27,31,34,49,39, 33,28,35, 41,36,39, 23,40,40",
+              0.02, 55),
 }
 WAHL = sys.argv[1] if len(sys.argv) > 1 else "z000"
 ROH, OFFSET, VMAX = DATEN[WAHL]

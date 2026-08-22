@@ -90,7 +90,45 @@ Das rechnerische Optimum 0.02 wurde gedruckt und vom Nutzer beurteilt:
    aber weiter.
 
 **Fazit des Nutzers: 0.02 ist ein möglicher Kompromiss für grosse Teile,
-aber nicht wirklich gut.**
+aber nicht wirklich gut.** Der einzige Kreis, der ohne Abstriche gut
+aussieht, ist der mit **23** (vorne links).
+
+### Die Messwerte widerlegen die Prognose — anderes Filament
+
+Gemessen (schwarzes PETG):
+
+```
+            links ------------------> rechts
+hinten      26    ·    ·   50    ·    ·   39
+             ·    9    ·   44    ·   35    ·
+             ·    ·   26   27   34    ·    ·
+MITTE       35   34   27   31   34   49   39
+             ·    ·   33   28   35    ·    ·
+             ·   41    ·   36    ·   39    ·
+vorn        23    ·    ·   40    ·    ·   40
+```
+
+| | 0.00 weiss | 0.02 **schwarz** | 0.20 weiss |
+|---|---|---|---|
+| Median | 18 | **35** | 44 |
+| gut (20-29) | 11 | 6 | 1 |
+| >= 30 sichtbar | 1 | **18** | 23 |
+
+Prognostiziert war für 0.02 ein Median von 21, gemessen sind **35** — der
+Druck verhält sich, als wäre er mit Offset **0.136** entstanden.
+
+**Ursache: es ist ein anderes Filament.** Schwarzes statt weisses PETG,
+gleiche Firma und gleicher Typ, aber offenbar nicht gleiches
+Fliessverhalten. Damit sind die drei Messreihen **nicht direkt
+vergleichbar**, und die aus zwei Weiss-Messungen abgeleitete Steigung
+gilt für Schwarz nicht.
+
+Auch die Qualitätseichung verschiebt sich: bei Weiss war **28** perfekt,
+bei Schwarz ist es **23**.
+
+Lehre: eine Offset-Kalibrierung gilt **pro Filament**, nicht pro Drucker.
+Beim Materialwechsel neu bestimmen, auch wenn Hersteller und Typ
+übereinstimmen.
 
 Damit ist die zentrale Aussage dieser Messreihe: **bei der derzeitigen
 Bettstreuung lässt sich ein grosses Objekt nicht mit einwandfreiem Boden
