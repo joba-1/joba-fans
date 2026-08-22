@@ -25,8 +25,10 @@ Am gedruckten Teil beurteilt — damit werden aus Zahlen Urteile:
 | 30 | leicht zu hoch, Lücken zwischen den Linien |
 | ab 40 | mehr oder weniger zerfetzt |
 
-**Das Optimum liegt bei 28, nicht bei der theoretischen Lagenhöhe 20.**
-Auf strukturiertem PEI muss das Material die Textur füllen.
+**Das gute Band reicht von 20 bis 28**, nicht nur bis zur theoretischen
+Lagenhöhe 20 — der Nutzer beurteilt auch alle 20er-Werte des ersten
+Tests als gut. Auf strukturiertem PEI muss das Material die Textur
+füllen, deshalb liegt das Optimum über der Sollhöhe.
 
 ## Vergleich mit z-Offset 0.00
 
@@ -49,13 +51,25 @@ stand, kam schlicht kein Material heraus — das sah aus wie eine Senke.
 
 ## Folgerung für den Arbeitswert
 
-Ein Offset-Schritt von 0,20 mm brachte im Mittel +24 Hundertstel.
-Median bei Offset 0 war 18, Ziel ist 28:
+Ein Offset-Schritt von 0,20 mm brachte im Mittel +24 Hundertstel,
+der Median bei Offset 0 war 18:
 
-    (28 - 18) / 24 * 0,20 = 0,08
+| Ziel | Offset |
+|---|---|
+| 20 (unteres Bandende) | 0.02 |
+| **24 (Bandmitte)** | **0.05** |
+| 28 (oberes Bandende) | 0.08 |
 
-Also **0.08 bis 0.10** als Arbeitswert — deutlich unter dem bisher
-benutzten 0.15.
+**0.05** legt die Bandmitte auf den Median und lässt nach beiden Seiten
+gleich viel Luft — deutlich unter dem bisher benutzten 0.15.
+
+Bei Offset 0.00 lagen bereits **11 von 25 Punkten (44 %) im guten Band**;
+4 Punkte hatten gar kein Material, 4 waren zu dünn, 5 knapp, 1 zu hoch.
+
+Das verbleibende Problem ist nicht der Offset, sondern die **Streuung**:
+bei einer Spanne von rund 20 Hundertsteln und einem guten Band von 8
+Hundertsteln Breite passt nicht alles gleichzeitig hinein. Dafür ist die
+mechanische Justage der drei Schrauben da.
 
 ## Nebenbefund: die Ziffern werden gedruckt
 
