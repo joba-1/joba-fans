@@ -29,15 +29,24 @@ Düse so tief, dass gar kein Material austritt; sie liessen sich nicht
 ablösen und nicht messen. Die Randmitten erreichen dagegen 28–30, also
 *über* dem Sollwert.
 
-**Das Bett hat eine Delle in der Mitte, keine Kuppel.** Die frühere
-gegenteilige Annahme stammte von einem 132 mm breiten Teil, das den
-echten Plattenrand nie erreicht hat.
+**Das Bett hat eine Senke, keine Kuppel.** Die frühere gegenteilige
+Annahme stammte von einem 132 mm breiten Teil, das den echten
+Plattenrand nie erreicht hat.
 
-Folge für die Justage: Die drei Schrauben unter dem Bett können die
-leichte Schräglage nach links beheben, **nicht aber die Delle** — drei
-Punkte definieren eine Ebene, keine Wölbung. Dagegen hilft Unterlegen
-in der Mitte, oder ein Offset hoch genug, dass die Mitte noch trägt.
+Die Farbkarte (`bettkarte-z000.png`, erzeugt mit
+`scripts/bettkarte.py`) zeigt die Form deutlicher als die Tabelle: es
+ist **keine zentrierte Delle, sondern eine diagonale Senke** von
+hinten-links über die Mitte nach vorn. Die Tiefpunkte liegen bei
+90/160, 125/160 und 125/125, also gegenüber der Plattenmitte nach
+hinten-links versetzt. Der Wert 0 bei hinten-links (x=22, y=228) ist
+damit **kein Ausreisser**, sondern das Ende derselben Senke — die 7
+direkt daneben stützt das.
 
-Der Wert 0 bei hinten-links (x=22, y=228) passt nicht ins Bild — die
-Nachbarn dort liegen bei 24, 7 und 24. Vermutlich lokale Verschmutzung
-oder ein Ablösefehler, nicht die Bettform.
+Die Hochpunkte bilden das Gegenstück: rechts aussen (194/125 = 28,
+228/125 = 30), links aussen (22/125 = 28) und vorn rechts
+(194/56 = 26). Der gesamte vordere Rand liegt im Sollbereich.
+
+Folge für die Justage: Eine diagonale Senke hat eine **Kipp-Komponente**,
+und Kippen können die drei Schrauben unter dem Bett — die Achse verläuft
+etwa hinten-links nach vorn-rechts. Ob danach ein Restverzug bleibt, den
+nur Unterlegen behebt, zeigt erst die Messung nach dem Nachstellen.
