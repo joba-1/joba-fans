@@ -75,7 +75,7 @@ out = "/data/joachim/git/fan-stand/cad/tests/shim-schablonen.pdf"
 with PdfPages(out) as pdf:
     # Uebersicht
     fig = plt.figure(figsize=(8.27, 11.69))           # A4 hoch
-    ax = fig.add_axes([0.12, 0.30, 0.76, 0.50])
+    ax = fig.add_axes([0.13, 0.34, 0.72, 0.44])
     im = ax.contourf(gx, gy, noetig, levels=[0] + stufen_lagen + [99],
                      cmap="YlOrRd")
     ax.contour(gx, gy, noetig, levels=stufen_lagen,
@@ -89,29 +89,45 @@ with PdfPages(out) as pdf:
     ax.set_xlabel("X [mm]   (links → rechts)")
     ax.set_ylabel("Y [mm]   (vorn → hinten)")
     fig.colorbar(im, ax=ax, shrink=0.6, label="Lagen")
-    fig.text(0.5, 0.03,
+    fig.text(0.5, 0.20,
              "%d Schablonen (Stufen zu je %d Lagen), maximal %.0f Lagen = %.2f mm"
              % (STUFEN, STUFENHOEHE, noetig.max(), noetig.max() * FOLIE / 100),
              ha="center", fontsize=10)
     pdf.savefig(fig, bbox_inches=None); plt.close(fig)
 
     # Je Stufe eine massstabsgetreue Seite
-    # 250 mm passen NICHT auf A4: die kurze Seite misst nur 210 mm.
-    # Also A3 quer (420 x 297 mm) - dort ist die Platte in beiden Richtungen
-    # 1:1 unterzubringen, mit Rand fuer Beschriftung.
-    A3B, A3H = 420.0, 297.0
+    # Die ganze Platte (250 mm) passt nicht auf A4. Sie muss aber auch
+    # nicht: Folie bekommt nur die Senke, und die liegt in einer Ecke.
+    # Also nur den belegten Ausschnitt zeigen, auf 10 mm gerundet und mit
+    # etwas Rand - das passt 1:1 auf A4 hoch.
+    m = noetig >= stufen_lagen[0]
+    AX0 = max(0.0, np.floor((gx[m].min() - 8) / 10) * 10)
+    AX1 = min(BETT, np.ceil((gx[m].max() + 8) / 10) * 10)
+    AY0 = max(0.0, np.floor((gy[m].min() - 8) / 10) * 10)
+    AY1 = min(BETT, np.ceil((gy[m].max() + 8) / 10) * 10)
+    AW, AH = AX1 - AX0, AY1 - AY0
+
+    A4B, A4H = 210.0, 297.0
     for nr, lage in enumerate(stufen_lagen, start=1):
-        fig = plt.figure(figsize=(A3B/25.4, A3H/25.4))
-        ax = fig.add_axes([(A3B/2 - BETT/2)/A3B, 25.0/A3H,
-                           BETT/A3B, BETT/A3H])
+        fig = plt.figure(figsize=(A4B/25.4, A4H/25.4))
+        ax = fig.add_axes([(A4B/2 - AW/2)/A4B, 42.0/A4H, AW/A4B, AH/A4H])
         ax.contour(gx, gy, noetig, levels=[lage], colors="black", linewidths=1.5)
         ax.contourf(gx, gy, noetig, levels=[lage, 99], colors=["#00000012"])
-        # Plattenrand als Passmarke
+        # Plattenrand als Passmarke - er liegt teilweise im Ausschnitt und
+        # ist beim Auflegen die einzige verlaessliche Referenz.
         ax.plot([0, BETT, BETT, 0, 0], [0, 0, BETT, BETT, 0],
-                color="black", linewidth=0.8, linestyle=":")
+                color="black", linewidth=1.2)
+        for lx, ly, txt in ((0, BETT, "Ecke hinten links"),
+                            (0, 0, "Ecke vorn links")):
+            if AX0 <= lx <= AX1 and AY0 <= ly <= AY1:
+                ax.plot([lx], [ly], marker="+", ms=14, mew=1.5, color="black")
+                ax.annotate(txt, (lx, ly), textcoords="offset points",
+                            xytext=(6, -12 if ly > AY0 + 10 else 8),
+                            fontsize=8, style="italic")
         ax.set_aspect("equal")
-        ax.set_xlim(0, BETT); ax.set_ylim(0, BETT)
-        ax.set_xticks(range(0, 251, 50)); ax.set_yticks(range(0, 251, 50))
+        ax.set_xlim(AX0, AX1); ax.set_ylim(AY0, AY1)
+        ax.set_xticks(range(int(AX0), int(AX1) + 1, 20))
+        ax.set_yticks(range(int(AY0), int(AY1) + 1, 20))
         ax.tick_params(labelsize=7)
         ax.grid(True, linewidth=0.3, alpha=0.3)
         fig.text(0.5, 0.975,
@@ -119,14 +135,17 @@ with PdfPages(out) as pdf:
                  % (nr, STUFEN, lage), ha="center", fontsize=12, weight="bold")
         fig.text(0.5, 0.945,
                  "Umrandete Flaeche %dx ausschneiden und aufeinander auf das "
-                 "Hotbed legen (kleinste Flaeche zuunterst)." % STUFENHOEHE,
+                 "Hotbed legen (kleinste Flaeche zuunterst).\n"
+                 "Ausschnitt X %.0f-%.0f, Y %.0f-%.0f mm — Blick von OBEN, "
+                 "PEI-Platte abgenommen." % (STUFENHOEHE, AX0, AX1, AY0, AY1),
                  ha="center", fontsize=9)
         # Kontrollstrecke: 100 mm in Datenkoordinaten
-        ax.annotate("", xy=(20, -12), xytext=(120, -12),
+        kx = AX0 + (AW - 100) / 2
+        ax.annotate("", xy=(kx, AY0 - AH*0.055), xytext=(kx + 100, AY0 - AH*0.055),
                     xycoords="data", textcoords="data",
                     arrowprops=dict(arrowstyle="|-|", linewidth=1.0),
                     annotation_clip=False)
-        ax.text(70, -17, "Kontrollstrecke 100 mm — nachmessen!",
+        ax.text(kx + 50, AY0 - AH*0.085, "Kontrollstrecke 100 mm — nachmessen!",
                 ha="center", va="top", fontsize=8, clip_on=False)
         pdf.savefig(fig, bbox_inches=None); plt.close(fig)
 
