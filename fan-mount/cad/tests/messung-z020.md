@@ -77,3 +77,27 @@ Im 0.20-Muster ist die "20" im Zentralring gut lesbar. Die frühere
 Vermutung, kurze freistehende Bahnen könnten grundsätzlich nicht haften,
 war falsch — beim 0.00-Muster fehlten sie schlicht, weil die Düse dort
 zu tief stand. Eine Ersatzcodierung durch Striche wird nicht gebraucht.
+
+## Nachtrag: Test bei 0.02 (2026-08-22, schwarzes PETG)
+
+Das rechnerische Optimum 0.02 wurde gedruckt und vom Nutzer beurteilt:
+
+ * die meisten Kreise haben **Lücken zwischen den Bahnen**,
+ * vorne rechts und hinten Mitte sogar **unrunde Kreise** durch zu viel
+   Abstand,
+ * dagegen **schabte** die Stelle, die bei 0.20 den Wert 14 hatte
+   (zweite Reihe von hinten, links), schon auf dem PEI — der Druck lief
+   aber weiter.
+
+**Fazit des Nutzers: 0.02 ist ein möglicher Kompromiss für grosse Teile,
+aber nicht wirklich gut.**
+
+Damit ist die zentrale Aussage dieser Messreihe: **bei der derzeitigen
+Bettstreuung lässt sich ein grosses Objekt nicht mit einwandfreiem Boden
+drucken.** Die Spanne von rund 20 Hundertsteln ist breiter als das
+brauchbare Fenster — an einem Ende schabt die Düse, am anderen klaffen
+Lücken. Ein Offset verschiebt nur, wo das Problem auftritt, er löst es
+nicht. Der Weg führt über die mechanische Justage.
+
+Kleine Teile in der Plattenmitte sind davon nicht betroffen: dort ist
+die lokale Streuung klein.
