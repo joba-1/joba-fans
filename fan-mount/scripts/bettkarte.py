@@ -19,7 +19,15 @@ S = (M - RAND - KREIS_D / 2) / 3
 xs = [M - 3*S, M - 2*S, M - S, M, M + S, M + 2*S, M + 3*S]
 ys = [M + 3*S, M + 2*S, M + S, M, M - S, M - 2*S, M - 3*S]   # Zeile 1 = hinten
 
-ROH = "0,24,17, 7,24,25, 0,0,18, 28,24,9,0,11,28,30, 14,10,17, 24,22,26, 18,22,24"
+import sys
+DATEN = {
+    "z000": ("0,24,17, 7,24,25, 0,0,18, 28,24,9,0,11,28,30, 14,10,17, 24,22,26, 18,22,24",
+             0.00, 30),
+    "z020": ("28,55,33, 14,50,45, 30,33,45, 43,45,35,30,34,45,48, 42,42,41, 44,46,48, 46,50,48",
+             0.20, 55),
+}
+WAHL = sys.argv[1] if len(sys.argv) > 1 else "z000"
+ROH, OFFSET, VMAX = DATEN[WAHL]
 SPALTEN = {0: [0, 3, 6], 1: [1, 3, 5], 2: [2, 3, 4],
            4: [2, 3, 4], 5: [1, 3, 5], 6: [0, 3, 6]}
 
@@ -43,14 +51,23 @@ d = np.maximum(d, 1e-6)
 w = 1.0 / d**2
 z = (w * pv).sum(axis=2) / w.sum(axis=2)
 
-cmap = LinearSegmentedColormap.from_list(
-    "bett", [(0.0, "#d02020"), (1/3, "#e8d020"), (2/3, "#20a040"), (1.0, "#2050d0")])
+# Farbskala nach Nutzervorgabe, feste Zuordnung Wert -> Farbe, damit
+# Karten verschiedener Offsets direkt vergleichbar sind:
+#   0 rot . 10 gelb . 20 gruen (Soll) . 30 blau . 40 blauviolett . 50 magenta
+# Der Nutzer hat die Stufen am gedruckten Teil geeicht (2026-08-22):
+#   14 gequetscht . 28 perfekt . 30 leicht zu hoch (Luecken) . >40 zerfetzt
+ANKER = [(0, "#d02020"), (10, "#e8d020"), (20, "#20a040"),
+         (30, "#2050d0"), (40, "#7020c0"), (50, "#e020a0")]
+stops = [(min(v / VMAX, 1.0), c) for v, c in ANKER if v <= VMAX]
+if stops[-1][0] < 1.0:
+    stops.append((1.0, stops[-1][1]))
+cmap = LinearSegmentedColormap.from_list("bett", stops)
 
 fig, ax = plt.subplots(figsize=(9, 9))
 im = ax.imshow(z, origin="lower", extent=[0, BETT, 0, BETT],
-               cmap=cmap, vmin=0, vmax=30, interpolation="bilinear")
+               cmap=cmap, vmin=0, vmax=VMAX, interpolation="bilinear")
 
-cs = ax.contour(gx, gy, z, levels=[5, 10, 15, 20, 25],
+cs = ax.contour(gx, gy, z, levels=[l for l in (5,10,15,20,25,30,35,40,45,50) if l < VMAX],
                 colors="black", linewidths=0.6, alpha=0.45)
 ax.clabel(cs, inline=True, fontsize=8, fmt="%d")
 
@@ -66,15 +83,16 @@ for x, y, v in pkt:
 ax.set_xlim(0, BETT); ax.set_ylim(0, BETT)
 ax.set_xlabel("X  (links → rechts)  [mm]")
 ax.set_ylabel("Y  (vorn → hinten)  [mm]")
-ax.set_title("Erste Lage bei z-Offset 0.00 — Höhe in 1/100 mm\n"
-             "grün = Soll 20 · rot = Düse zu tief · blau = zu hoch",
-             fontsize=11)
+ax.set_title("Erste Lage bei z-Offset %.2f — Höhe in 1/100 mm\n" % OFFSET +
+             "rot 0 · gelb 10 · grün 20 (Soll) · blau 30 · violett 40 · magenta 50\n"
+             "am Teil geeicht: 14 gequetscht · 28 perfekt · 30 Lücken · ab 40 zerfetzt",
+             fontsize=10)
 ax.set_aspect("equal")
 
-cb = fig.colorbar(im, ax=ax, shrink=0.8, ticks=[0, 10, 20, 30])
+cb = fig.colorbar(im, ax=ax, shrink=0.8, ticks=[t for t in (0,10,20,30,40,50,60) if t <= VMAX])
 cb.set_label("Höhe der ersten Lage [1/100 mm]")
 
-out = "/data/joachim/git/fan-stand/cad/tests/bettkarte-z000.png"
+out = "/data/joachim/git/fan-stand/cad/tests/bettkarte-%s.png" % WAHL
 fig.savefig(out, dpi=140, bbox_inches="tight")
 print("geschrieben:", out)
 print("Wertebereich interpoliert: %.1f .. %.1f" % (z.min(), z.max()))
