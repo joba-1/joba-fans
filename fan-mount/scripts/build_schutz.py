@@ -1,4 +1,4 @@
-"""Fingerschutz-Haube fuer den Luefter.
+"""Fingerschutz-Haube fuer den Luefter - EINE Variante fuer alle Halter.
 
 Stuelpt sich ueber die Zarge und laesst sich abziehen. Der Halt kommt aus
 einer Schuerze mit Untermass, die auf der ganzen Umfangslaenge klemmt -
@@ -17,7 +17,10 @@ import FreeCAD, Part, MeshPart, os
 # ZIEL ist der Name der HALTER-Variante; der Schutz kommt in ein eigenes
 # Dokument RadiatorFanGuard*, damit die Halter-Dateien unberuehrt bleiben.
 quelle = FreeCAD.getDocument(ZIEL)
-GUARD = ZIEL.replace("RadiatorFan", "RadiatorFanGuard")
+# Eine einzige Variante: die Haube haengt nur an der Zarge, und die ist
+# bei Small, Medium und Large gleich (126,6 mm). Seit die Streben nicht
+# mehr dem Blechraster folgen, gibt es keinen Unterschied mehr.
+GUARD = "RadiatorFanGuard"
 try:
     d = FreeCAD.getDocument(GUARD)
 except NameError:
