@@ -76,7 +76,13 @@ def schutz():
     n = int(za / rast)
     x = (za - (n * rast - (rast - stb))) / 2
     while x + stb <= za:
-        st = Part.makeBox(stb, aussen, std, FreeCAD.Vector(x, x0, z_streben))
+        # Bündig mit der OBERSEITE des Deckelrahmens, nicht mit der
+        # Unterseite: gedruckt wird auf dem Kopf, und diese Flaeche liegt
+        # dann auf dem Bett. Waeren die duenneren Streben unten buendig,
+        # begaennen sie 0,9 mm ueber dem Bett und muessten als Bruecken
+        # ueber 129 mm gedruckt werden.
+        st = Part.makeBox(stb, aussen, std,
+                          FreeCAD.Vector(x, x0, z_streben + sd - std))
         if rs > 0:
             laengs = [e for e in st.Edges
                       if e.BoundBox.YLength > aussen - 1e-6]
