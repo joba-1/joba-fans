@@ -48,19 +48,7 @@ OUT = "/data/joachim/git/fan-stand/cad/tests"
 #   erste Zahl  links -> rechts   (1 = x 22 mm,  7 = x 228 mm)
 #   zweite Zahl hinten -> vorn    (1 = y 228 mm, 7 = y 22 mm)
 # also (1,1) hinten links, (7,7) vorn rechts, (4,4) die Mitte.
-AUS = {
-    (7, 1),     # hinten rechts, Ecke
-    (6, 2),     # hinten rechts, mittlerer Ring
-    (7, 4),     # rechts Mitte
-    (6, 4),     # rechts, mittlerer Ring
-    (5, 5),     # vorn rechts, innerer Ring
-    (2, 6),     # vorn links, mittlerer Ring
-    (4, 6),     # vorn, mittlerer Ring
-    (6, 6),     # vorn rechts, mittlerer Ring
-    (1, 7),     # vorn links, Ecke
-    (4, 7),     # vorn Mitte
-    (7, 7),     # vorn rechts, Ecke
-}
+AUS = set()     # nach dem Shimming: alle 25 Kreise messen
 
 FONT = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
 for kand in ("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
