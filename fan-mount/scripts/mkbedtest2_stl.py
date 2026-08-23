@@ -101,23 +101,23 @@ def muster(offset):
     return koerper.removeSplitter()
 
 
-# Beschriftungslinie: waagrecht zwischen dem inneren und dem mittleren
-# Ring, unterhalb der Mitte. Dort sagt die Vorhersage Dicken um 25 - der
-# Bereich, in dem Kanten am saubersten kommen.
-TEXT_Y = M - 1.5 * SCHRITT
-LINIE_X0 = M - 2 * SCHRITT
-LINIE_X1 = M + 2 * SCHRITT   # endet auf den senkrechten Ringlinien
+# Die Beschriftung haengt an einer LINIE DES MUSTERS, nicht an einer
+# eigens dafuer gezogenen: eine Extralinie waere zusaetzliches Material
+# ohne Messwert. Gewaehlt ist die untere Waagrechte des mittleren
+# Quadrats, und zwar der freie Abschnitt zwischen dem linken Eckkreis
+# und dem Mittelkreis - dort bleiben rund 16 mm Luft auf jeder Seite.
+TEXT_Y = M - 2 * SCHRITT              # untere Linie des mittleren Quadrats
+TEXT_X = M - SCHRITT                  # mittig zwischen Eck- und Mittelkreis
 
 
 def mit_text(koerper, offset):
-    """z-Offset auf einer waagrechten Linie, Ziffern daran haengend.
+    """z-Offset an eine vorhandene Musterlinie gehaengt.
 
-    Die Linie ersetzt den frueheren Verbindungssteg im Zentralring: sie
-    traegt die Ziffern, damit beim Abloesen nichts wegfaellt und die
-    Zuordnung erhalten bleibt.
+    Die Ziffern sitzen auf der unteren Waagrechten des mittleren
+    Quadrats. Sie beruehren die Linie, haengen also daran fest und
+    fallen beim Abloesen nicht heraus - die Zuordnung des Offsets
+    bleibt erhalten, ohne dass eine Extralinie noetig waere.
     """
-    koerper = koerper.fuse(balken(LINIE_X0, TEXT_Y, LINIE_X1, TEXT_Y))
-
     txt = "%d" % round(offset * 100)
     try:
         s = Draft.make_shapestring(String=txt, FontFile=FONT,
@@ -131,10 +131,10 @@ def mit_text(koerper, offset):
     if not f.Faces:
         return koerper.removeSplitter()
 
-    # Text mittig ueber der Linie, Grundlinie knapp darunter, damit
-    # jede Ziffer die Linie beruehrt und daran haengt.
+    # Text ueber der Linie, Grundlinie knapp darunter, damit jede Ziffer
+    # die Linie beruehrt und daran haengt.
     bb = f.BoundBox
-    f.translate(FreeCAD.Vector(M - bb.XLength/2 - bb.XMin,
+    f.translate(FreeCAD.Vector(TEXT_X - bb.XLength/2 - bb.XMin,
                                TEXT_Y - LINIE_B/2 - bb.YMin, 0))
     koerper = koerper.fuse(f.extrude(FreeCAD.Vector(0, 0, HOEHE)))
     return koerper.removeSplitter()
