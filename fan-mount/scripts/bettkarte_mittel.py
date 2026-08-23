@@ -95,6 +95,15 @@ for x, y, v in zip(px, py, pv):
     ax.annotate(fmt % round(v), (x, y), textcoords="offset points",
                 xytext=(0, 7), ha="center", fontsize=9, weight="bold")
 
+# Die groesste ebene Rechteckflaeche (Spanne <= 12 Hundertstel), gesucht
+# ueber alle achsparallelen Rechtecke des Messrasters.
+if MODUS == "profil":
+    import matplotlib.patches as mp
+    ax.add_patch(mp.Rectangle((22, 22), 206, 69, fill=False,
+                              edgecolor="black", linewidth=2.0, linestyle="--"))
+    ax.annotate("ebene Zone 206 x 69 mm, Spanne 11/100 mm",
+                (125, 96), ha="center", va="bottom", fontsize=9, weight="bold")
+
 ax.set_xlim(0, BETT); ax.set_ylim(0, BETT)
 ax.set_xlabel("X  (links → rechts)  [mm]")
 ax.set_ylabel("Y  (vorn → hinten)  [mm]")

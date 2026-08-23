@@ -33,12 +33,24 @@ SCHRITT = (M - RAND - KREIS_D / 2) / 3
 
 OUT = "/data/joachim/git/fan-stand/cad/tests"
 
-# Zwei Punkte in der Ecke hinten links fallen weg - dort ist die Platte
-# so tief, dass sie in keiner Variante der Serie messbar werden:
-#   Ring 2 (x=56 y=194): Steigung nur 0,35 Hundertstel pro 0,01 Offset,
-#       braeuchte Offset +0,37 fuer eine messbare Schicht.
-#   Ring 3 (x=22 y=228): kam bei Weiss mit Offset 0 ganz ohne Material.
-AUS = {(2, -1, 1), (3, -1, 1)}      # Menge von (Ring, dx, dy)
+# Die Senke hinten links laesst sich in dieser Serie nicht messen: dort
+# kommt bis Offset +0.25 zu wenig Material, waehrend bei diesem Offset
+# anderswo schon zu viel liegt. Betroffen ist die ganze Diagonale vom
+# Zentrum nach hinten links plus deren Nachbarn auf dem inneren Quadrat
+# (Beobachtung des Nutzers am Druck, 2026-08-23).
+#
+# Koordinaten sind (Spalte, Zeile), beide von 1 bis 7:
+#   erste Zahl  links -> rechts   (1 = x 22 mm,  7 = x 228 mm)
+#   zweite Zahl hinten -> vorn    (1 = y 228 mm, 7 = y 22 mm)
+# also (1,1) hinten links, (7,7) vorn rechts, (4,4) die Mitte.
+AUS = {
+    (4, 4),     # Zentrum
+    (3, 3),     # Diagonale nach hinten links, innerer Ring
+    (3, 4),     # Nachbar links
+    (4, 3),     # Nachbar hinten
+    (2, 2),     # Diagonale, mittlerer Ring - Steigung nur 0,35
+    (1, 1),     # Diagonale, aeusserer Ring - bei Weiss/Offset 0 kein Material
+}
 
 FONT = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
 for kand in ("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
@@ -49,54 +61,86 @@ for kand in ("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
         break
 
 
-def punkte():
-    p = []
-    for ring in (3, 2, 1):
-        h = ring * SCHRITT
-        for dx, dy in ((-1,-1),(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0)):
-            if (ring, dx, dy) in AUS:
-                continue
-            p.append((M + dx*h, M + dy*h))
-    return p
+# Welche Punkte das Muehlebrett traegt, als (Spalte, Zeile) von 1 bis 7.
+# Drei ineinanderliegende Quadrate; nur die Mittelzeile und die
+# Mittelspalte tragen alle sieben Positionen.
+ZEILE_SPALTEN = {1: [1, 4, 7], 2: [2, 4, 6], 3: [3, 4, 5],
+                 4: [1, 2, 3, 4, 5, 6, 7],
+                 5: [3, 4, 5], 6: [2, 4, 6], 7: [1, 4, 7]}
+
+
+def xy(sp, ze):
+    """(Spalte, Zeile) 1-7  ->  Plattenkoordinate in mm.
+
+    Spalte 1 ist links (x=22), Zeile 1 ist hinten (y=228).
+    """
+    return (M + (sp - 4) * SCHRITT, M - (ze - 4) * SCHRITT)
+
+
+def alle_punkte():
+    return [(sp, ze) for ze, spalten in ZEILE_SPALTEN.items() for sp in spalten]
+
+
+def naechster(sp, ze, dsp, dze, vorhanden):
+    """Naechster vorhandener Punkt in Richtung (dsp, dze), sonst None."""
+    sp, ze = sp + dsp, ze + dze
+    while 1 <= sp <= 7 and 1 <= ze <= 7:
+        if (sp, ze) in vorhanden:
+            return (sp, ze)
+        sp, ze = sp + dsp, ze + dze
+    return None
+
+
+def alle_linien():
+    """Kanten zwischen BENACHBARTEN Punkten, waagrecht und senkrecht.
+
+    Bewusst als Graph formuliert: Punkte und Kanten, sonst nichts. Faellt
+    ein Punkt weg, fallen alle Kanten mit, die ihn beruehren - das ist
+    eine Zeile Code statt Sonderfaellen je Quadratseite und Speiche.
+
+    Die frueheren "Speichen" vom Zentrum bis zum Aussenring waren zudem
+    falsch: sie verbanden (1,4)-(4,4)-(7,4) in einem Zug und liefen damit
+    quer durch Punkte hindurch, statt Nachbarn zu verbinden.
+    """
+    vorhanden = set(alle_punkte())
+    kanten = []
+    for sp, ze in vorhanden:
+        for dsp, dze in ((1, 0), (0, 1)):      # nach rechts und nach vorn
+            nachbar = naechster(sp, ze, dsp, dze, vorhanden)
+            if nachbar:
+                kanten.append(((sp, ze), nachbar))
+    return kanten
 
 
 def balken(x0, y0, x1, y1, breite=None):
     b = breite if breite else LINIE_B
-    laenge = math.hypot(x1-x0, y1-y0)
-    winkel = math.degrees(math.atan2(y1-y0, x1-x0))
-    q = Part.makeBox(laenge, b, HOEHE, FreeCAD.Vector(0, -b/2, 0))
-    q.rotate(FreeCAD.Vector(0,0,0), FreeCAD.Vector(0,0,1), winkel)
+    laenge = math.hypot(x1 - x0, y1 - y0)
+    winkel = math.degrees(math.atan2(y1 - y0, x1 - x0))
+    q = Part.makeBox(laenge, b, HOEHE, FreeCAD.Vector(0, -b / 2, 0))
+    q.rotate(FreeCAD.Vector(0, 0, 0), FreeCAD.Vector(0, 0, 1), winkel)
     q.translate(FreeCAD.Vector(x0, y0, 0))
     return q
 
 
 def muster(offset):
     teile = []
-    aus_pt = {(M + dx*r*SCHRITT, M + dy*r*SCHRITT) for r, dx, dy in AUS}
+    behalten = [p for p in alle_punkte() if p not in AUS]
 
-    def ist_aus(p):
-        return any(abs(p[0]-q[0]) < .1 and abs(p[1]-q[1]) < .1 for q in aus_pt)
+    # Kanten: nur zwischen zwei behaltenen Punkten. Beruehrt eine Kante
+    # einen ausgelassenen Punkt, entfaellt sie mit ihm.
+    for a, b in alle_linien():
+        if a in AUS or b in AUS:
+            continue
+        teile.append(balken(*xy(*a), *xy(*b)))
 
-    for ring in (3, 2, 1):
-        h = ring * SCHRITT
-        ecken = [(M-h, M-h), (M+h, M-h), (M+h, M+h), (M-h, M+h)]
-        for i in range(4):
-            a, b = ecken[i], ecken[(i+1) % 4]
-            # Linien, die an einem ausgelassenen Punkt haengen, entfallen mit ihm
-            if ist_aus(a) or ist_aus(b):
-                continue
-            teile.append(balken(*a, *b))
-
-    for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
-        teile.append(balken(M, M, M + dx*3*SCHRITT, M + dy*3*SCHRITT))
-
-    # Alle Kreise gleich, auch der zentrale: Ring plus gefuellter Kern.
-    for cx, cy in punkte() + [(M, M)]:
+    # Kreise: Aussenring plus gefuellter Kern, fuer jeden behaltenen Punkt.
+    for sp, ze in behalten:
+        cx, cy = xy(sp, ze)
         teile.append(
-            Part.makeCylinder(KREIS_D/2, HOEHE, FreeCAD.Vector(cx, cy, 0))
-            .cut(Part.makeCylinder(KREIS_D/2 - LINIE_B, HOEHE + 2,
+            Part.makeCylinder(KREIS_D / 2, HOEHE, FreeCAD.Vector(cx, cy, 0))
+            .cut(Part.makeCylinder(KREIS_D / 2 - LINIE_B, HOEHE + 2,
                                    FreeCAD.Vector(cx, cy, -1))))
-        teile.append(Part.makeCylinder(FUELL_D/2, HOEHE,
+        teile.append(Part.makeCylinder(FUELL_D / 2, HOEHE,
                                        FreeCAD.Vector(cx, cy, 0)))
 
     koerper = teile[0]
@@ -128,39 +172,31 @@ ZIEL_DICKE = 25.0
 # Quadratseite hat zwei oder mehr davon, und welcher davon gut druckt,
 # haengt vom Offset ab. (Die Mittellinie ist in der Praxis nie die beste
 # Wahl, wird aber der Vollstaendigkeit halber mitgeprueft.)
-_ZEILEN_Y = [M + 3*SCHRITT, M + 2*SCHRITT, M + SCHRITT, M,
-             M - SCHRITT, M - 2*SCHRITT, M - 3*SCHRITT]
-_SPALTEN_X = [M - 3*SCHRITT, M - 2*SCHRITT, M - SCHRITT, M,
-              M + SCHRITT, M + 2*SCHRITT, M + 3*SCHRITT]
-_ZEILEN_SPALTEN = {0: [0,3,6], 1: [1,3,5], 2: [2,3,4], 3: list(range(7)),
-                   4: [2,3,4], 5: [1,3,5], 6: [0,3,6]}
-
+# Kandidaten sind die waagrechten Kanten des Musters, die breit genug
+# fuer die Zahl sind. Sie kommen aus derselben Kantenliste wie die
+# Geometrie, also entfaellt ein Kandidat automatisch mit seinem Punkt.
 TEXTLINIEN = []
-for _r, _cols in _ZEILEN_SPALTEN.items():
-    for _i in range(len(_cols) - 1):
-        _c1, _c2 = _cols[_i], _cols[_i+1]
-        # ein ausgelassener Punkt kann keinen Text tragen
-        _AUSRC = {(1, 1), (0, 0)}       # Rasterkoordinaten der AUS-Punkte
-        if (_r, _c1) in _AUSRC or (_r, _c2) in _AUSRC:
-            continue
-        _luecke = _SPALTEN_X[_c2] - _SPALTEN_X[_c1] - KREIS_D
-        if _luecke < TEXT_H * 2.2:      # zu eng fuer die Zahl
-            continue
-        TEXTLINIEN.append((_r, _c1, _c2, _ZEILEN_Y[_r],
-                           (_SPALTEN_X[_c1] + _SPALTEN_X[_c2]) / 2,
-                           "Zeile %d, Spalten %d-%d" % (_r, _c1, _c2)))
+for _a, _b in alle_linien():
+    if _a in AUS or _b in AUS:
+        continue
+    if _a[1] != _b[1]:              # nur waagrechte Kanten: gleiche Zeile
+        continue
+    _x1, _y1 = xy(*_a)
+    _x2, _y2 = xy(*_b)
+    if _x2 - _x1 - KREIS_D < TEXT_H * 2.2:     # zu eng fuer die Zahl
+        continue
+    TEXTLINIEN.append((_a, _b, _y1, (_x1 + _x2) / 2,
+                       "Zeile %d, Spalten %d-%d" % (_a[1], _a[0], _b[0])))
 
-# Messreihen fuer die Vorhersage (1/100 mm), Raster wie im Muster.
-_SP = {0:[0,3,6], 1:[1,3,5], 2:[2,3,4], 4:[2,3,4], 5:[1,3,5], 6:[0,3,6]}
-
-
+# Messreihen fuer die Vorhersage (1/100 mm). Die Rohdaten stehen zeilenweise
+# von hinten nach vorn, je Zeile von links nach rechts - also in derselben
+# Reihenfolge, in der der Nutzer sie am Teil abliest.
 def _lade(roh):
     g = {}
-    for r, grp in enumerate(roh.split(", ")):
-        vals = [int(v) for v in grp.strip().split(",")]
-        cols = list(range(7)) if r == 3 else _SP[r]
-        for c, v in zip(cols, vals):
-            g[(r, c)] = v
+    for _ze, grp in enumerate(roh.split(", "), start=1):
+        werte = [int(v) for v in grp.strip().split(",")]
+        for _sp, v in zip(ZEILE_SPALTEN[_ze], werte):
+            g[(_sp, _ze)] = v
     return g
 
 
@@ -174,9 +210,9 @@ _BASIS = {k: _SW[k] - _STEIG[k] * 0.02 for k in _W0}
 def waehle_linie(offset):
     """Linie, deren Nachbarkreise am naechsten an ZIEL_DICKE liegen."""
     best = None
-    for r, c1, c2, y, x, name in TEXTLINIEN:
-        d1 = _BASIS[(r, c1)] + _STEIG[(r, c1)] * offset
-        d2 = _BASIS[(r, c2)] + _STEIG[(r, c2)] * offset
+    for a, b, y, x, name in TEXTLINIEN:
+        d1 = _BASIS[a] + _STEIG[a] * offset
+        d2 = _BASIS[b] + _STEIG[b] * offset
         fehler = (abs(d1 - ZIEL_DICKE) + abs(d2 - ZIEL_DICKE)) / 2
         if best is None or fehler < best[0]:
             best = (fehler, y, x, name, d1, d2)
@@ -226,8 +262,9 @@ except NameError:
     OFFSETS = [-0.10]
 
 basis = muster(0.0)
-print("Grundmuster: %.2f cm3, %d Solids, %d Kreise" % (
-    basis.Volume/1000, len(basis.Solids), len(punkte()) + 1))
+print("Grundmuster: %.2f cm3, %d Solids, %d Kreise (%d ausgelassen)" % (
+    basis.Volume / 1000, len(basis.Solids),
+    len([p for p in alle_punkte() if p not in AUS]), len(AUS)))
 
 for i, off in enumerate(OFFSETS):
     k = mit_text(basis.copy(), off)
