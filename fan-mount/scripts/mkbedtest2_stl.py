@@ -103,11 +103,79 @@ def muster(offset):
 
 # Die Beschriftung haengt an einer LINIE DES MUSTERS, nicht an einer
 # eigens dafuer gezogenen: eine Extralinie waere zusaetzliches Material
-# ohne Messwert. Gewaehlt ist die untere Waagrechte des mittleren
-# Quadrats, und zwar der freie Abschnitt zwischen dem linken Eckkreis
-# und dem Mittelkreis - dort bleiben rund 16 mm Luft auf jeder Seite.
-TEXT_Y = M - 2 * SCHRITT              # untere Linie des mittleren Quadrats
-TEXT_X = M - SCHRITT                  # mittig zwischen Eck- und Mittelkreis
+# ohne Messwert.
+#
+# WELCHE Linie, haengt vom Offset ab. Sitzt die Zahl in einer Zone, die
+# bei diesem Offset zerfetzt oder gar nicht mehr kommt, ist die
+# Zuordnung des Offsets verloren - genau das, was die Beschriftung
+# verhindern soll. Also wird je Offset die Linie gewaehlt, deren beiden
+# Nachbarkreise am naechsten an der gut druckbaren Dicke 25 liegen.
+#
+# Die Vorhersage stammt aus den bisherigen Messreihen: punktweise
+# Steigung aus den beiden Weiss-Drucken, Niveau aus dem Schwarz-Druck
+# bei 0.02. Sie ist eine Naeherung - deshalb faellt die Wahl bei
+# Gleichstand auf die Linie mit dem groesseren Abstand zum Plattenrand.
+
+ZIEL_DICKE = 25.0
+
+# Kandidaten sind alle waagrechten Abschnitte zwischen zwei benachbarten
+# Kreisen einer Zeile, die breit genug fuer die Zahl sind. Es genuegt
+# nicht, je Quadratseite nur einen festen Abschnitt anzubieten: eine
+# Quadratseite hat zwei oder mehr davon, und welcher davon gut druckt,
+# haengt vom Offset ab. (Die Mittellinie ist in der Praxis nie die beste
+# Wahl, wird aber der Vollstaendigkeit halber mitgeprueft.)
+_ZEILEN_Y = [M + 3*SCHRITT, M + 2*SCHRITT, M + SCHRITT, M,
+             M - SCHRITT, M - 2*SCHRITT, M - 3*SCHRITT]
+_SPALTEN_X = [M - 3*SCHRITT, M - 2*SCHRITT, M - SCHRITT, M,
+              M + SCHRITT, M + 2*SCHRITT, M + 3*SCHRITT]
+_ZEILEN_SPALTEN = {0: [0,3,6], 1: [1,3,5], 2: [2,3,4], 3: list(range(7)),
+                   4: [2,3,4], 5: [1,3,5], 6: [0,3,6]}
+
+TEXTLINIEN = []
+for _r, _cols in _ZEILEN_SPALTEN.items():
+    for _i in range(len(_cols) - 1):
+        _c1, _c2 = _cols[_i], _cols[_i+1]
+        # der ausgelassene Punkt kann keinen Text tragen
+        if (2, -1, 1) == AUS and _r == 1 and _c1 == 1:
+            continue
+        _luecke = _SPALTEN_X[_c2] - _SPALTEN_X[_c1] - KREIS_D
+        if _luecke < TEXT_H * 2.2:      # zu eng fuer die Zahl
+            continue
+        TEXTLINIEN.append((_r, _c1, _c2, _ZEILEN_Y[_r],
+                           (_SPALTEN_X[_c1] + _SPALTEN_X[_c2]) / 2,
+                           "Zeile %d, Spalten %d-%d" % (_r, _c1, _c2)))
+
+# Messreihen fuer die Vorhersage (1/100 mm), Raster wie im Muster.
+_SP = {0:[0,3,6], 1:[1,3,5], 2:[2,3,4], 4:[2,3,4], 5:[1,3,5], 6:[0,3,6]}
+
+
+def _lade(roh):
+    g = {}
+    for r, grp in enumerate(roh.split(", ")):
+        vals = [int(v) for v in grp.strip().split(",")]
+        cols = list(range(7)) if r == 3 else _SP[r]
+        for c, v in zip(cols, vals):
+            g[(r, c)] = v
+    return g
+
+
+_W0 = _lade("0,24,17, 7,24,25, 0,0,18, 28,24,9,0,11,28,30, 14,10,17, 24,22,26, 18,22,24")
+_W2 = _lade("28,55,33, 14,50,45, 30,33,45, 43,45,35,30,34,45,48, 42,42,41, 44,46,48, 46,50,48")
+_SW = _lade("26,50,39, 9,44,35, 26,27,34, 35,34,27,31,34,49,39, 33,28,35, 41,36,39, 23,40,40")
+_STEIG = {k: (_W2[k] - _W0[k]) / 0.20 for k in _W0}
+_BASIS = {k: _SW[k] - _STEIG[k] * 0.02 for k in _W0}
+
+
+def waehle_linie(offset):
+    """Linie, deren Nachbarkreise am naechsten an ZIEL_DICKE liegen."""
+    best = None
+    for r, c1, c2, y, x, name in TEXTLINIEN:
+        d1 = _BASIS[(r, c1)] + _STEIG[(r, c1)] * offset
+        d2 = _BASIS[(r, c2)] + _STEIG[(r, c2)] * offset
+        fehler = (abs(d1 - ZIEL_DICKE) + abs(d2 - ZIEL_DICKE)) / 2
+        if best is None or fehler < best[0]:
+            best = (fehler, y, x, name, d1, d2)
+    return best
 
 
 def mit_text(koerper, offset):
@@ -118,6 +186,9 @@ def mit_text(koerper, offset):
     fallen beim Abloesen nicht heraus - die Zuordnung des Offsets
     bleibt erhalten, ohne dass eine Extralinie noetig waere.
     """
+    fehler, text_y, text_x, name, d1, d2 = waehle_linie(offset)
+    print("  Text auf Linie '%s' (y=%.0f), Nachbarkreise erwartet %.0f/%.0f"
+          % (name, text_y, d1, d2))
     txt = "%d" % round(offset * 100)
     try:
         s = Draft.make_shapestring(String=txt, FontFile=FONT,
@@ -134,8 +205,8 @@ def mit_text(koerper, offset):
     # Text ueber der Linie, Grundlinie knapp darunter, damit jede Ziffer
     # die Linie beruehrt und daran haengt.
     bb = f.BoundBox
-    f.translate(FreeCAD.Vector(TEXT_X - bb.XLength/2 - bb.XMin,
-                               TEXT_Y - LINIE_B/2 - bb.YMin, 0))
+    f.translate(FreeCAD.Vector(text_x - bb.XLength/2 - bb.XMin,
+                               text_y - LINIE_B/2 - bb.YMin, 0))
     koerper = koerper.fuse(f.extrude(FreeCAD.Vector(0, 0, HOEHE)))
     return koerper.removeSplitter()
 
