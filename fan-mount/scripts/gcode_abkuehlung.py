@@ -4,20 +4,24 @@ Nach dem Druck laeuft der Zusatzluefter (M106 P2 - der mittlere, der ueber
 die Druckplatte blaest, identifiziert 2026-08-23) weiter, bis das Bett
 unter ZIEL Grad gefallen ist. Danach schaltet er ab.
 
-Warum nicht einfach M190 R<ziel>:
-Dieser Drucker heizt ueber den herstellereigenen G9111, nicht ueber
-Standard-Marlin-Befehle. Ob er die Marlin-Form "M190 R" (warten, auch
-beim Abkuehlen) ueberhaupt kennt, ist ungeprueft - und wenn nicht, laeuft
-der Gcode einfach weiter und der naechste Befehl schaltet den Luefter
-wieder aus, ohne dass man es merkt.
+M190 R kennt diese Firmware NICHT (gemessen 2026-08-23): das Bett fiel
+mit laufendem Luefter von 45 auf 38 Grad, also weit unter die Schwelle
+von 50, ohne dass der Gcode weiterlief. Der Befehl wird stillschweigend
+uebergangen - der Drucker heizt ueber den herstellereigenen G9111 statt
+ueber Standard-Marlin-Befehle.
 
-Deshalb zweigleisig:
-  1. M190 R<ziel> versuchen - wenn der Drucker es kennt, wartet er genau
-     bis zur Zieltemperatur.
-  2. Danach zusaetzlich eine feste Nachlaufzeit. Kennt der Drucker M190 R
-     nicht, wirkt nur diese; kennt er es, ist sie ein kurzer Nachlauf.
+Es traegt also allein die feste Nachlaufzeit. M190 R bleibt trotzdem im
+Block stehen: es kostet nichts und wuerde nach einem Firmware-Update
+sofort greifen.
 
-So kuehlt es in beiden Faellen, und die Funktion faellt nicht stumm aus.
+Gemessene Abkuehlung mit Luefter, Bett von 76 Grad:
+    nach ~1 min   59 C     (17 Grad/min - anfangs sehr schnell)
+    nach ~4 min   49 C     Ziel 50 erreicht
+    danach         2,8 Grad/min - deutlich langsamer
+
+Daraus die Vorgabe von 300 s: nach 5 Minuten ist das Bett von jeder
+ueblichen Drucktemperatur unter 50 Grad. Laenger zu blasen bringt wenig,
+weil die Rate dann auf unter 3 Grad/min faellt.
 
     python3 gcode_abkuehlung.py datei.gcode [ziel_grad] [nachlauf_s]
 """
@@ -32,19 +36,19 @@ def block(ziel, nachlauf):
     return """
 ; --- Abkuehlung (angehaengt) --------------------------------------
 ; Zusatzluefter %(fan)s blaest ueber die Platte, bis das Bett unter
-; %(ziel)d C ist. M190 R wartet auch beim ABkuehlen - falls diese
-; Firmware es nicht kennt, faengt die feste Nachlaufzeit darunter das
-; ab, damit die Funktion nicht stumm ausfaellt.
+; %(ziel)d C ist. Diese Firmware kennt M190 R nicht (gemessen), es
+; traegt also die feste Nachlaufzeit darunter. M190 R bleibt stehen,
+; damit es nach einem Firmware-Update sofort greift.
 M140 S0            ; Bett aus, sonst haelt es die Temperatur
 M106 %(fan)s S255  ; Zusatzluefter volle Leistung
-M190 R%(ziel)d     ; warten bis %(ziel)d C erreicht (auch von oben)
-G4 S%(nach)d       ; Nachlauf, falls M190 R nicht unterstuetzt wird
+M190 R%(ziel)d     ; wirkungslos auf dieser Firmware, siehe oben
+G4 S%(nach)d       ; das ist der wirksame Teil: %(nach)d s blasen
 M106 %(fan)s S0    ; Luefter aus
 ; --- Ende Abkuehlung ----------------------------------------------
 """ % {"fan": LUEFTER, "ziel": ziel, "nach": nachlauf}
 
 
-def main(pfad, ziel=50, nachlauf=600):
+def main(pfad, ziel=50, nachlauf=300):
     with open(pfad, "r", errors="replace") as f:
         text = f.read()
 
@@ -66,4 +70,4 @@ if __name__ == "__main__":
         sys.exit(__doc__)
     main(sys.argv[1],
          int(sys.argv[2]) if len(sys.argv) > 2 else 50,
-         int(sys.argv[3]) if len(sys.argv) > 3 else 600)
+         int(sys.argv[3]) if len(sys.argv) > 3 else 300)
