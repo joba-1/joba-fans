@@ -118,12 +118,21 @@ def main(band=40.0):
         for i, s in enumerate(SCHWELLEN, start=1):
             korr = np.where(z < s, i * DICKE, korr)
         neu = z + korr
-        fig.text(0.5, 0.22,
+        fig.text(0.5, 0.245,
                  "%d Lagen Kapton a %.2f mm, Band %.0f mm breit, %.1f mm Luecke\n"
                  "Spanne vorher %.0f, nachher %.0f Hundertstel mm"
                  % (len(SCHWELLEN), DICKE / 100, band, LUECKE,
                     z.max() - z.min(), neu.max() - neu.min()),
                  ha="center", fontsize=10)
+        zeilen = ["Jede Lage ist EINE Bahn dick - nicht mehrfach dieselbe",
+                  "Form stapeln. Die Stufen entstehen dadurch, dass die",
+                  "Flaechen ineinanderliegen:", ""]
+        for i, sw in enumerate(SCHWELLEN, start=1):
+            zeilen.append("   Bereich unter %+d:  Lage %s  =  %.2f mm"
+                          % (sw, "+".join(str(j) for j in range(1, i + 1)),
+                             i * DICKE / 100))
+        fig.text(0.5, 0.185, "\n".join(zeilen), ha="center", va="top",
+                 fontsize=9, family="monospace")
         pdf.savefig(fig); plt.close(fig)
 
         # Je Stufe eine Seite, 1:1 auf A4 hoch
@@ -143,11 +152,19 @@ def main(band=40.0):
                      "Kapton-Lage %d von %d  —  Bereich unter %+d/100 mm"
                      % (nr, len(SCHWELLEN), s),
                      ha="center", fontsize=12, weight="bold")
-            fig.text(0.5, 0.94,
-                     "Graue Flaeche mit Band belegen. Rote Linien = Bahnen "
-                     "%.0f mm mit %.1f mm Luecke.\n"
-                     "NICHT ueberlappen - dort traegt es doppelt auf."
+            fig.text(0.5, 0.945,
+                     "Graue Flaeche mit EINER Lage Band belegen. Rote Linien "
+                     "= Bahnen %.0f mm mit %.1f mm Luecke.\n"
+                     "Bahnen NICHT ueberlappen - dort traegt es doppelt auf."
                      % (band, LUECKE), ha="center", fontsize=8)
+            reihenfolge = ("zuerst, direkt aufs Hotbed" if nr == 1
+                           else "auf Lage %d, die kleinere Flaeche" % (nr - 1))
+            fig.text(0.5, 0.915,
+                     "Diese Lage kommt %s.  Gesamtauftrag hier: %.2f mm "
+                     "(%d Lage%s a %.2f mm)."
+                     % (reihenfolge, nr * DICKE / 100, nr,
+                        "" if nr == 1 else "n", DICKE / 100),
+                     ha="center", fontsize=8, style="italic")
             kx = (BETT - 100) / 2
             ax.annotate("", xy=(kx, -18), xytext=(kx + 100, -18),
                         annotation_clip=False,

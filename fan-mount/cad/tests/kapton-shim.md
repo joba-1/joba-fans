@@ -32,6 +32,21 @@ Kapton trägt **0,06 mm** je Bahn auf. Damit sind drei Lagen nötig:
 
 **Restspanne danach: 6 statt 24 Hundertstel.**
 
+Jede Lage ist **eine** Bahn dick — anders als beim frueheren
+Alufolien-Entwurf, wo dieselbe Form mehrfach gestapelt werden musste
+(bis zu 22 Lagen a 0,01 mm). Die Stufen entstehen hier dadurch, dass
+die drei Flaechen ineinanderliegen:
+
+| Ort | liegt in | Gesamtauftrag |
+|---|---|---|
+| aeusserer Rand | keiner | 0 mm |
+| unter +4 | Lage 1 | 0,06 mm |
+| unter −2 | Lage 1+2 | 0,12 mm |
+| unter −8 | Lage 1+2+3 | 0,18 mm |
+
+Reihenfolge: Lage 1 zuerst direkt aufs Hotbed, dann die jeweils
+kleinere Flaeche darauf.
+
 Zwei Lagen kämen nur auf 12 und würden das Ziel von 10 verfehlen.
 
 ## Bahnen
