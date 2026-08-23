@@ -5,6 +5,11 @@ Stufe eine massstabsgetreue Vorlage gezeichnet: die Umrisslinie der
 Flaeche plus die Bahnen des Klebebands, damit beim Verlegen klar ist,
 wo die Stoesse liegen.
 
+Das Band kommt dorthin, wo das Bett TIEF liegt: dort ist die Duese zu
+weit weg und die Schicht zu duenn. Anheben kann man nur, abtragen nicht -
+deshalb bestimmt der hoechste Punkt das Niveau, auf das alles andere
+gebracht wird.
+
 Warum Kapton und nicht Alufolie: an den tiefen Stellen liegt die Platte
 ohnehin nicht auf - dort ist ein Luftspalt. Luft leitet mit 0,026
 W/(m*K) rund fuenfmal schlechter als Kapton mit 0,12. Das Band fuellt
@@ -32,7 +37,7 @@ M = 125.0
 SCHRITT = (M - 12.0 - 20.0 / 2) / 3
 DICKE = 6.0             # Hundertstel mm je Bahn Kapton
 LUECKE = 0.5            # mm Abstand zwischen zwei Bahnen
-SCHWELLEN = (4, -2, -8)  # Stufengrenzen, ermittelt fuer DICKE=6
+SCHWELLEN = (8, 2, -4)   # Stufengrenzen, ermittelt fuer DICKE=6
 
 # Plattenprofil: (Spalte, Zeile) -> (gemessene Dicke, Offset des Drucks)
 MESSUNG = {
@@ -54,7 +59,7 @@ def xy(sp, ze):
 
 
 def profil(n=600):
-    lage = {k: d - o * 100 for k, (d, o) in MESSUNG.items()}
+    lage = {k: o * 100 - d for k, (d, o) in MESSUNG.items()}
     med = st.median(lage.values())
     rel = {k: v - med for k, v in lage.items()}
     px = np.array([xy(*k)[0] for k in rel])

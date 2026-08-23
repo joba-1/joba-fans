@@ -9,10 +9,19 @@ ganze Platte vermessen. Statt dessen liefert jeder Punkt genau **einen**
 Wert: den aus dem Druck, bei dem der Kreis gut aussah, zusammen mit dem
 Offset dieses Drucks.
 
-    Bettlage = Schichtdicke - Offset
+    Betthöhe = Offset - Schichtdicke
 
-Ein Punkt, der bei -0.05 mit 25 gut kam, liegt höher als einer, der dafür
-+0.05 brauchte — er brauchte weniger Düsenabstand für dieselbe Schicht.
+Herleitung: die Schichtdicke ist der Spalt zwischen Düse und Bett, also
+`Dicke = (Nennhöhe + Offset) - Betthöhe`. Nach der Betthöhe aufgelöst
+fällt die konstante Nennhöhe weg.
+
+Ein Punkt, der erst bei +0.05 gut kam, brauchte eine höher stehende Düse
+— dort liegt das Bett also **tief**.
+
+> **Korrektur 2026-08-23:** Hier stand zunächst `Dicke - Offset`, also
+> das falsche Vorzeichen. Alle daraus erzeugten Karten und Schablonen
+> waren punktgespiegelt. Der Nutzer bemerkte es daran, dass die Karte
+> hinten links eine Senke zeigte, obwohl dort die Düse zu nah war.
 
 Damit gehen **nur zuverlässig messbare Werte** ein. Die früheren Karten
 enthielten Nullstellen und zerfetzte Bereiche, deren Werte nicht
@@ -39,25 +48,25 @@ rund zwanzigmal genauer.
 
 ```
         Spalte 1    2    3    4    5    6    7
-  Zeile 1   -11              +3             -2
-  Zeile 2        -12         +2        +3
-  Zeile 3              -9  -12   -5
-  Zeile 4     +5   +1  -12  -14   -4   +3   +6
-  Zeile 5               +0   -5   -1
-  Zeile 6         +0        +6        +5
-  Zeile 7     -2            +10             +4
+  Zeile 1   +11              -3             +2
+  Zeile 2        +12         -2        -3
+  Zeile 3              +9  +12   +5
+  Zeile 4     -5   -1  +12  +14   +4   -3   -6
+  Zeile 5               +0   +5   +1
+  Zeile 6         +0        -6        -5
+  Zeile 7     +2            -10             -4
 ```
 
-Positiv heißt: das Bett liegt dort **hoch**.
+Positiv heißt: das Bett liegt dort **hoch**, die Düse kommt ihm zu nahe.
 
- * **Spanne 24 Hundertstel** (-14 bis +10)
- * Tiefste Zone: die Mitte und der Bereich dahinter-links,
-   (4,4) = -14, (4,3) und (3,4) = -12, (2,2) = -12, (1,1) = -11
- * Höchste Stellen: vorn Mitte (4,7) = +10 und (4,6) = +6,
-   dazu die rechte Seite (7,4) = +6 und (6,6) = +5
+ * **Spanne 24 Hundertstel** (-10 bis +14)
+ * Höchste Zone: die Mitte und der Bereich dahinter-links,
+   (4,4) = +14, (4,3), (3,4) und (2,2) = +12, (1,1) = +11
+ * Tiefste Stellen: vorn Mitte (4,7) = -10 und (4,6) = -6,
+   dazu die rechte Seite (7,4) = -6 und (6,6) = -5
 
-Die Form ist eine **Senke, die sich diagonal von der Mitte nach
-hinten-links zieht**, mit erhöhten Rändern vorn und rechts.
+Die Form ist eine **Beule, die sich diagonal von der Mitte nach
+hinten-links zieht**, mit abfallenden Rändern vorn und rechts.
 
 ## Für die Justage
 

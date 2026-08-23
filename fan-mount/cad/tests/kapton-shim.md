@@ -1,5 +1,10 @@
 # Kapton-Shims unter der PEI-Platte
 
+> **Korrektur 2026-08-23:** Die erste Fassung beruhte auf einem
+> Vorzeichenfehler im Profil und war punktgespiegelt — das Band wäre
+> auf die Beule statt in die Senke gekommen. Schwellen und Flächen sind
+> neu gerechnet.
+
 ## Warum Kapton, nicht Alufolie
 
 An den tiefen Stellen liegt die Platte ohnehin **nicht auf** — dort ist
@@ -26,9 +31,9 @@ Kapton trägt **0,06 mm** je Bahn auf. Damit sind drei Lagen nötig:
 
 | Lage | Bereich unter | Fläche | Ausdehnung |
 |---|---|---|---|
-| 1 | +4/100 mm | 592 cm² | 250 × 250 mm |
-| 2 | −2/100 mm | 193 cm² | 184 × 172 mm |
-| 3 | −8/100 mm | 56 cm² | 138 × 138 mm |
+| 1 | +8/100 mm | | |
+| 2 | +2/100 mm | | |
+| 3 | −4/100 mm | | |
 
 **Restspanne danach: 6 statt 24 Hundertstel.**
 
@@ -40,9 +45,9 @@ die drei Flaechen ineinanderliegen:
 | Ort | liegt in | Gesamtauftrag |
 |---|---|---|
 | aeusserer Rand | keiner | 0 mm |
-| unter +4 | Lage 1 | 0,06 mm |
-| unter −2 | Lage 1+2 | 0,12 mm |
-| unter −8 | Lage 1+2+3 | 0,18 mm |
+| unter +8 | Lage 1 | 0,06 mm |
+| unter +2 | Lage 1+2 | 0,12 mm |
+| unter −4 | Lage 1+2+3 | 0,18 mm |
 
 Reihenfolge: Lage 1 zuerst direkt aufs Hotbed, dann die jeweils
 kleinere Flaeche darauf.

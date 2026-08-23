@@ -6,13 +6,25 @@ reproduzierbar und haben die Karten verzerrt.
 
 Hier liefert der Nutzer statt dessen fuer jeden Punkt nur den EINEN
 Messwert aus dem Druck, bei dem der Kreis gut aussah, zusammen mit dem
-Offset dieses Drucks. Daraus folgt die Bettlage unmittelbar:
+Offset dieses Drucks. Daraus folgt die Betthoehe unmittelbar.
 
-    Bettlage = Schichtdicke - Offset
+Herleitung: die Schichtdicke ist der Spalt zwischen Duese und Bett.
 
-Ein Punkt, der bei -0.05 mit 25 gut kam, liegt HOEHER als einer, der dafuer
-+0.05 brauchte: er brauchte weniger Duesenabstand fuer dieselbe Schicht.
-Ein positiver Wert heisst also, das Bett liegt dort hoch. So werden Messungen verschiedener Drucke vergleichbar,
+    Dicke = Duesenhoehe - Betthoehe = (Nennhoehe + Offset) - Betthoehe
+
+Nach der Betthoehe aufgeloest, die konstante Nennhoehe faellt beim
+Vergleich weg:
+
+    Betthoehe ~ Offset - Dicke
+
+Ein Punkt, der erst bei +0.05 gut kam, brauchte eine hoeher stehende
+Duese - dort liegt das Bett also TIEF. Ein positiver Wert heisst, das
+Bett liegt hoch und die Duese kommt ihm zu nahe.
+
+ACHTUNG: bis 2026-08-23 stand hier "Dicke - Offset", also das falsche
+Vorzeichen. Alle daraus erzeugten Karten und Schablonen waren
+punktgespiegelt. Der Nutzer hat den Fehler daran bemerkt, dass die
+Karte hinten links eine Senke zeigte, obwohl dort die Duese zu nah war. So werden Messungen verschiedener Drucke vergleichbar,
 und es gehen nur Werte ein, die ueberhaupt zuverlaessig messbar waren.
 
 Eingabe: MESSUNG unten, je Zeile "(spalte,zeile): (dicke, offset)".
@@ -66,7 +78,7 @@ MESSUNG = {
 def auswerten(messung):
     if not messung:
         sys.exit("MESSUNG ist leer - bitte Messwerte eintragen.")
-    lage = {k: d - off * 100 for k, (d, off) in messung.items()}
+    lage = {k: off * 100 - d for k, (d, off) in messung.items()}
     med = st.median(list(lage.values()))
     return {k: v - med for k, v in lage.items()}, med
 
@@ -102,13 +114,13 @@ def karte(rel, med, datei):
     ax.set_xlabel("X  (Spalte 1 → 7,  links → rechts)  [mm]")
     ax.set_ylabel("Y  (Zeile 7 → 1,  vorn → hinten)  [mm]")
     ax.set_title("Plattenprofil aus gut messbaren Kreisen\n"
-                 "Bettlage = Dicke minus Offset, %d Punkte\n"
-                 "rot = Bett liegt HOCH (mehr Material) · "
-                 "blau = liegt TIEF (weniger Material)" % len(rel),
+                 "Betthöhe = Offset minus Dicke, %d Punkte\n"
+                 "rot = Bett liegt HOCH (Düse zu nah) · "
+                 "blau = liegt TIEF (Düse zu weit weg)" % len(rel),
                  fontsize=10)
     ax.set_aspect("equal")
     cb = fig.colorbar(im, ax=ax, shrink=0.8)
-    cb.set_label("Bettlage relativ zum Median [1/100 mm]\n"
+    cb.set_label("Betthöhe relativ zum Median [1/100 mm]\n"
                  "positiv = liegt hoeher")
     fig.savefig(datei, dpi=140, bbox_inches="tight")
     print("geschrieben:", datei)
@@ -117,7 +129,7 @@ def karte(rel, med, datei):
 if __name__ == "__main__":
     rel, med = auswerten(MESSUNG)
     v = list(rel.values())
-    print("Punkte: %d, Median der Bettlage: %.1f" % (len(rel), med))
+    print("Punkte: %d, Median der Betthoehe: %.1f" % (len(rel), med))
     print("Spanne: %.0f .. %+.0f  = %.0f Hundertstel"
           % (min(v), max(v), max(v) - min(v)))
     print()
