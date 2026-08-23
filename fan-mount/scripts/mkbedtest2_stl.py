@@ -33,23 +33,30 @@ SCHRITT = (M - RAND - KREIS_D / 2) / 3
 
 OUT = "/data/joachim/git/fan-stand/cad/tests"
 
-# Die Senke hinten links laesst sich in dieser Serie nicht messen: dort
-# kommt bis Offset +0.25 zu wenig Material, waehrend bei diesem Offset
-# anderswo schon zu viel liegt. Betroffen ist die ganze Diagonale vom
-# Zentrum nach hinten links plus deren Nachbarn auf dem inneren Quadrat
-# (Beobachtung des Nutzers am Druck, 2026-08-23).
+# Welche Kreise ausgelassen werden, wechselt mit dem Offset: die Senke
+# hinten links braucht viel Material, die Ecke vorn rechts wenig. Bei
+# einem Offset, der hinten links gerade traegt, laeuft vorn rechts
+# laengst ueber - und umgekehrt. Ausgelassen wird also jeweils die
+# Seite, die bei diesem Offset ohnehin keinen brauchbaren Wert liefert.
+#
+# Stand fuer die Serie ab 0.00: vorn rechts faellt weg, hinten links ist
+# wieder dabei (Beobachtung des Nutzers an den Drucken -0.10 und -0.05,
+# 2026-08-23). Einzige Ausnahme hinten links ist (2,2): dort ist die
+# Steigung mit 0,35 Hundertstel pro 0,01 Offset so flach, dass der Punkt
+# in keiner Variante messbar wird.
 #
 # Koordinaten sind (Spalte, Zeile), beide von 1 bis 7:
 #   erste Zahl  links -> rechts   (1 = x 22 mm,  7 = x 228 mm)
 #   zweite Zahl hinten -> vorn    (1 = y 228 mm, 7 = y 22 mm)
 # also (1,1) hinten links, (7,7) vorn rechts, (4,4) die Mitte.
 AUS = {
-    (4, 4),     # Zentrum
-    (3, 3),     # Diagonale nach hinten links, innerer Ring
-    (3, 4),     # Nachbar links
-    (4, 3),     # Nachbar hinten
-    (2, 2),     # Diagonale, mittlerer Ring - Steigung nur 0,35
-    (1, 1),     # Diagonale, aeusserer Ring - bei Weiss/Offset 0 kein Material
+    (2, 2),     # hinten links, Steigung nur 0,35 - nie messbar
+    (7, 7),     # vorn rechts, Ecke
+    (7, 4),     # rechts Mitte
+    (4, 7),     # vorn Mitte
+    (6, 4),     # rechts, mittlerer Ring
+    (4, 6),     # vorn, mittlerer Ring
+    (6, 6),     # vorn rechts, mittlerer Ring
 }
 
 FONT = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
