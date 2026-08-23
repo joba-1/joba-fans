@@ -33,8 +33,12 @@ SCHRITT = (M - RAND - KREIS_D / 2) / 3
 
 OUT = "/data/joachim/git/fan-stand/cad/tests"
 
-# Punkt hinten links im mittleren Ring: Tiefpunkt der Platte, nie messbar.
-AUS = (2, -1, 1)        # (Ring, dx, dy)
+# Zwei Punkte in der Ecke hinten links fallen weg - dort ist die Platte
+# so tief, dass sie in keiner Variante der Serie messbar werden:
+#   Ring 2 (x=56 y=194): Steigung nur 0,35 Hundertstel pro 0,01 Offset,
+#       braeuchte Offset +0,37 fuer eine messbare Schicht.
+#   Ring 3 (x=22 y=228): kam bei Weiss mit Offset 0 ganz ohne Material.
+AUS = {(2, -1, 1), (3, -1, 1)}      # Menge von (Ring, dx, dy)
 
 FONT = "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf"
 for kand in ("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
@@ -50,7 +54,7 @@ def punkte():
     for ring in (3, 2, 1):
         h = ring * SCHRITT
         for dx, dy in ((-1,-1),(0,-1),(1,-1),(1,0),(1,1),(0,1),(-1,1),(-1,0)):
-            if (ring, dx, dy) == AUS:
+            if (ring, dx, dy) in AUS:
                 continue
             p.append((M + dx*h, M + dy*h))
     return p
@@ -68,18 +72,18 @@ def balken(x0, y0, x1, y1, breite=None):
 
 def muster(offset):
     teile = []
-    aus_ring, aus_dx, aus_dy = AUS
-    aus_pt = (M + aus_dx*aus_ring*SCHRITT, M + aus_dy*aus_ring*SCHRITT)
+    aus_pt = {(M + dx*r*SCHRITT, M + dy*r*SCHRITT) for r, dx, dy in AUS}
+
+    def ist_aus(p):
+        return any(abs(p[0]-q[0]) < .1 and abs(p[1]-q[1]) < .1 for q in aus_pt)
 
     for ring in (3, 2, 1):
         h = ring * SCHRITT
         ecken = [(M-h, M-h), (M+h, M-h), (M+h, M+h), (M-h, M+h)]
         for i in range(4):
             a, b = ecken[i], ecken[(i+1) % 4]
-            # Linien, die am ausgelassenen Punkt haengen, entfallen mit ihm
-            if ring == aus_ring and (
-                    (abs(a[0]-aus_pt[0]) < .1 and abs(a[1]-aus_pt[1]) < .1) or
-                    (abs(b[0]-aus_pt[0]) < .1 and abs(b[1]-aus_pt[1]) < .1)):
+            # Linien, die an einem ausgelassenen Punkt haengen, entfallen mit ihm
+            if ist_aus(a) or ist_aus(b):
                 continue
             teile.append(balken(*a, *b))
 
@@ -135,8 +139,9 @@ TEXTLINIEN = []
 for _r, _cols in _ZEILEN_SPALTEN.items():
     for _i in range(len(_cols) - 1):
         _c1, _c2 = _cols[_i], _cols[_i+1]
-        # der ausgelassene Punkt kann keinen Text tragen
-        if (2, -1, 1) == AUS and _r == 1 and _c1 == 1:
+        # ein ausgelassener Punkt kann keinen Text tragen
+        _AUSRC = {(1, 1), (0, 0)}       # Rasterkoordinaten der AUS-Punkte
+        if (_r, _c1) in _AUSRC or (_r, _c2) in _AUSRC:
             continue
         _luecke = _SPALTEN_X[_c2] - _SPALTEN_X[_c1] - KREIS_D
         if _luecke < TEXT_H * 2.2:      # zu eng fuer die Zahl
