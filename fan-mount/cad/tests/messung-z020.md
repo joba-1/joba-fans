@@ -139,3 +139,25 @@ nicht. Der Weg führt über die mechanische Justage.
 
 Kleine Teile in der Plattenmitte sind davon nicht betroffen: dort ist
 die lokale Streuung klein.
+
+## Nachtrag 2: -0.10 mit Schwarz ist zu tief (2026-08-23)
+
+Der Testdruck bei -0.10 wurde vom **Drucker selbst pausiert**, bei 49 %:
+das Material war ueberall viel zu eng. Der Snapshot zeigte eine
+praktisch leere Platte.
+
+Damit ist die aus einem einzigen Schwarz-Datenpunkt hochgerechnete
+Serie **-0.25 bis 0.00 hinfaellig** - sie liegt vollstaendig im zu
+tiefen Bereich. Die Vorhersage stuetzte sich auf die punktweise Steigung
+der beiden Weiss-Drucke und das Niveau des einen Schwarz-Drucks bei
+0.02; offenbar ist mindestens eine dieser beiden Annahmen fuer Schwarz
+falsch.
+
+Gesichert ist damit nur:
+
+ * bei **+0.02** (schwarz) war der Median 35, also zu hoch,
+ * bei **-0.10** (schwarz) ist es ueberall zu eng.
+
+Der brauchbare Bereich liegt also **zwischen -0.10 und +0.02**, und
+zwar naeher an 0. Ein naechster Datenpunkt bei etwa **-0.03** grenzt
+ein, ohne wieder in einen Abbruch zu laufen.
