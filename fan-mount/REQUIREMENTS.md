@@ -155,12 +155,27 @@ C5. **Heating-season bypass.** Because the parts stay on year-round (C4), the
     1. tiles separately removable from the fan mounts (seasonal chore);
     2. tiles as gravity/pressure flaps — pressed shut by downward fan flow,
        falling open when the fans stop (self-managing, more parts);
-    3. **reverse the fans in winter** to blow *upward*, assisting the chimney
-       instead of blocking it. Raises heating output, which permits a lower
-       flow temperature and a better COP — turns the project into a year-round
-       gain. Needs only a polarity switch / H-bridge.
+    3. **turn the fans over in winter** so they blow *upward*, assisting the
+       chimney instead of blocking it. Raises heating output, which permits a
+       lower flow temperature and a better COP — turns the project into a
+       year-round gain.
     → Preferred: 3, with 1 as fallback. Consequence for the design: the duct
     geometry must not be so optimised for downflow that it chokes upflow.
+
+    **Not by reversing polarity.** PC fans are brushless DC motors: the driver
+    IC and Hall sensor sit inside the hub, and the direction of rotation comes
+    from the order in which that IC energises the coils — not from the supply
+    polarity. Swapping +12 V and GND does not reverse the fan, it reverse-feeds
+    a driver IC that usually has no protection. The blades are aerofoils with a
+    defined leading edge and the frame has an inlet radius on one side and the
+    struts on the other, so even a genuinely reversed impeller would move far
+    less air.
+
+    **Physically turning the fan over is what works**, and the existing mount
+    already allows it: the surround is a 120.6 mm square open at the top, and
+    the M4 hole pattern sits at `(120 − 105) / 2 = 7.5 mm` from every edge —
+    point-symmetric, so the fan drops onto the same pegs either way up. The
+    seasonal chore is lifting it out, flipping it, putting it back.
 
 C6. Fans are standard 120 × 120 × 25 mm with the standard 105 mm mounting hole
     pattern, M4/self-tapping screws or press-fit pins.
