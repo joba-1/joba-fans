@@ -9,10 +9,512 @@
 		(date "2026-08-24")
 		(company "Joachim Banzhaf")
 	)
-	(lib_symbols)
+	(lib_symbols
+		(symbol "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-SMD"
+			(pin_names
+			(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+			(at -18.542 21.59 0)
+			(effects
+				(font
+				(size 1.27 1.27)
+				)
+			)
+			)
+			(property "Value" "XIAO-ESP32-C3-SMD"
+			(at -8.382 19.304 0)
+			(effects
+				(font
+				(size 1.27 1.27)
+				)
+			)
+			)
+			(property "Footprint" "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-SMD"
+			(at -38.608 -24.384 0)
+			(hide yes)
+			(effects
+				(font
+				(size 1.27 1.27)
+				)
+			)
+			)
+			(property "Datasheet" ""
+			(at -8.89 5.08 0)
+			(hide yes)
+			(effects
+				(font
+				(size 1.27 1.27)
+				)
+			)
+			)
+			(property "Description" ""
+			(at 0 0 0)
+			(hide yes)
+			(effects
+				(font
+				(size 1.27 1.27)
+				)
+			)
+			)
+			(symbol "XIAO-ESP32-C3-SMD_0_1"
+			(rectangle
+				(start -19.05 17.78)
+				(end 17.78 -21.59)
+				(stroke
+				(width 0)
+				(type default)
+				)
+				(fill
+				(type none)
+				)
+			)
+			)
+			(symbol "XIAO-ESP32-C3-SMD_1_1"
+			(pin passive line
+				(at -21.59 7.62 0)
+				(length 2.54)
+				(name "D0"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "1"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 3.81 0)
+				(length 2.54)
+				(name "D1"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "2"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 0 0)
+				(length 2.54)
+				(name "D2"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "3"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 -3.81 0)
+				(length 2.54)
+				(name "D3"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "4"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 -7.62 0)
+				(length 2.54)
+				(name "D4"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "5"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 -11.43 0)
+				(length 2.54)
+				(name "D5"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "6"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -21.59 -15.24 0)
+				(length 2.54)
+				(name "D6"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "7"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 -15.24 180)
+				(length 2.54)
+				(name "D7"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "8"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 -11.43 180)
+				(length 2.54)
+				(name "D8"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "9"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 -7.62 180)
+				(length 2.54)
+				(name "D9/BOOT"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "10"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 -3.81 180)
+				(length 2.54)
+				(name "D10"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "11"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 0 180)
+				(length 2.54)
+				(name "3V3_OUT"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "12"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 3.81 180)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "13"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 20.32 7.62 180)
+				(length 2.54)
+				(name "VBUS"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "14"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -10.16 20.32 270)
+				(length 2.54)
+				(name "D3/MTDI"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "15"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -6.35 20.32 270)
+				(length 2.54)
+				(name "D5/MTDO"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "16"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -2.54 20.32 270)
+				(length 2.54)
+				(name "EN"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "17"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 1.27 20.32 270)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "18"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 5.08 20.32 270)
+				(length 2.54)
+				(name "D2/MTMS"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "19"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 8.89 20.32 270)
+				(length 2.54)
+				(name "D4/MTCK"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "20"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at -2.54 -24.13 90)
+				(length 2.54)
+				(name "VBAT"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "21"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 1.27 -24.13 90)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+				(number "22"
+				(effects
+					(font
+					(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			)
+			(embedded_fonts no)
+		)
+)
 	(sheet_instances
 		(path "/"
 			(page "1")
 		)
 	)
+  (symbol (lib_id "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-SMD") (at 150.0 100.0 0) (unit 1)
+  (exclude_from_sim no) (in_bom yes) (on_board yes) (dnp no)
+  (uuid "969b77d6-246e-49bb-9485-c73aecc5725d")
+  (property "Reference" "U1" (at 150.0 95.0 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid "019be57e-fef3-466b-96d2-d1aec5a84d9a")
+  )
+  (property "Value" "XIAO ESP32-C3" (at 150.0 102.54 0)
+    (effects (font (size 1.27 1.27)))
+    (uuid "2e4541fd-1dce-426f-91f6-98853a2d4314")
+  )
+  (property "Footprint" "Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-DIP" (at 150.0 105.08 0)
+    (effects (font (size 1.27 1.27)) (hide yes))
+    (uuid "e2fd91f7-b0af-4ed6-b337-fd4efc3f7042")
+  )
+    (pin "1" (uuid "13936478-9df6-464f-ba39-b03f960bd326"))
+    (pin "2" (uuid "79278d01-7177-4efc-a543-d0decb295493"))
+    (pin "3" (uuid "82ff5d6a-aa2c-4b2a-9982-4dbd61ae4254"))
+    (pin "4" (uuid "fba72e1b-67ec-4671-97e2-a9360b041295"))
+    (pin "5" (uuid "5064f641-5a8d-4540-814e-bbbcdc1c35c2"))
+    (pin "6" (uuid "1f448a24-1239-4364-b48a-8b8aaca75f97"))
+    (pin "7" (uuid "e54982b3-628c-4fa4-839c-f6508f66d76e"))
+    (pin "8" (uuid "38c58106-9be4-4e4c-919b-66ee2cafc347"))
+    (pin "9" (uuid "547ae6f4-de47-4adf-82ac-c287209facce"))
+    (pin "10" (uuid "9ef03e45-5e56-48c8-8488-39d0a8f42e39"))
+    (pin "11" (uuid "268cf9bd-9f81-444d-9911-b040f53d975b"))
+    (pin "12" (uuid "55032472-2e8b-4cc1-a0a9-54fbce7515ef"))
+    (pin "13" (uuid "45121ac0-3c9b-42ac-b089-065c6b1fd8dd"))
+    (pin "14" (uuid "b1eb1fcc-0944-4882-b6b6-72b3e9ede890"))
+    (pin "15" (uuid "0382aa7d-fa00-4ddb-b930-ea099c2ace7a"))
+    (pin "16" (uuid "75259009-0302-46de-9d29-fd4fb2de4558"))
+    (pin "17" (uuid "3d495f19-8467-4ee8-b3a8-132cabeef59e"))
+    (pin "18" (uuid "10a04a47-88ae-4cf2-a816-10b877e9e2e9"))
+    (pin "19" (uuid "f378c38f-1b22-4aef-8e4f-c5c9a3d94981"))
+    (pin "20" (uuid "8ed5571e-7b3a-4e52-8483-4dfa217fbb6f"))
+    (pin "21" (uuid "f8eaad40-2f51-4a8c-b270-71e42fa62f01"))
+    (pin "22" (uuid "2ab52c65-b5e0-4095-a2df-4ee4ea4d1d8a"))
+)
 )
