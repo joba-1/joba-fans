@@ -1,0 +1,18 @@
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "10.0")
+	(uuid "ed7c5a78-b7b3-44bc-8b7a-d9088a04d388")
+	(paper "A4")
+	(title_block
+		(title "4-Channel ESP32-C3 PC Fan Controller")
+		(date "2026-08-24")
+		(company "Joachim Banzhaf")
+	)
+	(lib_symbols)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+)

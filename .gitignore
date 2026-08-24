@@ -1,0 +1,16 @@
+# KiCad backups and locks
+*-backups/
+*.bak
+*.kicad_sch-bak
+*.kicad_pcb-bak
+_autosave-*
+fp-info-cache
+*.lck
+*.kicad_prl
+
+# KiCad 3D model cache / plot output
+gerbers/
+*.zip
+
+# OS
+.DS_Store
