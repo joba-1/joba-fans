@@ -25,8 +25,8 @@ CHANNELS = [
     # name,  conn, pullup, tach_R, pwm_R, xiao_pwm, xiao_tach
     ("FAN1", "J2", "R1", "R9",  "R5", "2", "3"),   # PWM=D1  TACH=D2
     ("FAN2", "J3", "R2", "R10", "R6", "4", "5"),   # PWM=D3  TACH=D4
-    ("FAN3", "J4", "R3", "R11", "R7", "6", "7"),   # PWM=D5  TACH=D6
-    ("FAN4", "J5", "R4", "R12", "R8", "8", "11"),  # PWM=D7  TACH=D10
+    ("FAN3", "J4", "R3", "R11", "R7", "8", "11"),  # PWM=D7  TACH=D10
+    ("FAN4", "J5", "R4", "R12", "R8", "6", "7"),   # PWM=D5  TACH=D6
 ]
 
 
@@ -98,6 +98,35 @@ def build_connections():
         conns.append(("U1", xiao_pwm, pwm_mcu))
 
     return conns
+
+
+def pin_abs_rot(place_x, place_y, place_rot, local_x, local_y, pin_rot):
+    """Absolute pin position and effective pin rotation, for any symbol rotation.
+
+    Returns (abs_x, abs_y, effective_pin_rot).
+
+    Two coordinate conventions collide here. Symbol libraries store pin offsets
+    with +y UP; the schematic canvas has +y DOWN. So the library offset is first
+    flipped into screen space (lx, -ly), and only then rotated.
+
+    Verified empirically against all four right angles by placing a resistor at
+    each rotation and checking which pin the netlist reported -- an earlier,
+    plausible-looking derivation had the 90/270 cases mirrored, which silently
+    attaches wires to the wrong pin while ERC still passes.
+    """
+    t = place_rot % 360
+    sx, sy = local_x, -local_y          # library -> screen (y flip)
+    if t == 0:
+        dx, dy = sx, sy
+    elif t == 90:
+        dx, dy = sy, -sx
+    elif t == 180:
+        dx, dy = -sx, -sy
+    elif t == 270:
+        dx, dy = -sy, sx
+    else:
+        raise ValueError(f"unsupported symbol rotation {place_rot}")
+    return (round(place_x + dx, 3), round(place_y + dy, 3), (pin_rot + t) % 360)
 
 
 def pin_abs(place_x, place_y, local_x, local_y):

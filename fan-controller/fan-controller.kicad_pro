@@ -658,13 +658,18 @@
       {
         "filename": "fan-controller.kicad_sch",
         "name": "fan-controller",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "ed7c5a78-b7b3-44bc-8b7a-d9088a04d388"
       }
     ],
     "used_designators": "",
     "variants": []
   },
-  "sheets": [],
+  "sheets": [
+    [
+      "ed7c5a78-b7b3-44bc-8b7a-d9088a04d388",
+      "fan-controller"
+    ]
+  ],
   "text_variables": {},
   "tuning_profiles": {
     "meta": {

@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 """Regenerate the schematic's placement and drawing from the declarative plan.
 
-Usage: generate.py <schematic.kicad_sch>
+Usage: generate.py <schematic.kicad_sch> [--no-verify]
 
 Rewrites symbol positions from layout.py, then draws every net from
 netplan.py either as wires (local, simple) or as labels (rails, long hops),
-per draw.py. Validates geometry before writing anything.
+per draw.py.
+
+This is the ONLY command needed to rebuild the schematic. It runs the whole
+sequence, because every step used to be separate and each one was forgotten at
+least once:
+
+  1. reposition symbols and redraw all nets  (validated before writing)
+  2. repair structural defects               (was fix_sch.py)
+  3. re-attach PWR_FLAGs and no-connects     (was an ad-hoc snippet)
+  4. verify the netlist against the plan     (was a separate audit)
+
+Step 4 is the important one. ERC cannot catch a wire that lands on the wrong
+real pin -- that is a perfectly legal connection -- so the netlist is diffed
+pin-by-pin against build_connections(). Pass --no-verify to skip it when
+kicad-cli is unavailable.
 """
-import json, re, sys, uuid, collections
+import json, os, re, subprocess, sys, tempfile, uuid, collections
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from netplan import build_connections, pin_abs_rot, STUB
@@ -15,6 +29,14 @@ from layout import placements
 from draw import classify, route
 
 PATH = sys.argv[1]
+VERIFY = "--no-verify" not in sys.argv[1:]
+
+# A placed symbol instance. This script writes it on one line, but KiCad
+# rewrites the file with each field on its own line whenever the schematic is
+# opened and saved in the GUI, so both layouts must be recognised -- otherwise
+# a regenerate after any GUI session silently finds zero symbols.
+SYMBOL_RE = (r'\(symbol\s*\n?\s*\(lib_id "([^"]+)"\)\s*\n?\s*'
+             r'\(at ([\-\d.]+) ([\-\d.]+) (\d+)\)')
 
 
 def block_at(t, s):
@@ -44,7 +66,7 @@ def strip_drawing(c):
 
 def reposition(c, place):
     out, k = [], 0
-    pat = re.compile(r'\(symbol \(lib_id "([^"]+)"\) \(at ([\-\d.]+) ([\-\d.]+) (\d+)\)')
+    pat = re.compile(SYMBOL_RE)
     while True:
         m = pat.search(c, k)
         if not m:
@@ -56,8 +78,11 @@ def reposition(c, place):
         if ref in place:
             nx, ny, nrot = place[ref]
             ox, oy = float(m.group(2)), float(m.group(3))
-            nb = blk.replace(f'(at {m.group(2)} {m.group(3)} {m.group(4)})',
-                             f'(at {nx} {ny} {nrot})', 1)
+            # Rewrite the symbol's own (at ...) -- the first one in the block --
+            # by span rather than by reconstructing the literal text, since
+            # whitespace differs between our output and KiCad's re-saved format.
+            am = re.search(r'\(at [\-\d.]+ [\-\d.]+ \d+\)', blk)
+            nb = blk[:am.start()] + f'(at {nx} {ny} {nrot})' + blk[am.end():]
             head, sep, tail = nb.partition('(property')
             tail = re.sub(r'\(at ([\-\d.]+) ([\-\d.]+) (\d+)\)',
                           lambda pm: '(at %s %s %s)' % (
@@ -96,7 +121,7 @@ def pin_table(c):
         i = m.start() + len(sym)
 
     table = {}
-    for m in re.finditer(r'\(symbol \(lib_id "([^"]+)"\) \(at ([\-\d.]+) ([\-\d.]+) (\d+)\)', c):
+    for m in re.finditer(SYMBOL_RE, c):
         lib_id, px, py, prot = m.group(1), float(m.group(2)), float(m.group(3)), int(m.group(4))
         blk = block_at(c, m.start())
         ref = re.search(r'\(property "Reference" "([^"]+)"', blk).group(1)
@@ -116,6 +141,13 @@ def stub_end(x, y, rot, length=STUB):
 # stubs would land their labels in one column and short them together. Give
 # each pin of such a part a different stub length.
 STAGGER = {"1": 20.32, "2": 15.24, "3": 10.16, "4": 2.54}
+
+# PWR_FLAG reference -> the rail it declares as driven.
+PWR_FLAGS = {"#FLG01": "+12V_PROT", "#FLG02": "GND"}
+
+# XIAO pins deliberately left unconnected: D0/D8/D9 are ESP32-C3 strapping
+# pins, 15/16/19/20 the JTAG alternates, 17 EN, 21 VBAT.
+NO_CONNECT_PINS = ["1", "9", "10", "15", "16", "17", "19", "20", "21"]
 
 
 def stub_len(ref, pin):
@@ -148,6 +180,150 @@ def label(text, x, y, rot):
 def junction(x, y):
     return (f'\t(junction\n\t\t(at {x} {y})\n\t\t(diameter 0)\n'
             f'\t\t(color 0 0 0 0)\n\t\t(uuid "{uuid.uuid4()}")\n\t)\n')
+
+
+def repair(c, project_name, sheet_uuid):
+    """Structural fixes for symbols written by kicad-mcp-server (was fix_sch.py).
+
+    Three defects, any one of which makes the file fail to load in real KiCad
+    while ERC-by-regex still reports it as fine:
+      * a (uuid ...) inside a placed instance's property block -- invalid
+      * a missing (instances (project ...)) block
+      * (sheet_instances)/(embedded_fonts) not last in the file
+
+    Idempotent.
+    """
+    n_uuid = c.count('(uuid "')
+    c = re.sub(
+        r'(\(effects \(font \(size 1\.27 1\.27\)\)(?: \(hide yes\))?\))\n\s*'
+        r'\(uuid "[0-9a-f-]+"\)\n(\s*)\)',
+        r'\1\n\2)', c)
+    stripped = n_uuid - c.count('(uuid "')
+
+    c = re.sub(r'\n?\t\(sheet_instances\n\t\t\(path "/"\n\t\t\t\(page "1"\)\n\t\t\)\n\t\)\n?', '\n', c)
+    c = re.sub(r'\n?\t\(embedded_fonts no\)\n?', '\n', c)
+
+    # Add (instances ...) to any placed symbol lacking one. Matching goes via
+    # SYMBOL_RE so this works on both our single-line output and KiCad's
+    # re-saved multi-line format -- fix_sch.py only handled the former, so it
+    # silently did nothing after any GUI session.
+    out, k, added = [], 0, 0
+    for m in re.finditer(SYMBOL_RE, c):
+        if m.start() < k:
+            continue
+        blk = block_at(c, m.start())
+        out.append(c[k:m.start()])
+        if '(instances' not in blk:
+            ref = re.search(r'\(property "Reference" "([^"]+)"', blk).group(1)
+            blk = blk[:-1] + (
+                f'\n\t\t(instances\n\t\t\t(project "{project_name}"\n'
+                f'\t\t\t\t(path "/{sheet_uuid}"\n'
+                f'\t\t\t\t\t(reference "{ref}") (unit 1)\n'
+                f'\t\t\t\t)\n\t\t\t)\n\t\t)\n\t)')
+            added += 1
+        out.append(blk)
+        k = m.start() + len(blk)
+    out.append(c[k:])
+    c = "".join(out)
+
+    c = c.rstrip()
+    assert c.endswith(')')
+    c = c[:-1].rstrip()
+    c += ('\n\t(sheet_instances\n\t\t(path "/"\n\t\t\t(page "1")\n\t\t)\n\t)\n'
+          '\t(embedded_fonts no)\n)\n')
+    return c, stripped, added
+
+
+def flags_and_no_connects(c, table):
+    """Re-attach PWR_FLAGs and no-connect markers stripped by the redraw.
+
+    PWR_FLAGs silence 'input power pin not driven' on rails whose only source
+    is a connector or a regulator output. The no-connects mark the XIAO pins
+    deliberately left free -- the three ESP32-C3 strapping pins plus the JTAG
+    alternates, EN and VBAT.
+    """
+    parts = []
+    for m in re.finditer(SYMBOL_RE, c):
+        if m.group(1) != "power:PWR_FLAG":
+            continue
+        blk = block_at(c, m.start())
+        ref = re.search(r'\(property "Reference" "([^"]+)"', blk).group(1)
+        net = PWR_FLAGS.get(ref)
+        if net is None:
+            continue
+        px, py = float(m.group(2)), float(m.group(3))
+        ax, ay, er = pin_abs_rot(px, py, int(m.group(4)), 0.0, 0.0, 90)
+        ex, ey = stub_end(ax, ay, er)
+        parts.append(wire((ax, ay), (ex, ey)))
+        parts.append(label(net, ex, ey, er))
+
+    for pin in NO_CONNECT_PINS:
+        if "U1" in table and pin in table["U1"]:
+            x, y = table["U1"][pin]["xy"]
+            parts.append(f'\t(no_connect\n\t\t(at {x} {y})\n\t\t(uuid "{uuid.uuid4()}")\n\t)\n')
+    return parts
+
+
+def verify(path):
+    """Diff the exported netlist against the plan, pin by pin.
+
+    The only check that catches a wire landing on the wrong real pin: ERC
+    accepts that happily, since it is still a valid connection.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".net", delete=False) as f:
+        netfile = f.name
+    try:
+        r = subprocess.run(
+            ["kicad-cli", "sch", "export", "netlist", "--output", netfile, path],
+            capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  ! netlist export failed: {r.stderr.strip()[:200]}")
+            return False
+        c = open(netfile).read()
+    finally:
+        os.unlink(netfile)
+
+    def blocks(t, o):
+        out, k = [], 0
+        while True:
+            m = t.find(o, k)
+            if m == -1:
+                return out
+            d = 0
+            for i in range(m, len(t)):
+                if t[i] == '(':
+                    d += 1
+                elif t[i] == ')':
+                    d -= 1
+                    if d == 0:
+                        break
+            out.append(t[m:i + 1])
+            k = i + 1
+
+    actual = {}
+    for b in blocks(c, "(net\n"):
+        n = re.search(r'\(name "([^"]*)"\)', b).group(1).lstrip('/')
+        actual[n] = frozenset(
+            (re.search(r'\(ref "([^"]+)"\)', nb).group(1),
+             re.search(r'\(pin "([^"]+)"\)', nb).group(1))
+            for nb in blocks(b, "(node\n"))
+
+    expected = collections.defaultdict(set)
+    for r_, p_, n_ in build_connections():
+        expected[n_].add((r_, p_))
+
+    bad = [n for n in expected if actual.get(n) != frozenset(expected[n])]
+    surprise = [n for n in actual
+                if n not in expected and not n.startswith('unconnected-')]
+    for n in bad:
+        print(f"  ! {n}: want {sorted(expected[n])} got {sorted(actual.get(n) or [])}")
+    for n in surprise:
+        print(f"  ! unexpected net {n}: {sorted(actual[n])}")
+    if bad or surprise:
+        return False
+    unconn = sum(1 for n in actual if n.startswith('unconnected-'))
+    print(f"verified: {len(expected)}/{len(expected)} nets match, {unconn} intended no-connects")
+    return True
 
 
 def main():
@@ -278,11 +454,31 @@ def main():
             print("  !", e)
         return 1
 
+    # ---- step 3: PWR_FLAGs and no-connects, before the file is assembled ----
+    parts += flags_and_no_connects(c, table)
+
     idx = c.index("\t(sheet_instances")
-    open(PATH, "w").write(c[:idx] + "".join(parts) + c[idx:])
+    c = c[:idx] + "".join(parts) + c[idx:]
+
+    # ---- step 2: structural repair -----------------------------------------
+    project = os.path.splitext(os.path.basename(PATH))[0]
+    sheet_uuid = re.search(r'\(uuid "([0-9a-f-]+)"\)', c).group(1)
+    c, stripped, added = repair(c, project, sheet_uuid)
+
+    open(PATH, "w").write(c)
+
+    n_wire = sum(1 for p in parts if p.startswith('\t(wire'))
+    n_label = sum(1 for p in parts if p.startswith('\t(label'))
+    n_nc = sum(1 for p in parts if p.startswith('\t(no_connect'))
     print(f"wired nets: {stats['wire']}   labelled nets: {stats['label']}")
-    print(f"emitted {sum(1 for p in parts if p.startswith(chr(9)+'(wire'))} wire segments, "
-          f"{sum(1 for p in parts if p.startswith(chr(9)+'(label'))} labels")
+    print(f"emitted {n_wire} wire segments, {n_label} labels, {n_nc} no-connects")
+    if stripped or added:
+        print(f"repaired: {stripped} stray property uuids, {added} missing instances blocks")
+
+    # ---- step 4: netlist verification --------------------------------------
+    if VERIFY and not verify(PATH):
+        print("NETLIST VERIFICATION FAILED - schematic does not match netplan.py")
+        return 1
     return 0
 
 

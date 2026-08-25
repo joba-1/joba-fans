@@ -7,10 +7,17 @@ _autosave-*
 fp-info-cache
 *.lck
 *.kicad_prl
+.history/
 
 # KiCad 3D model cache / plot output
 gerbers/
 *.zip
+
+# Regenerable exports (kicad-cli sch export netlist)
+*.net
+
+# Python
+__pycache__/
 
 # OS
 .DS_Store
