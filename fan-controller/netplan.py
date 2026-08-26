@@ -26,7 +26,7 @@ CHANNELS = [
     ("FAN1", "J2", "R1", "R9",  "R5", "2", "3"),   # PWM=D1  TACH=D2
     ("FAN2", "J3", "R2", "R10", "R6", "4", "5"),   # PWM=D3  TACH=D4
     ("FAN3", "J4", "R3", "R11", "R7", "8", "11"),  # PWM=D7  TACH=D10
-    ("FAN4", "J5", "R4", "R12", "R8", "6", "7"),   # PWM=D5  TACH=D6
+    ("FAN4", "J5", "R4", "R12", "R8", "7", "6"),   # PWM=D6  TACH=D5
 ]
 
 
