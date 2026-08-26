@@ -86,3 +86,20 @@ drives the labour cost.
    generic jellybean part.
 2. **Source 20 XIAO ESP32-C3 modules** if you do not have enough.
 3. Sanity-check the gerbers in an online viewer before paying.
+
+---
+
+## Decision (2026-08-26): Option A, fully assembled
+
+Also priced a middle route — SMD assembled, you fit the through-hole parts
+yourself — at roughly €68 total (~€3.39/board), saving ~€33 against full
+assembly. But that €33 is only ~€15 of actual labour; the rest assumes you
+source the THT components yourself instead of paying the assembler's markup.
+Not worth 2–4 hours over 700 joints.
+
+Fixed costs dominate at this quantity and put €50 out of reach regardless:
+shipping (~€23) and bare PCBs (~€18) alone are €41 before any labour.
+
+**Going with fully assembled**, subject to the real quote landing near the
+~€95–100 estimate. If it comes back much higher, the lever is the
+through-hole count — that is what drives the labour cost.
