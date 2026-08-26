@@ -2608,7 +2608,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4-pin fan header 2.54mm"
 			(at 168.0 84.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2768,7 +2768,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4-pin fan header 2.54mm"
 			(at 168.0 198.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -2851,7 +2851,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4-pin fan header 2.54mm"
 			(at 168.0 160.0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3279,7 +3279,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "969b77d6-246e-49bb-9485-c73aecc5725d")
 		(property "Reference" "U1"
 			(at 55.0 110.0 0)
@@ -3459,7 +3459,7 @@
 				)
 			)
 		)
-		(property "Description" ""
+		(property "Description" "4-pin fan header 2.54mm"
 			(at 168.0 122.0 0)
 			(show_name no)
 			(do_not_autoplace no)

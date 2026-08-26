@@ -50,6 +50,7 @@
 		)
 		(capping no)
 		(filling no)
+		(aux_axis_origin 30.83 80)
 		(pcbplotparams
 			(layerselection 0x00000000_00000000_55555555_5755f5ff)
 			(plot_on_all_layers_selection 0x00000000_00000000_00000000_00000000)
@@ -782,7 +783,7 @@
 				)
 			)
 		)
-		(attr smd)
+		(attr smd dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -8.509 8.89)

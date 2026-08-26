@@ -21,3 +21,9 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# Fab package: gerbers and the zip are regenerable via make_fab.sh.
+# The BOM and CPL are tracked - they are reviewable and get hand-edited
+# (MPN / supplier columns).
+fab/gerbers/
+fab/*.zip

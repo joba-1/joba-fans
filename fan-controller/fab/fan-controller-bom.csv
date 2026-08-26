@@ -1,0 +1,13 @@
+Designator,Value,Footprint,Qty,MPN,Supplier,DNP,Note
+C1,220uF,Capacitor_THT:CP_Radial_D8.0mm_P3.50mm,1,,,,
+C2,10uF,Capacitor_SMD:C_0805_2012Metric,1,,,,
+D1,SS34,Diode_SMD:D_SMA,1,,,,
+F1,1.5A,Fuse:Fuse_1812_4532Metric,1,,,,
+J1,DC barrel jack 5.5x2.1mm,Connector_BarrelJack:BarrelJack_CUI_PJ-102AH_Horizontal,1,,,,DC_Jack_12V
+J2-J5,4-pin PC fan header,Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical,4,,,,FAN1; FAN2; FAN3; FAN4
+R1-R4,10k,Resistor_SMD:R_0603_1608Metric,4,,,,
+R5-R8,1k,Resistor_SMD:R_0603_1608Metric,4,,,,
+R9-R12,330,Resistor_SMD:R_0603_1608Metric,4,,,,
+U1,XIAO ESP32-C3,Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-DIP,1,,,DNP,
+U2,AMS1117-5.0,Package_TO_SOT_SMD:SOT-223-3_TabPin2,1,,,,
+U1 socket,1x7 female header 2.54mm,Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical,2,,,,mates with U1 (DNP); 2 pcs per board
