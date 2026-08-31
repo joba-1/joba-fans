@@ -85,3 +85,41 @@ fan-controller/make_fab.sh
 Gerbers must be exported with an explicit `--layers` list. A bare
 `kicad-cli pcb export gerbers` writes *every* layer, including the
 `User.Eco1` scratch layer used during layout for review markers.
+
+## LCSC-Teilenummern
+
+JLCPCBs Zuordnung raet ohne Teilenummer und findet THT-Teile meist gar
+nicht. Die Nummern stehen daher in `make_bom.py` (Dict `LCSC`).
+
+Bestaetigt — von JLCPCBs eigener BOM-Zuordnung geliefert, alle Basic Parts:
+
+| Pos | Teil | LCSC |
+|---|---|---|
+| C2 | 10uF 0805 | C440198 |
+| D1 | SS34 SMA | C8678 |
+| U2 | AMS1117-5.0 SOT-223 | C6187 |
+| R1-R4 | 10k 0603 | C25804 |
+| R5-R8 | 1k 0603 | C21190 |
+| R9-R12 | 330 0603 | C23138 |
+
+Recherchiert, **nicht** von JLCPCB bestaetigt — vor dem Bestellen im Katalog
+gegenpruefen:
+
+| Pos | Teil | LCSC | Hinweis |
+|---|---|---|---|
+| F1 | SMD1812P150TF/24 | C209713 | 1.5A **24V**. Die /8-Variante (C209721) hat nur 8V und reicht fuer 12V nicht. |
+| U1 | Buchsenleiste 2.54mm 1x40 | C5303 | zum Ablaengen auf 2x 1x7 |
+
+Offen — im Web-Interface auszuwaehlen:
+
+* **J1** Hohlbuchse 5.5x2.1mm horizontal
+* **J2-J5** Stiftleiste 1x4 2.54mm
+* **C1** 220uF Elko, **bedrahtet**, Raster 3.5mm
+
+Zu C1: JLCPCB schlug C2941234 vor, einen **SMD**-Elko 6.3x5.8mm. Der passt
+nicht — unser Footprint hat bedrahtete Pads mit 3.5mm Raster. Vorschlag
+nicht uebernehmen.
+
+Die drei Widerstandszeilen meldet JLCPCB als "Unconfirmed", weil der Comment
+("10k") nicht der Herstellernummer entspricht. Inhaltlich stimmen die Teile;
+im Web-Interface bestaetigen, sonst bleibt die Menge auf 0.
