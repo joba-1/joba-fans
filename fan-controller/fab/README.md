@@ -34,6 +34,10 @@ gerbers/            RS-274X gerbers + Excellon drill (mm, absolute origin)
   *.drl               drill file
   *-drl_map.gbr       drill map (reference only, do not fabricate)
   *-job.gbrjob        gerber job file
+pcbway/                  BOM und CPL im PCBWay-Format (tolerantes
+                         Spaltenschema, PTH als Information mitgelistet)
+THT-BESTELLLISTE.md      selbst zu beschaffende Durchsteckteile
+ROTATION-WARNUNG.md      Bauteildrehung vor dem Bestellen pruefen
 fan-controller-bom.csv   BOM, JLCPCB-Spalten (Comment, Designator,
                          Footprint, LCSC Part #)
 fan-controller-cpl.csv   Pick-and-place, JLCPCB-Spalten (Designator,

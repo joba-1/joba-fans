@@ -29,6 +29,9 @@ python3 fan-controller/make_cpl.py "$PCB" "$OUT/fan-controller-cpl.csv"
 
 python3 fan-controller/make_bom.py "$SCH" "$OUT/fan-controller-bom.csv"
 
+# PCBWay-Variante: tolerantes Format, eigene Spalten, PTH mitgelistet
+python3 fan-controller/make_pcbway.py
+
 # python's zipfile rather than zip(1), which is not installed everywhere
 python3 - "$OUT" <<'EOF'
 import os, sys, zipfile
@@ -37,8 +40,11 @@ zp = os.path.join(out, "fan-controller-fab.zip")
 if os.path.exists(zp):
     os.remove(zp)
 with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as z:
-    for name in ("fan-controller-bom.csv", "fan-controller-cpl.csv", "README.md"):
+    for name in ("fan-controller-bom.csv", "fan-controller-cpl.csv",
+                 "README.md", "THT-BESTELLLISTE.md", "ROTATION-WARNUNG.md"):
         z.write(os.path.join(out, name), name)
+    for f in sorted(os.listdir(os.path.join(out, "pcbway"))):
+        z.write(os.path.join(out, "pcbway", f), os.path.join("pcbway", f))
     for f in sorted(os.listdir(os.path.join(out, "gerbers"))):
         z.write(os.path.join(out, "gerbers", f), os.path.join("gerbers", f))
 EOF
