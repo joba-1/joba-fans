@@ -35,6 +35,14 @@ from make_bom import LCSC, ROLE_VALUES, THT_REFS, collapse, refkey  # noqa: E402
 # to buy them first, and the KiCad footprint names are not enough for that.
 # Dimensions taken from the board's own footprints. English throughout -
 # these lines are read by PCBWay staff.
+# Positionen, bei denen ein Footprint mehrere physische Bauteile aufnimmt.
+# Die Qty-Spalte kann das nicht abbilden: sie korrespondiert mit der
+# Designatorliste (ein Designator = 1), und die CPL hat genau einen
+# Eintrag. Deshalb steht der Faktor im Value-Feld.
+QTY_PER_FOOTPRINT = {
+    "U1": 2,        # zwei 1x7-Buchsenleisten auf dem XIAO-Footprint
+}
+
 THT_SPEC = {
     "C1": ("electrolytic cap 220uF 25V radial, 3.5mm pitch, "
            "max 8mm diameter, THROUGH-HOLE (not SMD)"),
@@ -91,6 +99,8 @@ with open(bom_path, "w", newline="") as f:
         # Value-Feld der reine Teilename - sonst steht alles doppelt.
         if refs[0] in THT_SPEC and " - " in part:
             part = part.split(" - ")[0]
+        if refs[0] in QTY_PER_FOOTPRINT:
+            part = f"{QTY_PER_FOOTPRINT[refs[0]]}x {part}"
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         note = " ".join(notes)
         if is_tht:
