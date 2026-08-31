@@ -6699,6 +6699,30 @@
 		(layer "Edge.Cuts")
 		(uuid "ae57850d-ea43-40bd-8529-123041e608bd")
 	)
+	(gr_text "Fan Controller v1"
+		(at 74.8 66.5 0)
+		(layer "B.SilkS")
+		(uuid "587bc23a-c6b6-4196-bec3-f014b8daa697")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
+	(gr_text "Joachim Banzhaf 2026"
+		(at 74.8 69 0)
+		(layer "B.SilkS")
+		(uuid "34eccd3f-1cb4-433e-9d0c-3f97f5f6b0fd")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify mirror)
+		)
+	)
 	(segment
 		(start 52 71.5)
 		(end 50.92 72.58)
