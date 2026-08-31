@@ -1,8 +1,12 @@
 # Durchsteckteile — selbst zu beschaffen
 
-JLCPCB bestückt nur die 16 SMD-Positionen. Die folgenden Teile führt deren
-Katalog nicht; sie sind aus BOM und CPL entfernt und werden von Hand
+**Nur relevant bei einer Bestellung über JLCPCB.** Deren Katalog führt diese
+Teile nicht; sie sind dort aus BOM und CPL entfernt und werden von Hand
 gelötet.
+
+**Bei PCBWay entfällt diese Liste:** dort werden die Durchsteckteile
+mitbestückt (Through-Hole Assembly), und `fab/pcbway/` enthält sie in BOM
+und CPL, samt Beschaffungsangaben in der Note-Spalte.
 
 Mengen für **20 Platinen**, Maße aus den Footprints der Platine — bitte beim
 Kauf gegenprüfen, vor allem Rastermaß und Bohrungsdurchmesser.

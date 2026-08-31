@@ -37,6 +37,7 @@ gerbers/            RS-274X gerbers + Excellon drill (mm, absolute origin)
 pcbway/                  BOM und CPL im PCBWay-Format (tolerantes
                          Spaltenschema, PTH als Information mitgelistet)
 THT-BESTELLLISTE.md      selbst zu beschaffende Durchsteckteile
+                         (nur bei JLCPCB noetig)
 ROTATION-WARNUNG.md      Bauteildrehung vor dem Bestellen pruefen
 fan-controller-bom.csv   BOM, JLCPCB-Spalten (Comment, Designator,
                          Footprint, LCSC Part #)
@@ -49,6 +50,13 @@ Origin for both drill and placement files is the board's **bottom-left
 corner**.
 
 ## Assembly notes
+
+Die beiden Fertiger werden unterschiedlich bedient:
+
+* **JLCPCB** — nur die 16 SMD-Positionen, THT selbst loeten
+  (`fan-controller-bom.csv`, `fan-controller-cpl.csv`)
+* **PCBWay** — alle 23 Positionen inkl. Durchsteckteilen
+  (`pcbway/`), da PCBWay Through-Hole Assembly anbietet
 
 **JLCPCB bestueckt nur die 16 SMD-Positionen.** Die 7 Durchsteckteile (C1,
 J1, J2-J5, U1) sind aus BOM und CPL entfernt — deren Katalog fuehrt sie

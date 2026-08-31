@@ -9,11 +9,13 @@ Teilenummer; bei Widerstaenden und Kondensatoren genuegen Wert und Gehaeuse.
 PCBWay empfiehlt ausserdem, PTH und SMD zu kennzeichnen - dafuer gibt es
 hier die Spalte Type.
 
-Die BOM listet anders als bei JLCPCB *alle* Teile, auch die
-Durchsteckteile, damit die Stueckliste vollstaendig ist. Sie sind als PTH
-markiert und mit dem Hinweis versehen, dass sie selbst beschafft werden.
-Die CPL enthaelt dagegen nur SMD - PCBWay erlaubt ausdruecklich, THT dort
-wegzulassen.
+PCBWay bestueckt Durchsteckteile als regulaere Dienstleistung (Through-Hole
+Assembly). Anders als bei JLCPCB werden hier deshalb ALLE Teile bestueckt,
+und BOM wie CPL enthalten auch die THT-Positionen - ohne CPL-Eintrag wuesste
+die Bestueckung nicht, wo sie hingehoeren.
+
+Die Spalte Type unterscheidet PTH und SMD, wie von PCBWay empfohlen: THT
+wird von Hand oder im Wellenloetbad gesetzt und getrennt kalkuliert.
 """
 import csv
 import os
@@ -28,6 +30,22 @@ OUT = "fab/pcbway"
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_bom import LCSC, ROLE_VALUES, THT_REFS, collapse, refkey  # noqa: E402
+
+# Beschaffungsangaben fuer die Durchsteckteile. PCBWay bestueckt sie, muss
+# sie aber einkaufen koennen - die KiCad-Footprintnamen genuegen dafuer
+# nicht. Masse stammen aus den Footprints der Platine.
+THT_SPEC = {
+    "C1": ("Elko 220uF 25V radial, RM 3.5mm, max D8mm, "
+           "bedrahtet (KEIN SMD)"),
+    "J1": ("DC-Hohlbuchse 5.5x2.1mm horizontal/gewinkelt, 3 Pins, "
+           "Typ CUI PJ-102AH oder DC-005 kompatibel"),
+    "J2": "Stiftleiste 1x4 gerade, RM 2.54mm",
+    # U1 ist die Fassungsposition: der Footprint ist das XIAO-Modul, dort
+    # gehoeren aber ZWEI 1x7-Buchsenleisten hin. Das Modul selbst wird nicht
+    # bestueckt - der Kunde steckt es spaeter.
+    "U1": ("2x Buchsenleiste 1x7 gerade RM 2.54mm pro Platine "
+           "(Reihenabstand 15.24mm) - Modul NICHT bestuecken"),
+}
 
 os.makedirs(OUT, exist_ok=True)
 
@@ -71,13 +89,12 @@ with open(bom_path, "w", newline="") as f:
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         note = " ".join(notes)
         if is_tht:
-            note = ("vom Kunden beigestellt - nicht bestuecken; "
-                    + note).strip("; ")
-        # Bei beigestellten Teilen keine Teilenummer: sie werden nicht
-        # beschafft, eine Nummer waere hier irrefuehrend.
+            spec = THT_SPEC.get(refs[0], "")
+            note = "; ".join(x for x in ("PTH - Handloetung/Wellenlot",
+                                         spec, note) if x)
         w.writerow([i, collapse(refs), len(refs), part, pkg,
                     "PTH" if is_tht else "SMD",
-                    "" if is_tht else LCSC.get(refs[0], ""), note])
+                    LCSC.get(refs[0], ""), note])
 
 # ---------------------------------------------------------------- CPL
 with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
@@ -86,7 +103,7 @@ try:
     subprocess.run(
         ["kicad-cli", "pcb", "export", "pos", "--output", raw,
          "--format", "csv", "--units", "mm", "--side", "both",
-         "--use-drill-file-origin", "--exclude-dnp", "--exclude-fp-th", PCB],
+         "--use-drill-file-origin", "--exclude-dnp", PCB],
         capture_output=True, check=True)
     pos = list(csv.DictReader(open(raw)))
 finally:
@@ -103,7 +120,9 @@ with open(cpl_path, "w", newline="") as f:
                     f'{float(r["PosY"]):.4f}',
                     "Top" if r["Side"].strip().lower() == "top" else "Bottom",
                     f'{float(r["Rot"]):.2f}',
-                    "SMD"])
+                    "PTH" if r["Ref"] in THT_REFS else "SMD"])
 
 print(f"{bom_path}: {len(groups)} Positionen (inkl. PTH als Information)")
-print(f"{cpl_path}: {len(pos)} SMD-Bestueckpositionen")
+n_tht = sum(1 for r in pos if r["Ref"] in THT_REFS)
+print(f"{cpl_path}: {len(pos)} Bestueckpositionen "
+      f"({len(pos)-n_tht} SMD, {n_tht} PTH)")

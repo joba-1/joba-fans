@@ -1,12 +1,12 @@
 Item,Designator,Qty,Value,Package,Type,LCSC Part #,Note
-1,C1,1,220uF,CP_Radial_D8.0mm_P3.50mm,PTH,,vom Kunden beigestellt - nicht bestuecken
+1,C1,1,220uF,CP_Radial_D8.0mm_P3.50mm,PTH,,"PTH - Handloetung/Wellenlot; Elko 220uF 25V radial, RM 3.5mm, max D8mm, bedrahtet (KEIN SMD)"
 2,C2,1,10uF,C_0805_2012Metric,SMD,C440198,
 3,D1,1,SS34,D_SMA,SMD,C8678,
 4,F1,1,1.5A,Fuse_1812_4532Metric,SMD,C209713,
-5,J1,1,DC barrel jack 5.5x2.1mm,BarrelJack_CUI_PJ-102AH_Horizontal,PTH,,vom Kunden beigestellt - nicht bestuecken
-6,"J2,J3,J4,J5",4,4-pin PC fan header,PinHeader_1x04_P2.54mm_Vertical,PTH,,vom Kunden beigestellt - nicht bestuecken
+5,J1,1,DC barrel jack 5.5x2.1mm,BarrelJack_CUI_PJ-102AH_Horizontal,PTH,,"PTH - Handloetung/Wellenlot; DC-Hohlbuchse 5.5x2.1mm horizontal/gewinkelt, 3 Pins, Typ CUI PJ-102AH oder DC-005 kompatibel"
+6,"J2,J3,J4,J5",4,4-pin PC fan header,PinHeader_1x04_P2.54mm_Vertical,PTH,,"PTH - Handloetung/Wellenlot; Stiftleiste 1x4 gerade, RM 2.54mm"
 7,"R1,R2,R3,R4",4,10k,R_0603_1608Metric,SMD,C25804,
 8,"R5,R6,R7,R8",4,1k,R_0603_1608Metric,SMD,C21190,
 9,"R9,R10,R11,R12",4,330,R_0603_1608Metric,SMD,C23138,
-10,U1,1,1x7 female header 2.54mm - 2 Stk pro Platine - Modul wird spaeter gesteckt,XIAO-ESP32-C3-DIP,PTH,,vom Kunden beigestellt - nicht bestuecken
+10,U1,1,1x7 female header 2.54mm - 2 Stk pro Platine - Modul wird spaeter gesteckt,XIAO-ESP32-C3-DIP,PTH,C5303,PTH - Handloetung/Wellenlot; 2x Buchsenleiste 1x7 gerade RM 2.54mm pro Platine (Reihenabstand 15.24mm) - Modul NICHT bestuecken
 11,U2,1,AMS1117-5.0,SOT-223-3_TabPin2,SMD,C6187,
