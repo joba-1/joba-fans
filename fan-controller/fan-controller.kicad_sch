@@ -3279,7 +3279,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "969b77d6-246e-49bb-9485-c73aecc5725d")
 		(property "Reference" "U1"
 			(at 55.0 110.0 0)

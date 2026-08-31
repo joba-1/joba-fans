@@ -36,6 +36,14 @@ ROLE_VALUES = {
     "FAN3": "4-pin PC fan header",
     "FAN4": "4-pin PC fan header",
     "DC_Jack_12V": "DC barrel jack 5.5x2.1mm",
+    # U1 ist im Schaltplan das XIAO-Modul, auf der Platine aber die
+    # Fassungsposition: die 14 Durchsteckpads des Modul-Footprints sind
+    # die Loecher fuer zwei 1x7-Buchsenleisten. Das Modul selbst wird
+    # gesteckt, nicht bestueckt. Die Fassungen haben kein eigenes
+    # Schaltplan-Symbol, also muessen sie hier haengen - sonst stehen sie
+    # in keiner CPL und JLCPCB weist die BOM-Zeile zurueck.
+    "XIAO ESP32-C3": "1x7 female header 2.54mm - 2 Stk pro Platine - "
+                     "Modul wird spaeter gesteckt",
 }
 
 with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
@@ -59,19 +67,14 @@ def refkey(ref):
 
 
 def collapse(refs):
-    """R1,R2,R3,R5 -> 'R1-R3, R5'"""
-    refs = sorted(refs, key=refkey)
-    out, run = [], []
-    for r in refs:
-        if run and refkey(r)[0] == refkey(run[-1])[0] and refkey(r)[1] == refkey(run[-1])[1] + 1:
-            run.append(r)
-        else:
-            if run:
-                out.append(run)
-            run = [r]
-    if run:
-        out.append(run)
-    return ", ".join(g[0] if len(g) == 1 else f"{g[0]}-{g[-1]}" for g in out)
+    """Alle Designatoren als Kommaliste: R1,R2,R3,R4
+
+    Keine Bereichsschreibweise ("R1-R4"): JLCPCB gleicht BOM und CPL
+    designatorweise ab und meldet sonst "designators don't exist in the
+    CPL file". Ohne Leerzeichen nach dem Komma, damit der Parser die
+    Namen nicht mit Leerraum liest.
+    """
+    return ",".join(sorted(refs, key=refkey))
 
 
 groups = {}
@@ -96,20 +99,15 @@ with open(OUT, "w", newline="") as f:
         if dnp:
             continue          # U1: gesockelt, vom Kunden beigestellt
         comment = part
-        if g["notes"]:
-            comment += " - " + " ".join(g["notes"])
+        # Rollenbezeichnungen anhaengen (FAN1..FAN4), aber nicht bei
+        # Positionen, deren Comment die Rolle ohnehin schon beschreibt.
+        notes = [n for n in g["notes"] if n not in ROLE_VALUES]
+        if notes:
+            comment += " - " + " ".join(notes)
         w.writerow([comment, collapse(g["refs"]), fp, ""])
-
-# The XIAO plugs into sockets, so the female headers are what actually gets
-# assembled -- but they have no schematic symbol (the module's footprint
-# provides their pads). Add them explicitly or they are simply not fitted.
-    w.writerow(["1x7 female header 2.54mm - Fassung fuer U1 - 2 Stk/Platine",
-                "U1-SKT1 U1-SKT2",
-                "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical",
-                ""])
 
 placed = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if not dnp)
 skipped = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if dnp)
-print(f"{OUT}: {len([k for k in groups if not k[2]])+1} Positionen im "
-      f"JLCPCB-Format (inkl. Fassungen), {placed+2} Teile zu bestuecken, "
+print(f"{OUT}: {len([k for k in groups if not k[2]])} Positionen im "
+      f"JLCPCB-Format, {placed} Teile zu bestuecken, "
       f"{skipped} DNP weggelassen")
