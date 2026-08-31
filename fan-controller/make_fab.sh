@@ -23,10 +23,9 @@ kicad-cli pcb export drill --output "$OUT/gerbers/" \
     --format excellon --drill-origin plot --excellon-units mm \
     --generate-map --map-format gerberx2 "$PCB"
 
-# --exclude-dnp drops U1: the XIAO is socketed and customer-supplied.
-kicad-cli pcb export pos --output "$OUT/fan-controller-cpl.csv" \
-    --format csv --units mm --side both \
-    --use-drill-file-origin --exclude-dnp "$PCB"
+# CPL im JLCPCB-Spaltenformat. Nicht kicad-cli direkt: dessen Kopfzeile
+# (Ref,Val,Package,PosX,PosY,Rot,Side) wird von JLCPCB abgelehnt.
+python3 fan-controller/make_cpl.py "$PCB" "$OUT/fan-controller-cpl.csv"
 
 python3 fan-controller/make_bom.py "$SCH" "$OUT/fan-controller-bom.csv"
 

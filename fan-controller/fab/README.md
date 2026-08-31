@@ -34,8 +34,11 @@ gerbers/            RS-274X gerbers + Excellon drill (mm, absolute origin)
   *.drl               drill file
   *-drl_map.gbr       drill map (reference only, do not fabricate)
   *-job.gbrjob        gerber job file
-fan-controller-bom.csv   bill of materials
-fan-controller-cpl.csv   pick-and-place (top side only, DNP excluded)
+fan-controller-bom.csv   BOM, JLCPCB-Spalten (Comment, Designator,
+                         Footprint, LCSC Part #)
+fan-controller-cpl.csv   Pick-and-place, JLCPCB-Spalten (Designator,
+                         Mid X, Mid Y, Layer, Rotation); nur Oberseite,
+                         DNP ausgenommen
 ```
 
 Origin for both drill and placement files is the board's **bottom-left
@@ -53,9 +56,15 @@ All parts are on the top side. J1 (barrel jack) overhangs the right board
 edge by 3.5 mm by design — its flange seats on the edge so the socket is
 reachable from outside an enclosure.
 
-The BOM has empty **MPN** and **Supplier** columns. Fill these in, or ask
-the assembler to substitute from their own stock — every part is a generic
-jellybean except the barrel jack and the AMS1117.
+Die Spalte **LCSC Part #** in der BOM ist leer. Entweder selbst ausfuellen
+oder den Bestuecker aus seinem Lager substituieren lassen — ausser der
+Hohlbuchse und dem AMS1117 ist alles Standardware.
+
+BOM und CPL stehen in **JLCPCBs Spaltenformat**. kicad-cli exportiert eigene
+Kopfzeilen (`Ref,Val,Package,PosX,PosY,Rot,Side` bzw. `Value` statt
+`Comment`), die der Import dort ablehnt — daher erzeugen `make_bom.py` und
+`make_cpl.py` die Dateien um. Fuer PCBWay oder Aisler sind beide Formate in
+der Regel unproblematisch.
 
 ## Reproducing
 

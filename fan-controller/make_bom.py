@@ -9,8 +9,14 @@ though they are one identical part. That reads to an assembler as four
 different components. So the raw per-part export is regrouped here on
 footprint + part type, keeping the channel names in a separate column.
 
-Columns are the ones PCBWay / JLCPCB / Aisler all accept: Designator, Value,
-Footprint, Qty, plus MPN/Supplier left blank for you to fill, and a DNP flag.
+Ausgabeformat sind JLCPCBs vier Spalten: Comment, Designator, Footprint,
+LCSC Part #. Deren Import lehnt abweichende Kopfzeilen ab (wie schon bei der
+CPL). "LCSC Part #" bleibt leer - entweder selbst ausfuellen oder den
+Bestuecker aus seinem Lager substituieren lassen.
+
+DNP-Teile werden weggelassen statt markiert: U1 (das XIAO-Modul) wird
+gesockelt und von dir beigestellt. Die Fassungen selbst muessen dagegen
+bestueckt werden und stehen daher drin.
 """
 import csv
 import os
@@ -85,22 +91,25 @@ for r in rows:
 os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 with open(OUT, "w", newline="") as f:
     w = csv.writer(f)
-    w.writerow(["Designator", "Value", "Footprint", "Qty",
-                "MPN", "Supplier", "DNP", "Note"])
+    w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
     for (fp, part, dnp), g in sorted(groups.items(), key=lambda kv: refkey(sorted(kv[1]["refs"], key=refkey)[0])):
-        w.writerow([collapse(g["refs"]), part, fp, len(g["refs"]),
-                    "", "", "DNP" if dnp else "",
-                    "; ".join(g["notes"])])
+        if dnp:
+            continue          # U1: gesockelt, vom Kunden beigestellt
+        comment = part
+        if g["notes"]:
+            comment += " - " + " ".join(g["notes"])
+        w.writerow([comment, collapse(g["refs"]), fp, ""])
 
 # The XIAO plugs into sockets, so the female headers are what actually gets
 # assembled -- but they have no schematic symbol (the module's footprint
 # provides their pads). Add them explicitly or they are simply not fitted.
-    w.writerow(["U1 socket", "1x7 female header 2.54mm",
+    w.writerow(["1x7 female header 2.54mm - Fassung fuer U1 - 2 Stk/Platine",
+                "U1-SKT1 U1-SKT2",
                 "Connector_PinSocket_2.54mm:PinSocket_1x07_P2.54mm_Vertical",
-                2, "", "", "", "mates with U1 (DNP); 2 pcs per board"])
+                ""])
 
 placed = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if not dnp)
 skipped = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if dnp)
-print(f"wrote {OUT}: {len(groups)+1} line items "
-      f"(incl. the socket headers, which have no schematic symbol), "
-      f"{placed+2} parts to place, {skipped} DNP")
+print(f"{OUT}: {len([k for k in groups if not k[2]])+1} Positionen im "
+      f"JLCPCB-Format (inkl. Fassungen), {placed+2} Teile zu bestuecken, "
+      f"{skipped} DNP weggelassen")
