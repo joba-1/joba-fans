@@ -1,12 +1,8 @@
 Comment,Designator,Footprint,LCSC Part #
-220uF,C1,Capacitor_THT:CP_Radial_D8.0mm_P3.50mm,
 10uF,C2,Capacitor_SMD:C_0805_2012Metric,C440198
 SS34,D1,Diode_SMD:D_SMA,C8678
 1.5A,F1,Fuse:Fuse_1812_4532Metric,C209713
-DC barrel jack 5.5x2.1mm,J1,Connector_BarrelJack:BarrelJack_CUI_PJ-102AH_Horizontal,
-4-pin PC fan header,"J2,J3,J4,J5",Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical,
 10k,"R1,R2,R3,R4",Resistor_SMD:R_0603_1608Metric,C25804
 1k,"R5,R6,R7,R8",Resistor_SMD:R_0603_1608Metric,C21190
 330,"R9,R10,R11,R12",Resistor_SMD:R_0603_1608Metric,C23138
-1x7 female header 2.54mm - 2 Stk pro Platine - Modul wird spaeter gesteckt,U1,Seeed_Studio_XIAO_Series:XIAO-ESP32-C3-DIP,C5303
 AMS1117-5.0,U2,Package_TO_SOT_SMD:SOT-223-3_TabPin2,C6187

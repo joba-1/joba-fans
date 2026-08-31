@@ -11,6 +11,10 @@ hochgeladen, weist JLCPCB sie zurueck.
 
 Die Koordinaten selbst sind bereits richtig: Ursprung ist die linke
 untere Platinenecke (aux origin), Einheit mm.
+
+--exclude-fp-th laesst die Durchsteckteile weg: JLCPCBs Katalog fuehrt sie
+nicht, sie werden separat beschafft und von Hand geloetet. Siehe
+fab/THT-BESTELLLISTE.md.
 """
 import csv
 import os
@@ -27,7 +31,9 @@ try:
     subprocess.run(
         ["kicad-cli", "pcb", "export", "pos", "--output", raw,
          "--format", "csv", "--units", "mm", "--side", "both",
-         "--use-drill-file-origin", "--exclude-dnp", PCB],
+         "--use-drill-file-origin", "--exclude-dnp",
+         "--exclude-fp-th",        # THT wird selbst bestueckt
+         PCB],
         capture_output=True, check=True)
     rows = list(csv.DictReader(open(raw)))
 finally:

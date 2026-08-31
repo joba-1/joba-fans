@@ -28,6 +28,11 @@ import tempfile
 SCH = sys.argv[1] if len(sys.argv) > 1 else "fan-controller/fan-controller.kicad_sch"
 OUT = sys.argv[2] if len(sys.argv) > 2 else "fab/fan-controller-bom.csv"
 
+# Durchsteckteile werden selbst beschafft und geloetet - JLCPCBs Katalog
+# fuehrt sie nicht. Sie muessen aus BOM UND CPL raus, sonst meldet der
+# Import wieder fehlende Designatoren. Liste: fab/THT-BESTELLLISTE.md
+THT_REFS = {"C1", "J1", "J2", "J3", "J4", "J5", "U1"}
+
 # Parts whose Value names a role rather than a part type. The BOM needs the
 # part type for sourcing; the role is kept in a Note column.
 # LCSC-Teilenummern. Ohne diese raet JLCPCBs Zuordnung, und THT-Teile
@@ -100,6 +105,8 @@ def collapse(refs):
 groups = {}
 for r in rows:
     ref = r["Designator"].strip('"')
+    if ref in THT_REFS:
+        continue
     val = r["Value"].strip('"')
     fp = r["Footprint"].strip('"')
     dnp = bool(r.get("DNP", "").strip('"'))

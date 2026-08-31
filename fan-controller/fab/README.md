@@ -46,6 +46,11 @@ corner**.
 
 ## Assembly notes
 
+**JLCPCB bestueckt nur die 16 SMD-Positionen.** Die 7 Durchsteckteile (C1,
+J1, J2-J5, U1) sind aus BOM und CPL entfernt — deren Katalog fuehrt sie
+nicht. Sie werden separat beschafft und von Hand geloetet: Spezifikationen
+und Mengen in **THT-BESTELLLISTE.md**.
+
 **U1 ist die Fassungsposition, nicht das Modul.** Dort gehoeren zwei
 **1×7-Buchsenleisten** hin; das XIAO-Modul selbst wird spaeter gesteckt und
 ist nicht Teil der Bestueckung.
