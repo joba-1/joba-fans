@@ -31,20 +31,21 @@ OUT = "fab/pcbway"
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_bom import LCSC, ROLE_VALUES, THT_REFS, collapse, refkey  # noqa: E402
 
-# Beschaffungsangaben fuer die Durchsteckteile. PCBWay bestueckt sie, muss
-# sie aber einkaufen koennen - die KiCad-Footprintnamen genuegen dafuer
-# nicht. Masse stammen aus den Footprints der Platine.
+# Sourcing notes for the through-hole parts. PCBWay assembles them but has
+# to buy them first, and the KiCad footprint names are not enough for that.
+# Dimensions taken from the board's own footprints. English throughout -
+# these lines are read by PCBWay staff.
 THT_SPEC = {
-    "C1": ("Elko 220uF 25V radial, RM 3.5mm, max D8mm, "
-           "bedrahtet (KEIN SMD)"),
-    "J1": ("DC-Hohlbuchse 5.5x2.1mm horizontal/gewinkelt, 3 Pins, "
-           "Typ CUI PJ-102AH oder DC-005 kompatibel"),
-    "J2": "Stiftleiste 1x4 gerade, RM 2.54mm",
-    # U1 ist die Fassungsposition: der Footprint ist das XIAO-Modul, dort
-    # gehoeren aber ZWEI 1x7-Buchsenleisten hin. Das Modul selbst wird nicht
-    # bestueckt - der Kunde steckt es spaeter.
-    "U1": ("2x Buchsenleiste 1x7 gerade RM 2.54mm pro Platine "
-           "(Reihenabstand 15.24mm) - Modul NICHT bestuecken"),
+    "C1": ("electrolytic cap 220uF 25V radial, 3.5mm pitch, "
+           "max 8mm diameter, THROUGH-HOLE (not SMD)"),
+    "J1": ("DC barrel jack 5.5x2.1mm, horizontal/right-angle, 3 pins, "
+           "CUI PJ-102AH or DC-005 compatible"),
+    "J2": "pin header 1x4 straight, 2.54mm pitch",
+    # U1 is the socket position: the footprint is the XIAO module, but what
+    # goes there is TWO 1x7 female headers. The module itself is not
+    # assembled - the customer plugs it in later.
+    "U1": ("2x female header 1x7 straight, 2.54mm pitch, per board "
+           "(row spacing 15.24mm) - do NOT fit the module itself"),
 }
 
 os.makedirs(OUT, exist_ok=True)
@@ -86,11 +87,15 @@ with open(bom_path, "w", newline="") as f:
         refs = sorted(g["refs"], key=refkey)
         is_tht = refs[0] in THT_REFS
         pkg = fp.split(":")[-1]
+        # Bei Positionen mit ausfuehrlicher Sourcing-Note reicht im
+        # Value-Feld der reine Teilename - sonst steht alles doppelt.
+        if refs[0] in THT_SPEC and " - " in part:
+            part = part.split(" - ")[0]
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         note = " ".join(notes)
         if is_tht:
             spec = THT_SPEC.get(refs[0], "")
-            note = "; ".join(x for x in ("PTH - Handloetung/Wellenlot",
+            note = "; ".join(x for x in ("PTH - hand/wave solder",
                                          spec, note) if x)
         w.writerow([i, collapse(refs), len(refs), part, pkg,
                     "PTH" if is_tht else "SMD",
