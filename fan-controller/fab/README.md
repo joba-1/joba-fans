@@ -65,7 +65,9 @@ und Mengen in **THT-BESTELLLISTE.md**.
 
 **U1 ist die Fassungsposition, nicht das Modul.** Dort gehoeren zwei
 **1×7-Buchsenleisten** hin; das XIAO-Modul selbst wird spaeter gesteckt und
-ist nicht Teil der Bestueckung.
+ist nicht Teil der Bestueckung. In der PCBWay-BOM steht deshalb **Qty 2** —
+die Spalte meint Stueck pro Platine, nicht Anzahl der Designatoren. Ein
+Hinweis im Value-Feld reicht nicht; die Kalkulation folgt der Spalte.
 
 Der Grund fuer diese Verdrehung: die Fassungen haben kein eigenes
 Schaltplan-Symbol — ihre Loecher sind die 14 Durchsteckpads des

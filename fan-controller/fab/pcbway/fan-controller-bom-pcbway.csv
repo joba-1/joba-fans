@@ -8,5 +8,5 @@ Item,Designator,Qty,Value,Package,Type,LCSC Part #,Note
 7,"R1,R2,R3,R4",4,10k,R_0603_1608Metric,SMD,C25804,
 8,"R5,R6,R7,R8",4,1k,R_0603_1608Metric,SMD,C21190,
 9,"R9,R10,R11,R12",4,330,R_0603_1608Metric,SMD,C23138,
-10,U1,1,2x 1x7 female header 2.54mm,XIAO-ESP32-C3-DIP,PTH,C5303,"PTH - hand/wave solder; 2x female header 1x7 straight, 2.54mm pitch, per board (row spacing 15.24mm) - do NOT fit the module itself"
+10,U1,2,1x7 female header 2.54mm,XIAO-ESP32-C3-DIP,PTH,C5303,"PTH - hand/wave solder; female header 1x7 straight, 2.54mm pitch, row spacing 15.24mm - do NOT fit the module itself"
 11,U2,1,AMS1117-5.0,SOT-223-3_TabPin2,SMD,C6187,

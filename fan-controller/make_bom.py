@@ -67,7 +67,7 @@ ROLE_VALUES = {
     # gesteckt, nicht bestueckt. Die Fassungen haben kein eigenes
     # Schaltplan-Symbol, also muessen sie hier haengen - sonst stehen sie
     # in keiner CPL und JLCPCB weist die BOM-Zeile zurueck.
-    "XIAO ESP32-C3": "1x7 female header 2.54mm - 2 pcs per board - "
+    "XIAO ESP32-C3": "1x7 female header 2.54mm - "
                      "module is plugged in later, do not fit",
 }
 

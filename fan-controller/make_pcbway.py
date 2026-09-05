@@ -36,9 +36,12 @@ from make_bom import LCSC, ROLE_VALUES, THT_REFS, collapse, refkey  # noqa: E402
 # Dimensions taken from the board's own footprints. English throughout -
 # these lines are read by PCBWay staff.
 # Positionen, bei denen ein Footprint mehrere physische Bauteile aufnimmt.
-# Die Qty-Spalte kann das nicht abbilden: sie korrespondiert mit der
-# Designatorliste (ein Designator = 1), und die CPL hat genau einen
-# Eintrag. Deshalb steht der Faktor im Value-Feld.
+#
+# Die Qty-Spalte meint die Stueckzahl PRO PLATINE, nicht die Anzahl der
+# Designatoren. Von PCBWay am 2026-09-02 so korrigiert: U1 war mit Qty 1
+# eingereicht und wurde als eine Buchsenleiste pro Platine kalkuliert,
+# obwohl zwei gebraucht werden. Ein Hinweis im Value-Feld oder in der Note
+# reicht nicht - die Kalkulation folgt der Spalte.
 QTY_PER_FOOTPRINT = {
     "U1": 2,        # zwei 1x7-Buchsenleisten auf dem XIAO-Footprint
 }
@@ -52,8 +55,10 @@ THT_SPEC = {
     # U1 is the socket position: the footprint is the XIAO module, but what
     # goes there is TWO 1x7 female headers. The module itself is not
     # assembled - the customer plugs it in later.
-    "U1": ("2x female header 1x7 straight, 2.54mm pitch, per board "
-           "(row spacing 15.24mm) - do NOT fit the module itself"),
+    # Stueckzahl steht in der Qty-Spalte und NUR dort - "2x" hier dazu
+    # liest sich als vier.
+    "U1": ("female header 1x7 straight, 2.54mm pitch, row spacing "
+           "15.24mm - do NOT fit the module itself"),
 }
 
 os.makedirs(OUT, exist_ok=True)
@@ -99,15 +104,16 @@ with open(bom_path, "w", newline="") as f:
         # Value-Feld der reine Teilename - sonst steht alles doppelt.
         if refs[0] in THT_SPEC and " - " in part:
             part = part.split(" - ")[0]
-        if refs[0] in QTY_PER_FOOTPRINT:
-            part = f"{QTY_PER_FOOTPRINT[refs[0]]}x {part}"
+        # Kein "2x" im Value-Feld: die Stueckzahl steht in der Qty-Spalte,
+        # sonst liest sich Qty 2 mal "2x ..." als vier Stueck.
+        qty = len(refs) * QTY_PER_FOOTPRINT.get(refs[0], 1)
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         note = " ".join(notes)
         if is_tht:
             spec = THT_SPEC.get(refs[0], "")
             note = "; ".join(x for x in ("PTH - hand/wave solder",
                                          spec, note) if x)
-        w.writerow([i, collapse(refs), len(refs), part, pkg,
+        w.writerow([i, collapse(refs), qty, part, pkg,
                     "PTH" if is_tht else "SMD",
                     LCSC.get(refs[0], ""), note])
 
