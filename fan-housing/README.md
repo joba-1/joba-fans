@@ -2,6 +2,13 @@
 
 Zum Zusammenstecken, ohne Schrauben. Aussenmass **78,3 x 30,4 x 24,1 mm**.
 
+![Geschlossenes Gehaeuse](img/case-assembled.png)
+
+Vorne die beiden Kabelschlitze fuer FAN1 und FAN2 und links daneben der
+USB-C-Ausschnitt, rechts die Hohlbuchse, oben das Lichtfenster und die
+Lueftungsschlitze ueber dem Spannungsregler. Die zweiten beiden
+Kabelschlitze liegen spiegelbildlich auf der Rueckseite.
+
 Erzeugt aus `case.scad`; alle Platinenmasse stammen aus
 `board_params.scad`, das `extract_geometry.py` aus der `.kicad_pcb` zieht.
 Die Platine ist bestellt, ihre Masse stehen also fest — geaendert wird hier
@@ -15,6 +22,12 @@ nur noch das Gehaeuse.
 | `stl/fan-controller-case-lid.stl` | cremefarbenes PETG | wie exportiert, Deckelflaeche unten, Zungen nach oben |
 | `stl/fan-controller-case-guide.stl` | transparentes PETG | wie exportiert |
 
+![Deckel in Drucklage](img/case-lid.png)
+
+Der Deckel in Drucklage — kopfueber, die vier Federzungen zeigen nach oben.
+An den beiden vorderen ist die Rastnase als Stufe zu erkennen; die
+Anschraegung darunter druckt die Zunge beim Aufsetzen von selbst ein.
+
 Alle drei sind bereits in Drucklage exportiert und brauchen **keine
 Stuetzen**. Der Deckel liegt kopfueber, damit die Sichtflaeche glatt vom
 Druckbett kommt und die Rastzungen nach oben zeigen.
@@ -24,6 +37,8 @@ nicht Kosmetik — die Federzungen sind 1,4 mm dick und sollen aus
 Perimetern bestehen, nicht aus Infill.
 
 ## Zusammenbau
+
+![Explosionsansicht](img/case-exploded.png)
 
 1. Lichtleiter von **innen** in die Deckeloeffnung druecken. Der Bund haelt
    ihn gegen die Deckelunterseite; er sitzt stramm, ein Tropfen Kleber am
@@ -39,6 +54,13 @@ Perimetern bestehen, nicht aus Infill.
    aussen druecken.
 
 ## Oeffnungen
+
+![Wanne von innen](img/case-tray.png)
+
+Innen laeuft die Auflageschulter fuer die Platine um; darunter bleiben
+2,5 mm fuer die Loetstellen. Oben in den Laengswaenden sitzen die vier
+Rasttaschen als flache Mulden — sie fraesen die Wand nur an, ein
+Durchbruch waere von aussen sichtbar. Links die Lueftungsschlitze.
 
 * **Hohlbuchse** rechte Stirnwand. Sie steht ohnehin ueber die
   Platinenkante hinaus und schaut damit aus der Wand.
@@ -118,4 +140,18 @@ Tasche sass. Das Modell rechnet seine Quader selbst aus und gibt sie per
 `echo()` aus, damit die Masse nicht an zwei Stellen stehen.
 
 Zum Ansehen: `part = "all"` zeigt den Zusammenbau mit angedeuteter
-Bestueckung, `part = "explode"` mit abgehobenem Deckel.
+Bestueckung, `part = "explode"` mit abgehobenem Deckel, `part = "closed"`
+das geschlossene Gehaeuse. `part = "latch"` schneidet eine 5 mm dicke
+Scheibe quer durch eine Rastung heraus und legt sie in den Ursprung — zum
+Beurteilen des Eingriffs in der OpenSCAD-Oberflaeche, wo man frei drehen
+kann. Als Standbild taugt das wenig: von innen verdeckt die Zunge genau
+die Tasche, und der Blick von aussen braucht den CGAL-Renderer, der
+`color()` ignoriert.
+
+Die Bilder in `img/` entstehen im Preview-Modus (ohne `--render`), sonst
+sind alle Teile einfarbig gelb:
+
+```sh
+openscad -o img/case-assembled.png --imgsize=1400,950 \
+         --camera=36.4,12.5,8,60,0,28,168 -D 'part="closed"' case.scad
+```

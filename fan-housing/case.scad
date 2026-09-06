@@ -20,6 +20,10 @@ include <board_params.scad>
 part = "all";
 $fn  = 48;
 
+// Farben nur fuer die Ansichten - PETG cremefarben, Lichtleiter klar
+col_case  = "antiquewhite";
+col_guide = "lightcyan";
+
 // ---------------------------------------------------------------- Material
 wall     = 2.4;   // Seitenwaende
 floor_t  = 2.0;   // Boden der Wanne
@@ -271,6 +275,15 @@ module guide() {
 //  Sichtkontrolle
 // ===========================================================================
 
+// Duenne Scheibe quer durch eine Rastung. Ein blosses Wegschneiden der
+// einen Haelfte laesst zu weit in das Bauteil hinein sehen - man sieht
+// dann hinter der Schnittflaeche weiter Material und kann nichts mehr
+// zuordnen.
+slab = 5;
+module cutbox() {
+    translate([snap_x[0] - slab/2, -80, -80]) cube([slab, 160, 160]);
+}
+
 module board_mock() {
     color("darkgreen") translate([0, 0, 0]) cube([board_l, board_w, pcb_t]);
     color("gray")   box(U1_x[0], U1_y[0], z_pcb_top,
@@ -285,13 +298,19 @@ module board_mock() {
                         C1_x[1], C1_y[1], z_pcb_top + 12.5);
 }
 
-if      (part == "tray")  translate([0, 0, -z_floor_out]) tray();
-else if (part == "lid")   translate([0, 0, z_lid_top]) rotate([180, 0, 0]) lid();
-else if (part == "guide") translate([0, 0, z_lid_top]) rotate([180, 0, 0]) guide();
+if      (part == "tray")  color(col_case)
+                             translate([0, 0, -z_floor_out]) tray();
+else if (part == "lid")   color("wheat")
+                             translate([0, 0, z_lid_top]) rotate([180, 0, 0]) lid();
+else if (part == "guide") color(col_guide)
+                             translate([0, 0, z_lid_top]) rotate([180, 0, 0]) guide();
 else if (part == "explode") {
-    tray();
+    color(col_case) tray();
     board_mock();
-    translate([0, 0, 16]) { color("ivory") lid(); color("skyblue") guide(); }
+    translate([0, 0, 20]) {
+        color("wheat") lid();
+        color(col_guide) guide();
+    }
 }
 else if (part == "report") {
     echo(str("OUTER ", outer_l, " ", outer_w, " ", z_lid_top - z_floor_out));
@@ -323,12 +342,26 @@ else if (part == "report") {
     echo(str("PART C1 ", C1_x[0], " ", C1_x[1], " ", C1_y[0], " ", C1_y[1],
              " ", z_pcb_top, " ", z_pcb_top + 12.5));
 }
-else if (part == "section") {
-    // Schnitt quer durch eine Rastung - zur Kontrolle des Eingriffs
-    difference() {
-        union() { tray(); color("ivory") lid(); board_mock(); }
-        translate([snap_x[0], -60, -60]) cube([120, 120, 120]);
+else if (part == "latch") {
+    // Rastung in den Ursprung schieben, damit die Kamera nur noch auf
+    // (0,0,0) zeigen muss - Zielen in Modellkoordinaten ist bei schraeger
+    // Ansicht Raterei.
+    translate([-snap_x[0], 0.5, -(z_rim - 2.7)]) {
+        color("steelblue")  intersection() { tray(); cutbox(); }
+        color("sandybrown") intersection() { lid();  cutbox(); }
     }
+}
+else if (part == "section") {
+    // Schnitt quer durch eine Rastung. Bewusst unrealistisch eingefaerbt -
+    // in zwei Cremetoenen ist im Schnitt nicht zu erkennen, welches Teil
+    // welches ist.
+    color("steelblue")  intersection() { tray(); cutbox(); }
+    color("sandybrown") intersection() { lid();  cutbox(); }
+}
+else if (part == "closed") {
+    color(col_case)  tray();
+    color("wheat") lid();
+    color(col_guide) guide();
 }
 else {
     tray();
