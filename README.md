@@ -26,7 +26,7 @@ Das XIAO-Modul wird gesockelt, nicht gelötet.
 
 ## Fertigungsdaten erzeugen
 
-```sh
+```
 fan-controller/make_fab.sh
 ```
 
@@ -36,7 +36,7 @@ Formaten von JLCPCB und PCBWay, und packt alles nach
 
 Der Schaltplan selbst wird aus `fan-controller/netplan.py` generiert:
 
-```sh
+```
 python3 fan-controller/generate.py fan-controller/fan-controller.kicad_sch
 ```
 
