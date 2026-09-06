@@ -342,6 +342,15 @@ else if (part == "report") {
     echo(str("PART C1 ", C1_x[0], " ", C1_x[1], " ", C1_y[0], " ", C1_y[1],
              " ", z_pcb_top, " ", z_pcb_top + 12.5));
 }
+else if (part == "lid_guide") {
+    // Nur zum Ansehen: Deckel in Drucklage mit abgehobenem Lichtleiter.
+    // Nicht fuer den STL-Export - die beiden Teile werden getrennt und aus
+    // verschiedenem Material gedruckt.
+    color("wheat")
+        translate([0, 0, z_lid_top]) rotate([180, 0, 0]) lid();
+    color(col_guide, 0.65)
+        translate([0, 0, z_lid_top + 15]) rotate([180, 0, 0]) guide();
+}
 else if (part == "latch") {
     // Rastung in den Ursprung schieben, damit die Kamera nur noch auf
     // (0,0,0) zeigen muss - Zielen in Modellkoordinaten ist bei schraeger

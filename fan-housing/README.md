@@ -22,11 +22,17 @@ nur noch das Gehaeuse.
 | `stl/fan-controller-case-lid.stl` | cremefarbenes PETG | wie exportiert, Deckelflaeche unten, Zungen nach oben |
 | `stl/fan-controller-case-guide.stl` | transparentes PETG | wie exportiert |
 
-![Deckel in Drucklage](img/case-lid.png)
+![Deckel in Drucklage mit Lichtleiter](img/case-lid.png)
 
 Der Deckel in Drucklage — kopfueber, die vier Federzungen zeigen nach oben.
 An den beiden vorderen ist die Rastnase als Stufe zu erkennen; die
 Anschraegung darunter druckt die Zunge beim Aufsetzen von selbst ein.
+
+Der Lichtleiter ist abgehoben dargestellt und wird **getrennt gedruckt** —
+transparent, waehrend der Deckel cremefarben bleibt. Eingesetzt wird er von
+der Innenseite des Deckels, in dieser umgedrehten Lage also von oben. Sein
+Bund liegt danach an der Deckelunterseite an und haelt ihn gegen
+Herausfallen nach aussen.
 
 Alle drei sind bereits in Drucklage exportiert und brauchen **keine
 Stuetzen**. Der Deckel liegt kopfueber, damit die Sichtflaeche glatt vom
@@ -141,7 +147,8 @@ Tasche sass. Das Modell rechnet seine Quader selbst aus und gibt sie per
 
 Zum Ansehen: `part = "all"` zeigt den Zusammenbau mit angedeuteter
 Bestueckung, `part = "explode"` mit abgehobenem Deckel, `part = "closed"`
-das geschlossene Gehaeuse. `part = "latch"` schneidet eine 5 mm dicke
+das geschlossene Gehaeuse, `part = "lid_guide"` den Deckel in Drucklage mit
+abgehobenem Lichtleiter. `part = "latch"` schneidet eine 5 mm dicke
 Scheibe quer durch eine Rastung heraus und legt sie in den Ursprung — zum
 Beurteilen des Eingriffs in der OpenSCAD-Oberflaeche, wo man frei drehen
 kann. Als Standbild taugt das wenig: von innen verdeckt die Zunge genau
