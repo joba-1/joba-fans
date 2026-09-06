@@ -93,7 +93,7 @@ Nachruesten geht mit zwei Bauteilen. Frei sind die Strapping-Pins D0
 (Pin 1), D8 (Pin 9) und D9 (Pin 10) — sie wurden bewusst nicht beschaltet.
 **D8** ist die richtige Wahl:
 
-```
+```text
 3V3 (Pin 12) --- 330 Ohm --- LED --->|--- D8 (Pin 9)
 ```
 

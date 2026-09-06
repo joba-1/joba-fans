@@ -20,7 +20,7 @@ Quantity: **20 pcs**, assembled.
 
 ## Contents
 
-```
+```text
 gerbers/            RS-274X gerbers + Excellon drill (mm, absolute origin)
   *-F_Cu.gtl          top copper
   *-B_Cu.gbl          bottom copper (ground plane)
