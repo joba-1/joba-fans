@@ -93,7 +93,7 @@ Nachruesten geht mit zwei Bauteilen. Frei sind die Strapping-Pins D0
 (Pin 1), D8 (Pin 9) und D9 (Pin 10) — sie wurden bewusst nicht beschaltet.
 **D8** ist die richtige Wahl:
 
-```
+```text
 3V3 (Pin 12) --- 330 Ohm --- LED --->|--- D8 (Pin 9)
 ```
 
@@ -130,7 +130,7 @@ exportieren.
 
 ## Aendern und pruefen
 
-```
+```sh
 python3 enclosure/extract_geometry.py     # nach Aenderung an der Platine
 python3 enclosure/check_fit.py            # Passungen rechnerisch pruefen
 openscad -o stl/fan-controller-case-tray.stl -D 'part="tray"' enclosure/case.scad
@@ -158,7 +158,7 @@ die Tasche, und der Blick von aussen braucht den CGAL-Renderer, der
 Die Bilder in `img/` entstehen im Preview-Modus (ohne `--render`), sonst
 sind alle Teile einfarbig gelb:
 
-```
+```sh
 openscad -o img/case-assembled.png --imgsize=1400,950 \
          --camera=36.4,12.5,8,60,0,28,168 -D 'part="closed"' case.scad
 ```
