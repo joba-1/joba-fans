@@ -27,9 +27,17 @@ col_guide = "lightcyan";
 // ---------------------------------------------------------------- Material
 wall     = 2.4;   // Seitenwaende
 floor_t  = 2.0;   // Boden der Wanne
-lid_t    = 3.0;   // Deckel. Bewusst dicker als die Waende: cremefarbenes
+lid_t    = 3.1;   // Deckel. Bewusst dicker als die Waende: cremefarbenes
                   // PETG ist bei 2.4mm noch leicht transluzent, eine LED
                   // direkt darunter zeichnet sich sonst als Fleck ab.
+                  //
+                  // 3.1 und nicht 3.0: die Schichtgrenzen liegen bei
+                  // 0.3 + n*0.2, also 2.9 und 3.1. Bei 3.0 faellt die
+                  // Deckeloberkante MITTEN in eine Schicht, und der Bund
+                  // des Lichtleiters beansprucht dieselbe - der Slicer
+                  // bricht dann mit "found slicing result conflict" ab.
+                  // Am 2026-09-09 am gedruckten Teil erkannt: das Fenster
+                  // sass innen eine Schicht zurueck.
 fit      = 0.3;   // Spiel Platine gegen Innenwand
 ledge    = 1.2;   // Breite der Auflageschulter
 standoff = 2.5;   // Luft unter der Platine fuer die Loetstellen
@@ -59,6 +67,10 @@ fan_grow_y = 0.7;
 usb_opening   = true;   // Schlitz zum Nachflashen ohne Oeffnen
 vents         = true;   // Schlitze ueber dem Spannungsregler
 light_window  = true;   // Fenster + Lichtleiter ueber dem XIAO
+guide_lose    = false;  // true: Spiel fuer nachtraegliches Einsetzen,
+                        // false: passgenau zum Mitdrucken in einem Zug
+guide_bund_h  = 1.0;    // Hoehe des Bundes (0 = keiner)
+guide_bund_u  = 2.4;    // Ueberstand ueber das Fenster, gesamt
 
 // ------------------------------------------------------------------ Ebenen
 // Z = 0 ist die Unterseite der Platine.
@@ -238,9 +250,20 @@ module snap_tab() {
 }
 
 module light_hole() {
+    // Durchbruch fuer den Kopf
     translate([win_cx, win_cy, z_rim - 1])
         linear_extrude(lid_t + 2)
             rrect_c(win_w, win_d, 1.2);
+    // Mulde fuer den Bund an der Deckelinnenseite. Ohne sie liegt der
+    // Bund nicht an, sondern IM Deckel: er ist breiter als das Fenster,
+    // und der Slicer bricht mit "found slicing result conflict" ab
+    // (gemessen 2026-09-08: bis 1.0 mm Ueberstand geht es, ab 2.4 nicht).
+    // Mulde fuer den Bund an der Deckelinnenseite. Sie funktioniert,
+    // seit lid_t auf einer Schichtgrenze liegt - siehe dort.
+    if (!guide_lose && guide_bund_h > 0)
+        translate([win_cx, win_cy, z_rim - 0.01])
+            linear_extrude(guide_bund_h + 0.01)
+                rrect_c(win_w + guide_bund_u, win_d + guide_bund_u, 1.4);
 }
 
 module rrect_c(w, h, r) {
@@ -258,14 +281,33 @@ module lid_vents() {
 // ===========================================================================
 
 module guide() {
-    // Kopf buendig in der Deckeloeffnung
+    // Kopf buendig in der Deckeloeffnung. Ohne Spiel: beim Zweifarbdruck
+    // wachsen die beiden Materialien an der Fuge zusammen wie zwei
+    // benachbarte Bahnen desselben Materials, und genau das soll hier
+    // halten. Ein Spalt waere nur noetig, wenn der Leiter nachtraeglich
+    // eingesetzt wuerde - dann guide_lose = true setzen.
     translate([win_cx, win_cy, z_rim])
         linear_extrude(lid_t)
-            rrect_c(win_w - 0.3, win_d - 0.3, 1.1);
-    // Bund innen: verhindert, dass der Leiter nach aussen durchfaellt
-    translate([win_cx, win_cy, z_rim - 1.0])
-        linear_extrude(1.0)
-            rrect_c(win_w + 2.4, win_d + 2.4, 1.4);
+            rrect_c(win_w - (guide_lose ? 0.3 : 0),
+                    win_d - (guide_lose ? 0.3 : 0), 1.2);
+    // Bund innen: verhindert, dass ein nachtraeglich eingesetzter Leiter
+    // nach aussen durchfaellt. Beim Mitdrucken in einem Zug ist er
+    // ueberfluessig - der Leiter ist dann mit dem Deckel verwachsen - und
+    // stoerend: er ist breiter als das Fenster und liegt damit auf dem
+    // Deckel auf, was der Slicer als Ueberschneidung abweist
+    // ("found slicing result conflict", 2026-09-08).
+    // Bund: haelt den Leiter im Deckel. Beim Mitdrucken sitzt er in einer
+    // Mulde (siehe light_hole), beim nachtraeglichen Einsetzen liegt er
+    // an der Innenflaeche an.
+    // Der Bund sitzt IMMER unter dem Kopf, also unterhalb z_rim. Beim
+    // Mitdrucken faengt ihn die Mulde im Deckel auf, beim nachtraeglichen
+    // Einsetzen liegt er an der Innenflaeche an. Ihn bei z_rim beginnen
+    // zu lassen war falsch - dort ist der Kopf, und in Drucklage fiel er
+    // damit ganz weg.
+    translate([win_cx, win_cy, z_rim - guide_bund_h])
+        linear_extrude(guide_bund_h)
+            rrect_c(win_w + guide_bund_u - (guide_lose ? 0 : 0.3),
+                    win_d + guide_bund_u - (guide_lose ? 0 : 0.3), 1.4);
     // Bewusst ohne Fuss bis zur Platine: die Bauhoehen des gesockelten
     // XIAO sind Schaetzwerte, und ein Fuss, der 0.5mm zu lang geraet,
     // drueckt den Deckel auf.
@@ -298,7 +340,19 @@ module board_mock() {
                         C1_x[1], C1_y[1], z_pcb_top + 12.5);
 }
 
-if      (part == "tray")  color(col_case)
+// Druckbare Einbaulage: Deckel und Lichtleiter gemeinsam um 180 Grad
+// gedreht, damit ihre Lage ZUEINANDER erhalten bleibt. Einzeln exportiert
+// und jeweils auf Z=0 gelegt gehen die Hoehenbezuege verloren, und die
+// Teile ueberlappen im Fensterbereich.
+// Beide um denselben Betrag verschoben, damit die Hoehenbezuege bleiben:
+// in Drucklage sitzt der Kopf des Leiters bei Z 0..3 im Fensterloch und
+// sein Bund bei Z 3..4 darueber. Wird jedes Teil einzeln auf Z=0 gelegt,
+// landen beide bei 0..3 und ueberlappen.
+if      (part == "lid_print")
+    translate([0, 0, z_lid_top]) rotate([180, 0, 0]) lid();
+else if (part == "guide_print")
+    translate([0, 0, z_lid_top]) rotate([180, 0, 0]) guide();
+else if (part == "tray")  color(col_case)
                              translate([0, 0, -z_floor_out]) tray();
 else if (part == "lid")   color("wheat")
                              translate([0, 0, z_lid_top]) rotate([180, 0, 0]) lid();

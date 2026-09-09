@@ -81,6 +81,27 @@ Durchbruch waere von aussen sichtbar. Links die Lueftungsschlitze.
   abschaltbar.
 * **Lichtfenster** im Deckel ueber dem XIAO — siehe unten.
 
+## Massketten auf Schichtgrenzen legen
+
+Der Deckel ist **3,1 mm** dick, nicht 3,0. Der Grund ist nicht optisch,
+sondern drucktechnisch: bei 0,3 mm erster Schicht und 0,2 mm danach liegen
+die Schichtgrenzen bei 0,3 / 0,5 / ... / 2,9 / 3,1. Eine Oberkante bei
+3,0 faellt **mitten** in eine Schicht.
+
+Das faellt erst auf, wenn zwei Teile dort aneinanderstossen: der Bund des
+Lichtleiters beginnt an der Deckelinnenseite, und bei 3,0 mm beanspruchen
+Deckeloberkante und Bundunterkante dieselbe Schicht am selben Ort. Der
+Slicer bricht dann mit `found slicing result conflict` ab, obwohl die
+Geometrie sauber ist.
+
+Erkannt wurde es am gedruckten Teil: das Fenster sass von der Innenseite
+her eine Schicht zurueck. Mit 3,1 mm liegt die Trennebene auf einer
+Schichtgrenze, und der Bund laesst sich mitdrucken.
+
+**Merksatz:** wo zwei Teile in einem Druck aneinanderstossen, muss die
+Trennebene auf einer Schichtgrenze liegen. Sonst konkurrieren sie um
+dieselbe Schicht.
+
 ## Zur LED
 
 Der XIAO ESP32-C3 hat **keine nutzbare LED**: weder Power- noch User-LED.
