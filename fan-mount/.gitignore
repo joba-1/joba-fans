@@ -9,5 +9,3 @@ doc/jpg/
 
 # Fotos bleiben lokal (auch in Unterordnern)
 doc/**/*.HEIC
-
-# Gcode nur fuer den symmetrischen Halter mitfuehren (Druckdatei zum Job)

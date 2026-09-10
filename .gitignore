@@ -30,3 +30,8 @@ fab/*.zip
 
 # Statusdatei, die der Slicer neben den Export legt
 result.json
+
+# Gcode gehoert nicht ins Repo: es ist aus den STL/FCStd jederzeit neu zu
+# erzeugen und war mit 62 MB ueber die Historie der groesste Posten darin.
+# Die zuletzt gedruckten Dateien liegen unter /data/joachim/gcode-rette/.
+*.gcode
