@@ -1,0 +1,1425 @@
+<title>Radiator Fan Mounts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg:        #EDF0F1;
+    --surface:   #FFFFFF;
+    --plate:     #F7F9FA;
+    --ink:       #16212A;
+    --muted:     #5B6A74;
+    --faint:     #8A98A1;
+    --rule:      #C6CFD4;
+    --hairline:  #DBE2E6;
+    --accent:    #0B7A99;
+    --accent-sf: #DCEEF3;
+    --warm:      #A85632;
+    --warm-sf:   #F6E6DD;
+    /* chart series — validated for CVD separation against the chart surface */
+    --ser1:      #007CA6;
+    --ser2:      #A85632;
+    --shadow:    0 1px 2px rgba(22,33,42,.06), 0 8px 24px rgba(22,33,42,.05);
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #0E1417;
+      --surface:   #161E23;
+      --plate:     #131B20;
+      --ink:       #DFE7EB;
+      --muted:     #94A3AC;
+      --faint:     #6E7D86;
+      --rule:      #2C3941;
+      --hairline:  #222D34;
+      --accent:    #4FBEDE;
+      --accent-sf: #10323D;
+      --warm:      #DC8B5E;
+      --warm-sf:   #38231733;
+      --ser1:      #38A3C4;
+      --ser2:      #C4744A;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg:        #0E1417;
+    --surface:   #161E23;
+    --plate:     #131B20;
+    --ink:       #DFE7EB;
+    --muted:     #94A3AC;
+    --faint:     #6E7D86;
+    --rule:      #2C3941;
+    --hairline:  #222D34;
+    --accent:    #4FBEDE;
+    --accent-sf: #10323D;
+    --warm:      #DC8B5E;
+    --warm-sf:   #38231733;
+    --shadow:    0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 28px 120px;
+  }
+
+  .col { max-width: 68ch; }
+
+  /* ---------- masthead ---------- */
+
+  header.masthead {
+    padding: 72px 0 40px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 8px;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 20px;
+  }
+  h1 {
+    font-size: clamp(2.4rem, 6vw, 3.9rem);
+    line-height: 1.02;
+    letter-spacing: -.028em;
+    font-weight: 800;
+    margin: 0 0 22px;
+    text-wrap: balance;
+    max-width: 15ch;
+  }
+  .standfirst {
+    font-size: 1.16rem;
+    color: var(--muted);
+    margin: 0;
+    max-width: 62ch;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 34px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--faint);
+  }
+  .meta-row b { color: var(--muted); font-weight: 500; }
+
+  /* ---------- sections ---------- */
+
+  section { padding-top: 64px; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+  }
+  .sec-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .12em;
+    color: var(--accent);
+    flex: none;
+  }
+  h2 {
+    font-size: 1.62rem;
+    letter-spacing: -.018em;
+    font-weight: 700;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: 1.06rem;
+    font-weight: 700;
+    letter-spacing: -.008em;
+    margin: 40px 0 10px;
+  }
+
+  p { margin: 0 0 18px; }
+  .col > p:last-child { margin-bottom: 0; }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  code, .m {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--plate);
+    border: 1px solid var(--hairline);
+    border-radius: 3px;
+    padding: .08em .34em;
+    white-space: nowrap;
+  }
+
+  strong { font-weight: 680; }
+
+  /* ---------- figure plates ---------- */
+
+  figure.plate {
+    margin: 34px 0 40px;
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 26px 24px 0;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  figure.plate svg {
+    display: block;
+    width: 100%;
+    min-width: 520px;
+    height: auto;
+    color: var(--ink);
+  }
+  figure.plate figcaption {
+    border-top: 1px solid var(--hairline);
+    margin-top: 20px;
+    padding: 13px 0 16px;
+    font-size: .875rem;
+    line-height: 1.5;
+    color: var(--muted);
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+  }
+  figcaption .fignum {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--accent);
+    flex: none;
+    padding-top: 2px;
+  }
+
+  /* svg semantic classes */
+  .s-rule   { stroke: currentColor; stroke-width: 1.4; fill: none; }
+  .s-thin   { stroke: currentColor; stroke-width: 1; fill: none; opacity: .5; }
+  .s-metal  { fill: currentColor; opacity: .82; }
+  .s-ghost  { fill: currentColor; opacity: .1; }
+  .s-air    { stroke: var(--accent); stroke-width: 2.2; fill: none; }
+  .s-airfill{ fill: var(--accent); }
+  .s-warn   { stroke: var(--warm); stroke-width: 2.2; fill: none; }
+  .s-warnfill { fill: var(--warm); }
+  .s-dim    { stroke: currentColor; stroke-width: 1; fill: none; opacity: .75; }
+  text {
+    font-family: var(--mono);
+    font-size: 12px;
+    fill: currentColor;
+  }
+  text.lbl { font-size: 12.5px; }
+  text.sm  { font-size: 11px; opacity: .72; }
+  text.big { font-size: 15px; font-weight: 600; }
+  text.acc { fill: var(--accent); }
+  text.wrm { fill: var(--warm); }
+
+  /* ---------- callouts ---------- */
+
+  .callout {
+    border-left: 3px solid var(--warm);
+    background: var(--warm-sf);
+    padding: 20px 24px;
+    margin: 30px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.cool {
+    border-left-color: var(--accent);
+    background: var(--accent-sf);
+  }
+  .callout h3 { margin: 0 0 8px; font-size: 1rem; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--warm);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .callout.cool .tag { color: var(--accent); }
+
+  /* ---------- definition grid ---------- */
+
+  dl.defs {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--hairline);
+  }
+  dl.defs dt {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 14px 20px 14px 0;
+    border-bottom: 1px solid var(--hairline);
+    white-space: nowrap;
+  }
+  dl.defs dd {
+    margin: 0;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--hairline);
+    font-size: .96rem;
+  }
+  dl.defs dd b { font-weight: 650; }
+  dl.defs dd .note { color: var(--muted); }
+
+  @media (max-width: 620px) {
+    dl.defs { grid-template-columns: 1fr; }
+    dl.defs dt { border-bottom: none; padding-bottom: 0; }
+    dl.defs dd { padding-top: 4px; }
+  }
+
+  /* ---------- tables ---------- */
+
+  .tablewrap {
+    overflow-x: auto;
+    margin: 28px 0 12px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--surface);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 680px;
+    font-size: .92rem;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--rule);
+    background: var(--plate);
+    position: sticky;
+    top: 0;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { font-family: var(--mono); font-size: .88rem; white-space: nowrap; }
+  td .ref {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--faint);
+    display: block;
+    margin-top: 3px;
+  }
+
+  .conf {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .conf.ok   { color: var(--accent); }
+  .conf.mid  { color: var(--muted); }
+  .conf.low  { color: var(--warm); }
+
+  /* ---------- family cards ---------- */
+
+  .families {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin: 30px 0 10px;
+  }
+  .fam {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .fam .cnt {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    display: block;
+    margin-bottom: 8px;
+  }
+  .fam h3 { margin: 0 0 8px; font-size: 1.02rem; }
+  .fam p { font-size: .92rem; color: var(--muted); margin: 0 0 12px; }
+  .fam p:last-child { margin-bottom: 0; }
+  .fam .verdict {
+    font-size: .88rem;
+    font-weight: 620;
+    color: var(--ink);
+    border-top: 1px solid var(--hairline);
+    padding-top: 12px;
+  }
+
+  /* ---------- checklist ---------- */
+
+  ol.checks {
+    counter-reset: chk;
+    list-style: none;
+    padding: 0;
+    margin: 26px 0 0;
+    display: grid;
+    gap: 2px;
+  }
+  ol.checks li {
+    counter-increment: chk;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  ol.checks li::before {
+    content: counter(chk, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    padding-top: 2px;
+  }
+  ol.checks .what { font-weight: 650; display: block; margin-bottom: 3px; }
+  ol.checks .how { font-size: .93rem; color: var(--muted); }
+  ol.checks .how em { font-style: normal; font-family: var(--mono); font-size: .86rem; color: var(--faint); }
+
+  ul.plain { padding-left: 1.15em; margin: 0 0 18px; }
+  ul.plain li { margin-bottom: 8px; }
+
+  footer.end {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 2px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--faint);
+    line-height: 1.7;
+  }
+</style>
+
+<div class="sheet">
+
+<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+    </marker>
+    <marker id="arwarm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--warm)"/>
+    </marker>
+  </defs>
+</svg>
+
+<header class="masthead">
+  <p class="kicker">fan-stand · concept primer</p>
+  <h1>Radiator Fan Mounts</h1>
+  <p class="standfirst">What the shorthand in <code>REQUIREMENTS.md</code> actually means, what the printed parts look like in principle, and the two things the photos changed about the plan.</p>
+  <div class="meta-row">
+    <span><b>Source</b> 26 photos, 2026-08-16</span>
+    <span><b>Radiators</b> 7 across the house</span>
+    <span><b>Status</b> concept · no geometry yet</span>
+  </div>
+</header>
+
+<!-- ============================================ -->
+<section id="findings">
+  <div class="sec-head">
+    <span class="sec-num">A</span>
+    <h2>Two things the photos changed</h2>
+  </div>
+
+  <div class="col">
+    <p>Before any of the vocabulary: the photo set moves two things the requirements are built on. The first narrows the fan choice; the second cuts the scope. Both are worth settling before P1 is modelled.</p>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Finding 1 — constrains the fan choice</span>
+    <h3>The fan fits, but it will struggle to breathe</h3>
+    <p>Measured at the wall: <strong>50 mm</strong> of clearance under the sill in the dining room, <strong>100 mm</strong> in the living room. So the top-mounted fan of §3 survives — 100 mm is comfortable, and even 50 mm swallows a 25 mm fan plus a collar and a seal with a few millimetres spare.</p>
+    <p>The problem moves from <em>fit</em> to <em>intake</em>. An axial fan wants roughly a quarter of its diameter of free space on the suction side to draw evenly — about 30 mm for a 120 mm fan. In the dining room the stack leaves only 10–15 mm of plenum under the sill, so the fan inhales through a slot instead of an open hemisphere. That costs flow and, worse for G4, makes noise: a starved axial fan whistles.</p>
+    <p>This is a fan-selection problem, not a geometry problem, and it has a tidy answer — see section E.</p>
+  </div>
+
+  <div class="callout">
+    <span class="tag">Finding 2 — scope</span>
+    <h3>Three of the seven are not panel radiators at all</h3>
+    <p>The requirements assume Type 11/21/22/33 panel radiators throughout, each with a top slot and a convector channel to duct into. The main bathroom has a towel rail, the second bathroom a vertical tube radiator, and one niche holds an old sectional radiator. None of them has a top slot or fins. P1 as conceived cannot mount to any of them.</p>
+  </div>
+
+  <div class="col">
+    <p>There is also an open identification question on the two long low units. They may be panel radiators — or they may be <strong>convector casings</strong>: a finned tube inside a sheet-metal box with a full-length grille on top. If it is the latter, the front or top cover probably lifts off, and fans could sit <em>inside</em> the casing blowing up through the grille, which sidesteps Finding 1 entirely. Section D covers what to look for.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="types">
+  <div class="sec-head">
+    <span class="sec-num">B</span>
+    <h2>Reading the type number</h2>
+  </div>
+
+  <div class="col">
+    <p>"Type 22" is not a model name — it is a two-digit description of the cross-section. The <strong>first digit counts the water panels</strong>, the <strong>second counts the convector fin banks</strong> welded between and behind them. So Type 11 is one panel with one set of fins; Type 33 is three of each, stacked front to back.</p>
+    <p>This matters because it tells you whether an air channel exists at all. On a Type 22 the two fin banks face each other with a gap down the middle — that gap is what <code>channel_gap</code> in <code>MEASUREMENTS.md</code> refers to, and it is what a top-mounted fan would blow into. On a Type 11 there is no such gap; air simply passes through the single fin bank.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 940 320" role="img" aria-label="Cross-sections of radiator types 11, 21, 22 and 33, showing water panels as solid bars and convector fin banks as zigzags, with the central air channel marked on type 22">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+        </marker>
+        <marker id="tick" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M 5 0 L 5 10" stroke="currentColor" stroke-width="1.4"/>
+        </marker>
+      </defs>
+
+      <!-- headers -->
+      <text class="big" x="146" y="34">Type 11</text>
+      <text class="sm"  x="146" y="52">1 panel · 1 fin bank</text>
+      <text class="big" x="363" y="34">Type 21</text>
+      <text class="sm"  x="363" y="52">2 panels · 1 fin bank</text>
+      <text class="big" x="568" y="34">Type 22</text>
+      <text class="sm"  x="568" y="52">2 panels · 2 fin banks</text>
+      <text class="big" x="773" y="34">Type 33</text>
+      <text class="sm"  x="773" y="52">3 panels · 3 fin banks</text>
+
+      <!-- ================= Type 11 ================= -->
+      <rect class="s-metal" x="146" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M164,80 L184,90 L164,100 L184,110 L164,120 L184,130 L164,140 L184,150 L164,160 L184,170 L164,180 L184,190 L164,200 L184,210 L164,220"/>
+      <line class="s-thin" x1="200" y1="70" x2="200" y2="232"/>
+      <text class="sm" x="206" y="154" transform="rotate(90 206 154)">wall</text>
+
+      <!-- ================= Type 21 ================= -->
+      <rect class="s-metal" x="363" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M381,80 L401,90 L381,100 L401,110 L381,120 L401,130 L381,140 L401,150 L381,160 L401,170 L381,180 L401,190 L381,200 L401,210 L381,220"/>
+      <rect class="s-metal" x="407" y="80" width="12" height="140" rx="2"/>
+      <line class="s-thin" x1="435" y1="70" x2="435" y2="232"/>
+
+      <!-- ================= Type 22 ================= -->
+      <rect class="s-metal" x="568" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M584,80 L604,90 L584,100 L604,110 L584,120 L604,130 L584,140 L604,150 L584,160 L604,170 L584,180 L604,190 L584,200 L604,210 L584,220"/>
+      <!-- the channel -->
+      <rect x="604" y="80" width="14" height="140" fill="var(--accent)" opacity=".16"/>
+      <path class="s-rule" d="M638,80 L618,90 L638,100 L618,110 L638,120 L618,130 L638,140 L618,150 L638,160 L618,170 L638,180 L618,190 L638,200 L618,210 L638,220"/>
+      <rect class="s-metal" x="642" y="80" width="12" height="140" rx="2"/>
+      <line class="s-thin" x1="670" y1="70" x2="670" y2="232"/>
+      <!-- flow arrow down the channel -->
+      <line class="s-air" x1="611" y1="72" x2="611" y2="228" marker-end="url(#ar)"/>
+      <!-- dimension -->
+      <line class="s-dim" x1="604" y1="252" x2="618" y2="252" marker-start="url(#tick)" marker-end="url(#tick)"/>
+      <line class="s-dim" x1="604" y1="224" x2="604" y2="256"/>
+      <line class="s-dim" x1="618" y1="224" x2="618" y2="256"/>
+      <text class="sm acc" x="560" y="276">channel_gap</text>
+
+      <!-- ================= Type 33 ================= -->
+      <rect class="s-metal" x="773" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M789,80 L809,90 L789,100 L809,110 L789,120 L809,130 L789,140 L809,150 L789,160 L809,170 L789,180 L809,190 L789,200 L809,210 L789,220"/>
+      <rect class="s-metal" x="813" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M829,80 L849,90 L829,100 L849,110 L829,120 L849,130 L829,140 L849,150 L829,160 L849,170 L829,180 L849,190 L829,200 L849,210 L829,220"/>
+      <rect class="s-metal" x="853" y="80" width="12" height="140" rx="2"/>
+      <path class="s-rule" d="M869,80 L889,90 L869,100 L889,110 L869,120 L889,130 L869,140 L889,150 L869,160 L889,170 L869,180 L889,190 L869,200 L889,210 L869,220"/>
+      <line class="s-thin" x1="905" y1="70" x2="905" y2="232"/>
+
+      <!-- legend -->
+      <rect class="s-metal" x="20" y="288" width="12" height="12" rx="2"/>
+      <text class="sm" x="40" y="298">water panel</text>
+      <path class="s-rule" d="M150,288 L162,294 L150,300"/>
+      <text class="sm" x="172" y="298">convector fins (air side)</text>
+      <rect x="360" y="288" width="12" height="12" fill="var(--accent)" opacity=".16"/>
+      <text class="sm acc" x="380" y="298">air channel — only exists on 22 and 33</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 1</span><span>The type number is a parts count, read front to back. Only Type 22 and Type 33 have a clear channel between opposing fin banks — the gap a top-mounted fan would blow into.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ============================================ -->
+<section id="codes">
+  <div class="sec-head">
+    <span class="sec-num">C</span>
+    <h2>The C-numbers and P-numbers</h2>
+  </div>
+
+  <div class="col">
+    <p>These are just labels from the requirements document so that later sections can refer back without repeating themselves. The C-list is constraints — things the design is not allowed to break. The P-list is the parts to be designed.</p>
+  </div>
+
+  <h3>Constraints</h3>
+  <dl class="defs">
+    <dt>C1</dt><dd><b>Condensation is already handled.</b> The heat pump raises coolant temperature to stay above dew point. <span class="note">Fans must not defeat that — and they mostly can't, since forcing air over fins barely changes fin surface temperature.</span></dd>
+    <dt>C2</dt><dd><b>No modification of the radiator.</b> Mounting by magnets on the painted steel, plus hooking over the top edge. <span class="note">No drilling, no adhesive.</span></dd>
+    <dt>C3</dt><dd><b>Windowsills limit height above the radiator.</b> The mount must be low profile. <span class="note">This is Finding 1 — it may be tighter than "low profile" can absorb.</span></dd>
+    <dt>C4</dt><dd><b>Parts stay mounted year-round.</b> So they see heating-season surface temperatures. <span class="note">PLA creeps around 55–60 °C, so print in PETG or ASA, and leave clearance for thermal expansion rather than relying on press fits.</span></dd>
+    <dt>C5</dt><dd><b>Winter bypass.</b> Blanking the top slot for the fans would also block the natural convection chimney the radiator needs in winter. <span class="note">Preferred fix: reverse the fans to blow upward in the heating season.</span></dd>
+    <dt>C6</dt><dd><b>Standard 120 × 120 × 25 mm fans</b>, 105 mm screw pattern.</dd>
+    <dt>C7</dt><dd><b>Daisy-chained to one 12 V supply</b> per radiator, ideally switched from the cooling signal.</dd>
+  </dl>
+
+  <h3>Parts</h3>
+  <dl class="defs">
+    <dt>P1</dt><dd><b>Fan hanger / top mount.</b> Holds one fan over the convector channel and seals it to the top slot. <span class="note">The keystone part — it fixes every interface dimension, so it gets designed first.</span></dd>
+    <dt>P2</dt><dd><b>Blanking tile.</b> Closes the top slot between the fans so air can't take the easy way out instead of going down the channel. <span class="note">Printed end clips carrying cut PVC foam or aluminium sheet.</span></dd>
+    <dt>P3</dt><dd><b>Discharge deflector.</b> Turns the downward flow into a horizontal jet at floor level. <span class="note">Sets the room circulation loop and stops the jet blowing straight onto ankles.</span></dd>
+    <dt>P4</dt><dd><b>Cable clip.</b> Trivial, printed entirely.</dd>
+  </dl>
+</section>
+
+<!-- ============================================ -->
+<section id="why">
+  <div class="sec-head">
+    <span class="sec-num">D</span>
+    <h2>Why the part has the shape it has</h2>
+  </div>
+
+  <div class="col">
+    <p>The whole geometry follows from one decision in §3: the fan sits on top and blows <em>down</em>. Not because of buoyancy — at 0.12 Pa the buoyant head is nothing against 20–50 Pa of fan pressure — but because of <strong>intake air temperature</strong>. The warmest air in a room is at the top. Feeding that to the radiator maximises the air-to-water temperature difference, which is the whole point.</p>
+    <p>The bonus is the room loop: cold air leaves at the floor, crosses the room, rises at the far wall, returns along the ceiling, and is <em>consumed</em> by the fan intake. The return leg terminates at the intake rather than wandering off, so the loop reinforces itself.</p>
+    <p>Two consequences fall straight out of this, and they are why P2 and P3 exist at all: the top opening has to be sealed everywhere except at the fans, or the air spills straight back out; and the discharge has to be turned sideways, or you get a cold draught on the ankles.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 430" role="img" aria-label="Room cross-section showing a fan on top of a radiator blowing down through the convector channel, a deflector turning the flow horizontally across the floor, and the return loop rising at the far wall and travelling back along the ceiling to the fan intake">
+      <!-- room shell -->
+      <line class="s-rule" x1="40" y1="30" x2="860" y2="30"/>
+      <line class="s-rule" x1="40" y1="390" x2="860" y2="390"/>
+      <line class="s-rule" x1="40" y1="30" x2="40" y2="390"/>
+      <line class="s-rule" x1="860" y1="30" x2="860" y2="390"/>
+      <text class="sm" x="820" y="22">ceiling</text>
+      <text class="sm" x="828" y="410">floor</text>
+
+      <!-- window + sill -->
+      <rect class="s-ghost" x="41" y="70" width="26" height="150"/>
+      <line class="s-thin" x1="67" y1="70" x2="67" y2="220"/>
+      <text class="sm" x="74" y="100">window</text>
+      <rect class="s-metal" x="41" y="228" width="96" height="12"/>
+      <text class="sm" x="145" y="238">windowsill</text>
+
+      <!-- radiator -->
+      <rect class="s-ghost" x="55" y="290" width="52" height="98"/>
+      <rect class="s-rule"  x="55" y="290" width="52" height="98"/>
+      <text class="sm" x="116" y="345">radiator</text>
+      <text class="sm" x="116" y="362">(section)</text>
+
+      <!-- fan -->
+      <rect class="s-rule" x="58" y="252" width="46" height="26" rx="2"/>
+      <line class="s-thin" x1="66" y1="252" x2="96" y2="278"/>
+      <line class="s-thin" x1="96" y1="252" x2="66" y2="278"/>
+      <text class="sm acc" x="116" y="268">fan (P1)</text>
+
+      <!-- deflector -->
+      <path class="s-rule" d="M55,388 L108,388 L138,368"/>
+      <text class="sm" x="146" y="384">deflector (P3)</text>
+
+      <!-- the loop -->
+      <polyline class="s-air" points="81,244 81,286" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="81,300 81,376" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="96,382 300,382" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="300,382 600,382" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="640,378 800,378 830,340 830,120" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="830,90 830,52 600,46" marker-end="url(#ar2)"/>
+      <polyline class="s-air" points="600,46 200,46 110,200 92,240" marker-end="url(#ar2)"/>
+
+      <!-- loop labels -->
+      <text class="sm acc" x="330" y="372">cool jet, thrown out into the room</text>
+      <text class="sm acc" x="700" y="250" transform="rotate(-90 700 250)">warms, rises at far wall</text>
+      <text class="sm acc" x="330" y="38">warm ceiling air returns to the intake</text>
+      <text class="sm acc" x="128" y="300">down the channel</text>
+
+      <!-- headroom callout -->
+      <line class="s-warn" x1="30" y1="240" x2="30" y2="290"/>
+      <line class="s-dim"  x1="24" y1="240" x2="36" y2="240"/>
+      <line class="s-dim"  x1="24" y1="290" x2="36" y2="290"/>
+      <text class="sm wrm" x="8" y="228">headroom</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 2</span><span>The intended circulation. The fan's intake sits where the return leg of the room loop ends, so warm ceiling air is actively pulled down and used rather than left to stratify. The bracketed dimension at left is the clearance in question.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ============================================ -->
+<section id="p1">
+  <div class="sec-head">
+    <span class="sec-num">E</span>
+    <h2>What P1 looks like, in principle</h2>
+  </div>
+
+  <div class="col">
+    <p>The material strategy in §6 is what gives the part its character: <em>print only the interfaces.</em> Large flat areas and long curves are cut from sheet stock; the printed part is just the bracket that holds a fan at an exact position relative to the radiator's top edge, and seals the gap between them.</p>
+    <p>So P1 is small. It is a fan-sized collar with three jobs — locate the fan, seal to the metal, and hold itself on without screws — and almost nothing else.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 820 470" role="img" aria-label="Exploded side elevation of the P1 fan mount, from top: wire finger guard, 120 millimetre fan, silicone isolation pins, printed collar with magnet pockets, foam weatherstrip seal, and the radiator top grille below">
+      <defs>
+        <marker id="ldr" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <circle cx="2.5" cy="5" r="2" fill="currentColor"/>
+        </marker>
+      </defs>
+
+      <!-- ---- finger guard ---- -->
+      <path class="s-thin" d="M250,58 h220 M250,66 h220 M250,74 h220"/>
+      <rect class="s-rule" x="248" y="52" width="224" height="28" rx="3"/>
+      <line class="s-dim" x1="472" y1="66" x2="620" y2="66" marker-start="url(#ldr)"/>
+      <text class="lbl" x="628" y="63">wire finger guard</text>
+      <text class="sm"  x="628" y="79">off the shelf — not printed</text>
+
+      <!-- ---- fan ---- -->
+      <rect class="s-rule" x="248" y="104" width="224" height="48" rx="3"/>
+      <line class="s-thin" x1="256" y1="104" x2="464" y2="152"/>
+      <line class="s-thin" x1="464" y1="104" x2="256" y2="152"/>
+      <circle class="s-metal" cx="360" cy="128" r="16"/>
+      <line class="s-dim" x1="472" y1="128" x2="620" y2="128" marker-start="url(#ldr)"/>
+      <text class="lbl" x="628" y="125">120 × 120 × 25 fan</text>
+      <text class="sm"  x="628" y="141">static-pressure type (C6)</text>
+      <!-- fan dimension -->
+      <line class="s-dim" x1="248" y1="92" x2="472" y2="92"/>
+      <line class="s-dim" x1="248" y1="86" x2="248" y2="98"/>
+      <line class="s-dim" x1="472" y1="86" x2="472" y2="98"/>
+      <text class="sm" x="332" y="84">120 mm</text>
+
+      <!-- ---- silicone pins ---- -->
+      <circle class="s-warnfill" cx="262" cy="172" r="5"/>
+      <circle class="s-warnfill" cx="310" cy="172" r="5"/>
+      <circle class="s-warnfill" cx="410" cy="172" r="5"/>
+      <circle class="s-warnfill" cx="458" cy="172" r="5"/>
+      <line class="s-dim" x1="472" y1="172" x2="620" y2="172" marker-start="url(#ldr)"/>
+      <text class="lbl wrm" x="628" y="169">silicone pins</text>
+      <text class="sm"  x="628" y="185">vibration break — serves G4</text>
+
+      <!-- ---- printed collar ---- -->
+      <path class="s-rule" d="M236,196 h248 v44 h-30 v-22 h-188 v22 h-30 z"/>
+      <rect x="236" y="196" width="248" height="44" fill="var(--accent)" opacity=".1"/>
+      <!-- magnet pockets -->
+      <rect class="s-metal" x="242" y="222" width="16" height="12" rx="1"/>
+      <rect class="s-metal" x="462" y="222" width="16" height="12" rx="1"/>
+      <line class="s-dim" x1="484" y1="212" x2="620" y2="212" marker-start="url(#ldr)"/>
+      <text class="lbl acc" x="628" y="209">printed collar — P1</text>
+      <text class="sm"  x="628" y="225">PETG or ASA (C4)</text>
+      <line class="s-dim" x1="242" y1="252" x2="150" y2="286" marker-start="url(#ldr)"/>
+      <text class="lbl" x="30" y="300">magnet pocket</text>
+      <text class="sm"  x="30" y="316">10 × 3 disc, felt-faced</text>
+
+      <!-- ---- foam seal ---- -->
+      <path class="s-warn" stroke-dasharray="5 4" d="M244,252 h232"/>
+      <line class="s-dim" x1="476" y1="252" x2="620" y2="252" marker-start="url(#ldr)"/>
+      <text class="lbl wrm" x="628" y="249">foam weatherstrip</text>
+      <text class="sm"  x="628" y="265">seals, takes up tolerance, damps</text>
+
+      <!-- ---- radiator top ---- -->
+      <rect class="s-ghost" x="120" y="286" width="480" height="150"/>
+      <rect class="s-rule"  x="120" y="286" width="480" height="150"/>
+      <!-- grille slots -->
+      <g class="s-thin">
+        <path d="M140,286 v18 M156,286 v18 M172,286 v18 M188,286 v18 M204,286 v18 M220,286 v18 M236,286 v18 M252,286 v18 M268,286 v18 M284,286 v18 M300,286 v18 M316,286 v18 M332,286 v18 M348,286 v18 M364,286 v18 M380,286 v18 M396,286 v18 M412,286 v18 M428,286 v18 M444,286 v18 M460,286 v18 M476,286 v18 M492,286 v18 M508,286 v18 M524,286 v18 M540,286 v18 M556,286 v18 M572,286 v18"/>
+      </g>
+      <line class="s-rule" x1="120" y1="304" x2="600" y2="304"/>
+      <text class="sm" x="612" y="300">top grille</text>
+
+      <!-- fin banks below -->
+      <path class="s-thin" d="M300,316 L316,326 L300,336 L316,346 L300,356 L316,366 L300,376 L316,386 L300,396 L316,406 L300,416"/>
+      <path class="s-thin" d="M420,316 L404,326 L420,336 L404,346 L420,356 L404,366 L420,376 L404,386 L420,396 L404,406 L420,416"/>
+      <rect x="316" y="312" width="88" height="108" fill="var(--accent)" opacity=".12"/>
+      <text class="sm acc" x="330" y="440">channel</text>
+
+      <!-- flow -->
+      <line class="s-air" x1="360" y1="308" x2="360" y2="424" marker-end="url(#ar2)"/>
+    </svg>
+    <figcaption><span class="fignum">FIG 3</span><span>P1 exploded, seen from the side. Everything printed is in the accent band: a collar with magnet pockets and a downturned skirt. The fan, guard, pins, magnets and foam are all stock parts the collar merely locates.</span></figcaption>
+  </figure>
+
+  <h3>The one change the photos force</h3>
+
+  <div class="col">
+    <p>The requirements describe P1 as having a "duct collar down into the slot". IMG_7181 is the only frame where a ruler actually crosses the fin banks, and it puts the clear channel at roughly <strong>10–15 mm</strong>. You cannot duct a 120 mm fan into a 12 mm slit — the collar would be a knife edge, it would foul the fins on the way in, and it would make the part depend on a dimension you cannot hold.</p>
+    <p>The alternative is to stop trying to reach the channel and simply <strong>seal onto the flat top surface of the grille</strong>, letting the grille itself spread the flow along the slot. The seal length goes up, the part gets simpler and more tolerant, and the mount no longer cares what the channel gap is. The cost is that bypass now depends entirely on P2 doing its job.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 300" role="img" aria-label="Side by side comparison: on the left a duct collar reaching down into the narrow channel between fin banks, marked as not buildable; on the right a flat collar sealing onto the top grille surface, with the grille distributing the flow">
+      <!-- divider -->
+      <line class="s-thin" x1="450" y1="20" x2="450" y2="280"/>
+
+      <!-- ============ LEFT: as written ============ -->
+      <text class="lbl wrm" x="24" y="32">AS WRITTEN — duct into the channel</text>
+
+      <rect class="s-rule" x="90" y="56" width="200" height="30" rx="2"/>
+      <text class="sm" x="300" y="76">fan</text>
+      <!-- tapering collar -->
+      <path class="s-warn" d="M96,90 L182,140 L182,176 M284,90 L198,140 L198,176"/>
+      <!-- radiator -->
+      <rect class="s-ghost" x="60" y="140" width="260" height="130"/>
+      <rect class="s-rule"  x="60" y="140" width="260" height="130"/>
+      <line class="s-rule" x1="60" y1="158" x2="320" y2="158"/>
+      <path class="s-thin" d="M150,166 L166,176 L150,186 L166,196 L150,206 L166,216 L150,226 L166,236 L150,246"/>
+      <path class="s-thin" d="M230,166 L214,176 L230,186 L214,196 L230,206 L214,216 L230,226 L214,236 L230,246"/>
+      <rect x="166" y="162" width="48" height="92" fill="var(--warm)" opacity=".14"/>
+      <line class="s-dim" x1="166" y1="266" x2="214" y2="266"/>
+      <line class="s-dim" x1="166" y1="260" x2="166" y2="272"/>
+      <line class="s-dim" x1="214" y1="260" x2="214" y2="272"/>
+      <text class="sm wrm" x="150" y="288">≈10–15 mm</text>
+      <text class="sm wrm" x="330" y="150">collar has to</text>
+      <text class="sm wrm" x="330" y="166">taper to a knife</text>
+      <text class="sm wrm" x="330" y="182">edge and thread</text>
+      <text class="sm wrm" x="330" y="198">past the fins</text>
+
+      <!-- ============ RIGHT: proposed ============ -->
+      <text class="lbl acc" x="480" y="32">PROPOSED — seal on the grille face</text>
+
+      <rect class="s-rule" x="546" y="56" width="200" height="30" rx="2"/>
+      <text class="sm" x="756" y="76">fan</text>
+      <!-- flat collar -->
+      <path class="s-air" d="M540,90 h212 v34 h-212 z"/>
+      <path class="s-warn" stroke-dasharray="5 4" d="M540,126 h212"/>
+      <!-- radiator -->
+      <rect class="s-ghost" x="516" y="140" width="260" height="130"/>
+      <rect class="s-rule"  x="516" y="140" width="260" height="130"/>
+      <line class="s-rule" x1="516" y1="158" x2="776" y2="158"/>
+      <g class="s-thin">
+        <path d="M528,140 v18 M544,140 v18 M560,140 v18 M576,140 v18 M592,140 v18 M608,140 v18 M624,140 v18 M640,140 v18 M656,140 v18 M672,140 v18 M688,140 v18 M704,140 v18 M720,140 v18 M736,140 v18 M752,140 v18 M768,140 v18"/>
+      </g>
+      <path class="s-thin" d="M606,166 L622,176 L606,186 L622,196 L606,206 L622,216 L606,226 L622,236 L606,246"/>
+      <path class="s-thin" d="M686,166 L670,176 L686,186 L670,196 L686,206 L670,216 L686,226 L670,236 L686,246"/>
+      <rect x="622" y="162" width="48" height="92" fill="var(--accent)" opacity=".14"/>
+      <!-- flow spreading -->
+      <line class="s-air" x1="646" y1="130" x2="646" y2="252" marker-end="url(#ar2)"/>
+      <path class="s-air" d="M600,132 q46,26 40,50" opacity=".55"/>
+      <path class="s-air" d="M692,132 q-46,26 -40,50" opacity=".55"/>
+      <text class="sm acc" x="786" y="112">flat foam</text>
+      <text class="sm acc" x="786" y="128">seal — no</text>
+      <text class="sm acc" x="786" y="144">critical fit</text>
+      <text class="sm" x="786" y="176">grille spreads</text>
+      <text class="sm" x="786" y="192">the flow</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 4</span><span>The difference is where the air handover happens. Ducting into the channel needs a dimension the photos say is too small to hold; sealing on the grille face moves the interface to a flat, forgiving surface and makes the blanking tiles (P2) load-bearing for performance.</span></figcaption>
+  </figure>
+
+  <h3>Living with 50 mm: pick the fan, then the bracket</h3>
+
+  <div class="col">
+    <p>With 100 mm of headroom the living room takes an ordinary 25 mm fan and nobody has to think about it. The dining room's 50 mm is the case that sets the design, and the lever is fan thickness rather than bracket cleverness — every millimetre saved off the stack goes straight into the intake plenum.</p>
+    <p>Three moves, in the order I would take them:</p>
+    <ul class="plain">
+      <li><strong>Use 15 mm slim fans.</strong> A 120 × 120 × 15 costs perhaps 20 % of the pressure of a 25 mm fan at the same speed, but it hands back 10 mm of plenum — and here the plenum is what is actually throttling you. Net gain.</li>
+      <li><strong>Drop the finger guard on the tight radiator.</strong> C6 wants one, but nothing reaches into a 50 mm gap under a stone sill. That is another 3–4 mm.</li>
+      <li><strong>Run more fans, slower.</strong> The fin pack is the dominant resistance, so flow scales better with fan count than with RPM — and many slow fans are markedly quieter than few fast ones, which is exactly what G4 asks for. A 2 m radiator has room for seven or eight.</li>
+    </ul>
+    <p>If that still is not enough, the honest alternative is to stop using axial fans on the tight radiator and use a <strong>tangential (crossflow) blower</strong> instead — the long thin roller found in fan-assisted radiator products. It is the right shape for a 2 m slot, it is happy with a restricted inlet, and it is quiet at low speed. It costs more, needs a different bracket family, and cannot be reversed for the winter trick in C5, so it is a fallback rather than a default.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 320" role="img" aria-label="Two side-by-side sections under a windowsill with 50 millimetres of clearance: on the left a 25 millimetre fan leaves about 14 millimetres of intake plenum and air must squeeze in sideways; on the right a 15 millimetre slim fan leaves about 24 millimetres and the intake is less restricted">
+      <line class="s-thin" x1="450" y1="24" x2="450" y2="300"/>
+
+      <!-- ================= LEFT: 25 mm fan ================= -->
+      <text class="lbl wrm" x="24" y="34">25 mm FAN — plenum ≈ 14 mm</text>
+
+      <!-- sill -->
+      <rect class="s-metal" x="60" y="56" width="330" height="24"/>
+      <text class="sm" x="60" y="48">windowsill (underside)</text>
+
+      <!-- radiator top -->
+      <rect class="s-ghost" x="60" y="180" width="330" height="100"/>
+      <rect class="s-rule"  x="60" y="180" width="330" height="100"/>
+      <g class="s-thin">
+        <path d="M80,180 v16 M100,180 v16 M120,180 v16 M140,180 v16 M160,180 v16 M180,180 v16 M200,180 v16 M220,180 v16 M240,180 v16 M260,180 v16 M280,180 v16 M300,180 v16 M320,180 v16 M340,180 v16 M360,180 v16"/>
+      </g>
+
+      <!-- stack: seal, collar, fan -->
+      <path class="s-warn" stroke-dasharray="5 4" d="M150,177 h150"/>
+      <path class="s-air" d="M146,158 h158 v18 h-158 z"/>
+      <rect class="s-rule" x="150" y="108" width="150" height="50" rx="2"/>
+      <line class="s-thin" x1="156" y1="108" x2="294" y2="158"/>
+      <line class="s-thin" x1="294" y1="108" x2="156" y2="158"/>
+      <text class="sm" x="310" y="138">fan, 25 mm</text>
+      <text class="sm acc" x="310" y="172">collar + seal</text>
+
+      <!-- starved intake: air squeezing in sideways -->
+      <g class="s-warn" opacity=".85">
+        <path d="M66,94 h70" marker-end="url(#arwarm)"/>
+        <path d="M384,94 h-70" marker-end="url(#arwarm)"/>
+      </g>
+      <path class="s-warn" d="M172,90 q0,10 12,16" opacity=".6"/>
+      <path class="s-warn" d="M278,90 q0,10 -12,16" opacity=".6"/>
+
+      <!-- dimensions -->
+      <line class="s-dim" x1="42" y1="80" x2="42" y2="180"/>
+      <line class="s-dim" x1="34" y1="80" x2="50" y2="80"/>
+      <line class="s-dim" x1="34" y1="180" x2="50" y2="180"/>
+      <text class="sm" x="6" y="134">50</text>
+      <line class="s-dim" x1="120" y1="80" x2="120" y2="108"/>
+      <line class="s-dim" x1="112" y1="80" x2="128" y2="80"/>
+      <line class="s-dim" x1="112" y1="108" x2="128" y2="108"/>
+      <text class="sm wrm" x="76" y="102">14</text>
+
+      <text class="sm wrm" x="60" y="306">air arrives sideways through a slot — flow loss and whistle</text>
+
+      <!-- ================= RIGHT: 15 mm fan ================= -->
+      <text class="lbl acc" x="480" y="34">15 mm SLIM FAN — plenum ≈ 24 mm</text>
+
+      <rect class="s-metal" x="516" y="56" width="330" height="24"/>
+
+      <rect class="s-ghost" x="516" y="180" width="330" height="100"/>
+      <rect class="s-rule"  x="516" y="180" width="330" height="100"/>
+      <g class="s-thin">
+        <path d="M536,180 v16 M556,180 v16 M576,180 v16 M596,180 v16 M616,180 v16 M636,180 v16 M656,180 v16 M676,180 v16 M696,180 v16 M716,180 v16 M736,180 v16 M756,180 v16 M776,180 v16 M796,180 v16 M816,180 v16"/>
+      </g>
+
+      <path class="s-warn" stroke-dasharray="5 4" d="M606,177 h150"/>
+      <path class="s-air" d="M602,158 h158 v18 h-158 z"/>
+      <rect class="s-rule" x="606" y="128" width="150" height="30" rx="2"/>
+      <line class="s-thin" x1="612" y1="128" x2="750" y2="158"/>
+      <line class="s-thin" x1="750" y1="128" x2="612" y2="158"/>
+      <text class="sm" x="766" y="148">fan, 15 mm</text>
+
+      <!-- freer intake -->
+      <g class="s-air" opacity=".85">
+        <path d="M660,88 v32" marker-end="url(#ar2)"/>
+        <path d="M620,90 q12,20 30,28" marker-end="url(#ar2)"/>
+        <path d="M742,90 q-12,20 -30,28" marker-end="url(#ar2)"/>
+      </g>
+
+      <line class="s-dim" x1="498" y1="80" x2="498" y2="180"/>
+      <line class="s-dim" x1="490" y1="80" x2="506" y2="80"/>
+      <line class="s-dim" x1="490" y1="180" x2="506" y2="180"/>
+      <text class="sm" x="462" y="134">50</text>
+      <line class="s-dim" x1="576" y1="80" x2="576" y2="128"/>
+      <line class="s-dim" x1="568" y1="80" x2="584" y2="80"/>
+      <line class="s-dim" x1="568" y1="128" x2="584" y2="128"/>
+      <text class="sm acc" x="532" y="110">24</text>
+
+      <text class="sm acc" x="516" y="306">air can drop in from above — quieter at the same delivery</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 5</span><span>Same 50 mm gap, same collar, different fan. Ten millimetres off the fan body nearly doubles the intake plenum, which is the dimension actually limiting the dining-room radiator — not the total stack height. Dimensions in millimetres.</span></figcaption>
+  </figure>
+
+  <h3>Can a 120 mm fan even sit there? Depth says: only sometimes</h3>
+
+  <div class="col">
+    <p>Headroom was the vertical question. Depth is the horizontal one, and it turns out to be the harder of the two. A fan sitting flat on the radiator discharges over a 120 mm circle; the radiator can only accept that air across the width of its top face. If the fan is wider than the radiator is deep, the surplus blows at the sill, the wall and the room — it does no work at all.</p>
+    <p>With the three depths now measured, the four panel radiators fall into three quite different cases:</p>
+    <ul class="plain">
+      <li><strong>Dining room, 135 mm — the easy one.</strong> A 120 mm fan sits entirely within the top face, and the grille is about as wide as the fan. No transition needed, which is lucky, because with 50 mm of headroom there is no room for one.</li>
+      <li><strong>Living room, 100 mm — workable.</strong> A 120 mm fan overhangs by about 10 mm on each side. Let it overhang towards the room rather than the wall, and add a short tapered plenum to gather the discharge onto the grille. The 100 mm of headroom pays for that plenum comfortably.</li>
+      <li><strong>Office, 60 mm — a 120 mm fan is the wrong part.</strong> The fan would be twice as wide as the radiator is deep, with roughly two-thirds of its output missing the grille entirely. Either drop to 60 mm fans, which are noisy for the air they move, or use a tangential blower, whose roller is naturally 60–80 mm across and exactly the right shape for a long narrow slot.</li>
+    </ul>
+    <p>Note how the two constraints pull in opposite directions across the house: the radiator with the least headroom has the most depth, and the one with the most awkward depth is the one whose headroom is still unmeasured. There is no single fan choice that suits all four.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 380" role="img" aria-label="Plan view comparing a 120 millimetre fan footprint against the top face of three radiators of 60, 100 and 135 millimetres depth. At 60 millimetres the fan is twice as wide as the radiator; at 100 it overhangs slightly; at 135 it fits entirely.">
+      <!-- ===== OFFICE 60 mm ===== -->
+      <text class="lbl" x="30" y="34">Office</text>
+      <text class="sm" x="30" y="52">60 mm deep</text>
+      <rect class="s-ghost" x="30" y="142" width="260" height="96"/>
+      <rect class="s-rule"  x="30" y="142" width="260" height="96"/>
+      <rect x="30" y="158" width="260" height="64" fill="var(--accent)" opacity=".16"/>
+      <circle cx="160" cy="190" r="96" fill="none" stroke="var(--warm)" stroke-width="2" stroke-dasharray="6 5"/>
+      <line class="s-dim" x1="16" y1="142" x2="16" y2="238"/>
+      <line class="s-dim" x1="8" y1="142" x2="24" y2="142"/>
+      <line class="s-dim" x1="8" y1="238" x2="24" y2="238"/>
+      <text class="sm wrm" x="34" y="112">fan overhangs 30 mm each side</text>
+      <text class="sm wrm" x="30" y="344">two-thirds of the air misses</text>
+      <text class="sm wrm" x="30" y="360">the grille — wrong fan size</text>
+
+      <!-- ===== LIVING 100 mm ===== -->
+      <text class="lbl" x="320" y="34">Living room</text>
+      <text class="sm" x="320" y="52">100 mm deep</text>
+      <rect class="s-ghost" x="320" y="110" width="260" height="160"/>
+      <rect class="s-rule"  x="320" y="110" width="260" height="160"/>
+      <rect x="320" y="126" width="260" height="128" fill="var(--accent)" opacity=".16"/>
+      <circle cx="450" cy="190" r="96" fill="none" stroke="var(--warm)" stroke-width="2" stroke-dasharray="6 5"/>
+      <line class="s-dim" x1="306" y1="110" x2="306" y2="270"/>
+      <line class="s-dim" x1="298" y1="110" x2="314" y2="110"/>
+      <line class="s-dim" x1="298" y1="270" x2="314" y2="270"/>
+      <text class="sm" x="324" y="104">overhangs 10 mm each side</text>
+      <text class="sm" x="320" y="344">fits with a short tapered</text>
+      <text class="sm" x="320" y="360">plenum — headroom allows it</text>
+
+      <!-- ===== DINING 135 mm ===== -->
+      <text class="lbl" x="610" y="34">Dining room</text>
+      <text class="sm" x="610" y="52">135 mm deep</text>
+      <rect class="s-ghost" x="610" y="82" width="260" height="216"/>
+      <rect class="s-rule"  x="610" y="82" width="260" height="216"/>
+      <rect x="610" y="98" width="260" height="184" fill="var(--accent)" opacity=".16"/>
+      <circle cx="740" cy="190" r="96" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5"/>
+      <line class="s-dim" x1="596" y1="82" x2="596" y2="298"/>
+      <line class="s-dim" x1="588" y1="82" x2="604" y2="82"/>
+      <line class="s-dim" x1="588" y1="298" x2="604" y2="298"/>
+      <text class="sm acc" x="614" y="76">fan sits fully on the top face</text>
+      <text class="sm acc" x="610" y="344">direct fit, no transition —</text>
+      <text class="sm acc" x="610" y="360">which is just as well at 50 mm</text>
+
+      <!-- legend -->
+      <circle cx="38" cy="308" r="7" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>
+      <text class="sm" x="52" y="312">120 mm fan footprint</text>
+      <rect x="240" y="301" width="14" height="14" fill="var(--accent)" opacity=".16"/>
+      <text class="sm" x="262" y="312">grille — the only area that accepts air</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 6</span><span>Plan view, all three drawn to the same scale. The dashed circle is one 120 mm fan; the tinted band is the grille. Only the dining-room radiator is deep enough to take the fan's discharge without a transition piece.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ============================================ -->
+<section id="scaling">
+  <div class="sec-head">
+    <span class="sec-num">F</span>
+    <h2>Does six fans mean six times the cooling?</h2>
+  </div>
+
+  <div class="col">
+    <p>Nearly, but only if you <strong>spread them out</strong>. The answer splits cleanly in two, and the distinction matters more than the diminishing returns everyone expects.</p>
+    <p><strong>Fans over new radiator length add up almost linearly.</strong> A fan only forces air through the section it sits over; the rest of the radiator carries on with feeble natural convection. So the second fan does not help the first one's patch — it activates a fresh patch that was previously doing almost nothing. Six fans spread along two metres give close to six times one fan's contribution.</p>
+    <p><strong>Fans over the same patch saturate fast.</strong> Air-side heat transfer scales roughly with velocity to the power 0.6–0.8, so doubling the air over one spot buys about 1.6× that spot's heat transfer, not 2×. Stack fans on one section and each one is worth less than the last.</p>
+    <p>There is a real ceiling underneath both, but it is further away than you might think. The radiator cannot move more heat than the water carries through it: <code>Q_max = ṁ · c<sub>p</sub> · (T_room − T_supply)</code>. At a typical circuit flow that cap sits several times above where six or seven fans land, so you are still working in the near-linear region — the curve has barely started to bend. That is also why the return-water temperature actually rises when the fans come on, which is the whole point of the exercise.</p>
+    <p>The practical rule falls out of this: <strong>space the fans evenly and use as many as the length allows</strong>, rather than concentrating a few powerful ones. It happens to serve G4 too, since many slow fans are quieter than few fast ones.</p>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 470" role="img" aria-label="Line chart of cooling output against number of fans on one two-metre radiator. Fans spread along the radiator track close to the linear expectation, reaching about 530 watts at seven fans, while fans stacked on one section flatten out near 370 watts.">
+      <!-- gridlines -->
+      <g class="s-thin" opacity=".35">
+        <line x1="90" y1="60"  x2="820" y2="60"/>
+        <line x1="90" y1="110" x2="820" y2="110"/>
+        <line x1="90" y1="160" x2="820" y2="160"/>
+        <line x1="90" y1="210" x2="820" y2="210"/>
+        <line x1="90" y1="260" x2="820" y2="260"/>
+        <line x1="90" y1="310" x2="820" y2="310"/>
+      </g>
+      <line class="s-rule" x1="90" y1="360" x2="820" y2="360"/>
+
+      <!-- y axis labels -->
+      <g>
+        <text class="sm" x="80" y="64"  text-anchor="end">600</text>
+        <text class="sm" x="80" y="114" text-anchor="end">500</text>
+        <text class="sm" x="80" y="164" text-anchor="end">400</text>
+        <text class="sm" x="80" y="214" text-anchor="end">300</text>
+        <text class="sm" x="80" y="264" text-anchor="end">200</text>
+        <text class="sm" x="80" y="314" text-anchor="end">100</text>
+        <text class="sm" x="80" y="364" text-anchor="end">0</text>
+      </g>
+      <text class="sm" x="30" y="46">watts</text>
+
+      <!-- x axis labels -->
+      <g>
+        <text class="sm" x="90"  y="382" text-anchor="middle">0</text>
+        <text class="sm" x="194" y="382" text-anchor="middle">1</text>
+        <text class="sm" x="299" y="382" text-anchor="middle">2</text>
+        <text class="sm" x="403" y="382" text-anchor="middle">3</text>
+        <text class="sm" x="507" y="382" text-anchor="middle">4</text>
+        <text class="sm" x="611" y="382" text-anchor="middle">5</text>
+        <text class="sm" x="716" y="382" text-anchor="middle">6</text>
+        <text class="sm" x="820" y="382" text-anchor="middle">7</text>
+      </g>
+      <text class="sm" x="455" y="404" text-anchor="middle">fans on one 2 m radiator</text>
+
+      <!-- linear reference -->
+      <polyline fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" opacity=".45"
+                points="90,287.5 820,77.5"/>
+      <text class="sm" x="700" y="66">if it scaled linearly</text>
+
+      <!-- spread series -->
+      <polyline fill="none" stroke="var(--ser1)" stroke-width="2" stroke-linejoin="round"
+                points="90,287.5 194,257.5 299,228.5 403,200.5 507,173 611,146.5 716,120.5 820,95.5"/>
+      <g fill="var(--ser1)">
+        <circle cx="90"  cy="287.5" r="4"><title>0 fans — 145 W</title></circle>
+        <circle cx="194" cy="257.5" r="4"><title>1 fan spread — 205 W</title></circle>
+        <circle cx="299" cy="228.5" r="4"><title>2 fans spread — 263 W</title></circle>
+        <circle cx="403" cy="200.5" r="4"><title>3 fans spread — 319 W</title></circle>
+        <circle cx="507" cy="173"   r="4"><title>4 fans spread — 374 W</title></circle>
+        <circle cx="611" cy="146.5" r="4"><title>5 fans spread — 427 W</title></circle>
+        <circle cx="716" cy="120.5" r="4"><title>6 fans spread — 479 W</title></circle>
+        <circle cx="820" cy="95.5"  r="4"><title>7 fans spread — 529 W</title></circle>
+      </g>
+      <text class="sm" x="700" y="112" fill="var(--ser1)">spread along the length</text>
+
+      <!-- stacked series -->
+      <polyline fill="none" stroke="var(--ser2)" stroke-width="2" stroke-linejoin="round"
+                points="90,287.5 194,257.5 299,239.5 403,224 507,210.5 611,198 716,186.5 820,175.5"/>
+      <g fill="var(--ser2)">
+        <circle cx="194" cy="257.5" r="4"><title>1 fan — 205 W</title></circle>
+        <circle cx="299" cy="239.5" r="4"><title>2 fans stacked — 241 W</title></circle>
+        <circle cx="403" cy="224"   r="4"><title>3 fans stacked — 272 W</title></circle>
+        <circle cx="507" cy="210.5" r="4"><title>4 fans stacked — 299 W</title></circle>
+        <circle cx="611" cy="198"   r="4"><title>5 fans stacked — 324 W</title></circle>
+        <circle cx="716" cy="186.5" r="4"><title>6 fans stacked — 347 W</title></circle>
+        <circle cx="820" cy="175.5" r="4"><title>7 fans stacked — 369 W</title></circle>
+      </g>
+      <text class="sm" x="640" y="194" fill="var(--ser2)">all on one section</text>
+
+      <!-- no-fan baseline note -->
+      <line class="s-thin" x1="90" y1="287.5" x2="150" y2="287.5" opacity=".5"/>
+      <text class="sm" x="96" y="304">no fans, 145 W</text>
+
+      <!-- legend -->
+      <g>
+        <line x1="90" y1="440" x2="118" y2="440" stroke="var(--ser1)" stroke-width="2"/>
+        <text class="sm" x="126" y="444">spread evenly</text>
+        <line x1="260" y1="440" x2="288" y2="440" stroke="var(--ser2)" stroke-width="2"/>
+        <text class="sm" x="296" y="444">stacked on one section</text>
+        <line x1="470" y1="440" x2="498" y2="440" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5" opacity=".45"/>
+        <text class="sm" x="506" y="444">linear expectation</text>
+      </g>
+    </svg>
+    <figcaption><span class="fignum">FIG 7</span><span>Illustrative, not measured — the shape is what matters, and the absolute watts depend on flow rate, supply temperature and radiator size. Spread fans track the dashed linear line closely; stacked fans fall away almost immediately.</span></figcaption>
+  </figure>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Fans</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Spread evenly (W)</td><td class="num">145</td><td class="num">205</td><td class="num">263</td><td class="num">319</td><td class="num">374</td><td class="num">427</td><td class="num">479</td><td class="num">529</td></tr>
+        <tr><td>Stacked on one section (W)</td><td class="num">145</td><td class="num">205</td><td class="num">241</td><td class="num">272</td><td class="num">299</td><td class="num">324</td><td class="num">347</td><td class="num">369</td></tr>
+        <tr><td>Linear expectation (W)</td><td class="num">145</td><td class="num">205</td><td class="num">265</td><td class="num">325</td><td class="num">385</td><td class="num">445</td><td class="num">505</td><td class="num">565</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p style="margin-top:20px">Read off the table: seven spread fans deliver 384 W above the no-fan baseline against a linear expectation of 420 W — about 91 %. Seven stacked fans manage 224 W, barely more than half. The penalty for clustering is far larger than the penalty for diminishing returns.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="families">
+  <div class="sec-head">
+    <span class="sec-num">G</span>
+    <h2>Three families, three different parts</h2>
+  </div>
+
+  <div class="col">
+    <p>Sorted by what the mount actually has to grab hold of, the seven radiators fall into three groups. Only the first can use P1 as conceived.</p>
+  </div>
+
+  <div class="families">
+    <div class="fam">
+      <span class="cnt">4 of 7 · IMG_7161–64, 7165–67, 7172–77, 7178–81</span>
+      <h3>Panel radiators / convector casings</h3>
+      <p>Top slot with a grille, fins below. Office, guest WC, dining room and living room. The last two are long and low with a full-length comb grille.</p>
+      <p class="verdict">P1 applies, but depth splits them — see section F.</p>
+    </div>
+    <div class="fam">
+      <span class="cnt">2 of 7 · IMG_7156–60, 7168–69</span>
+      <h3>Tube radiators</h3>
+      <p>The bathroom towel rail and the tall two-column radiator by the second sink. Round tubes on side collectors. No top slot, no fins, no channel — and the towel rail is usually covered in towels.</p>
+      <p class="verdict">Needs a different part entirely.</p>
+    </div>
+    <div class="fam">
+      <span class="cnt">1 of 7 · IMG_7170–71</span>
+      <h3>Old sectional radiator</h3>
+      <p>Cast-style ribbed sections with corrosion at the joints. It does have vertical channels between the sections, so downdraft is physically sensible — but the top is a row of humps, not a flat grille.</p>
+      <p class="verdict">A saddle mount, not a collar.</p>
+    </div>
+  </div>
+
+  <figure class="plate">
+    <svg viewBox="0 0 900 300" role="img" aria-label="Left: section through a towel rail's round tubes with a fan blowing horizontally through the gaps between them. Right: section through an old sectional radiator with a saddle-shaped bracket straddling the humped top and blowing down between the sections">
+      <line class="s-thin" x1="450" y1="20" x2="450" y2="280"/>
+
+      <!-- ======= LEFT: tube radiator ======= -->
+      <text class="lbl" x="24" y="32">TUBE RADIATOR — blow across, not down</text>
+
+      <!-- tubes in section -->
+      <g>
+        <circle class="s-rule" cx="300" cy="70"  r="13"/>
+        <circle class="s-rule" cx="300" cy="104" r="13"/>
+        <circle class="s-rule" cx="300" cy="138" r="13"/>
+        <circle class="s-rule" cx="300" cy="172" r="13"/>
+        <circle class="s-rule" cx="300" cy="206" r="13"/>
+        <circle class="s-rule" cx="300" cy="240" r="13"/>
+      </g>
+      <text class="sm" x="322" y="160">tubes</text>
+
+      <!-- fan standing off -->
+      <rect class="s-rule" x="120" y="88" width="30" height="134" rx="3"/>
+      <line class="s-thin" x1="120" y1="88" x2="150" y2="222"/>
+      <line class="s-thin" x1="150" y1="88" x2="120" y2="222"/>
+      <text class="sm acc" x="104" y="80">fan on a clip-on</text>
+      <text class="sm acc" x="104" y="252">bracket that grips</text>
+      <text class="sm acc" x="104" y="268">two tubes</text>
+
+      <!-- clip arms -->
+      <path class="s-air" d="M150,104 h120 M150,206 h120"/>
+      <path class="s-air" d="M270,92 a15,15 0 1,0 0,26 M270,194 a15,15 0 1,0 0,26"/>
+
+      <!-- flow through gaps -->
+      <g class="s-air" opacity=".7">
+        <line x1="158" y1="128" x2="282" y2="128" marker-end="url(#ar2)"/>
+        <line x1="158" y1="155" x2="282" y2="155" marker-end="url(#ar2)"/>
+        <line x1="158" y1="182" x2="282" y2="182" marker-end="url(#ar2)"/>
+      </g>
+      <text class="sm" x="324" y="288">air passes between the tubes and out the back</text>
+
+      <!-- ======= RIGHT: sectional ======= -->
+      <text class="lbl" x="480" y="32">SECTIONAL — saddle over the humps</text>
+
+      <!-- humped top profile -->
+      <path class="s-rule" d="M540,150 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0"/>
+      <path class="s-ghost" d="M540,150 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0 q18,-34 36,0 v110 h-180 z"/>
+      <line class="s-rule" x1="540" y1="260" x2="720" y2="260"/>
+      <line class="s-rule" x1="540" y1="150" x2="540" y2="260"/>
+      <line class="s-rule" x1="720" y1="150" x2="720" y2="260"/>
+      <text class="sm" x="732" y="216">sections</text>
+
+      <!-- saddle bracket -->
+      <path class="s-air" d="M528,112 h204 v22 h-204 z"/>
+      <path class="s-air" d="M528,134 v18 M732,134 v18"/>
+      <path class="s-air" d="M562,134 q14,16 28,0 M634,134 q14,16 28,0"/>
+      <text class="sm acc" x="742" y="126">saddle sits on</text>
+      <text class="sm acc" x="742" y="142">the humps, feet</text>
+      <text class="sm acc" x="742" y="158">in the valleys</text>
+
+      <!-- fan -->
+      <rect class="s-rule" x="560" y="66" width="140" height="26" rx="2"/>
+      <text class="sm" x="708" y="84">fan</text>
+
+      <!-- flow down between sections -->
+      <g class="s-air" opacity=".75">
+        <line x1="576" y1="156" x2="576" y2="250" marker-end="url(#ar2)"/>
+        <line x1="630" y1="156" x2="630" y2="250" marker-end="url(#ar2)"/>
+        <line x1="684" y1="156" x2="684" y2="250" marker-end="url(#ar2)"/>
+      </g>
+      <text class="sm" x="540" y="288">flow goes down the gaps between sections</text>
+    </svg>
+    <figcaption><span class="fignum">FIG 8</span><span>Neither of the non-panel families has a slot to seal against, so both drop the collar-and-seal idea. The tube radiator turns the fan on its side and grips tubes; the sectional keeps the downdraft but straddles a humped profile instead of a flat grille.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ============================================ -->
+<section id="numbers">
+  <div class="sec-head">
+    <span class="sec-num">H</span>
+    <h2>Best guesses, clearly labelled as such</h2>
+  </div>
+
+  <div class="col">
+    <p>Every number below is scaled off the steel rule in the frame — its graduations give a pixels-per-centimetre figure, which is then applied to features lying in roughly the same plane. That works well when the rule touches the feature and both ends are visible, and badly when it doesn't. The confidence column says which case applies. <strong>None of these should be typed into a FreeCAD spreadsheet yet.</strong></p>
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Radiator</th>
+          <th>Dimension</th>
+          <th>Estimate</th>
+          <th>Confidence</th>
+          <th>Basis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dining room<span class="ref">IMG_7172–77</span></td>
+          <td>Depth, front face to back</td>
+          <td class="num">135 mm</td>
+          <td><span class="conf ok">Confirmed</span></td>
+          <td>Photo estimate, confirmed at the wall</td>
+        </tr>
+        <tr>
+          <td>Dining room</td>
+          <td>Front face height</td>
+          <td class="num">220–230 mm</td>
+          <td><span class="conf ok">Good</span></td>
+          <td>Rule spans the full face, top and bottom edges both readable (7177)</td>
+        </tr>
+        <tr>
+          <td>Dining room</td>
+          <td>Length</td>
+          <td class="num">1800–2200 mm</td>
+          <td><span class="conf low">Low</span></td>
+          <td>Proportion against the window opening only (7172)</td>
+        </tr>
+        <tr>
+          <td>Dining room</td>
+          <td>Headroom to sill</td>
+          <td class="num">50 mm</td>
+          <td><span class="conf ok">Measured</span></td>
+          <td>Measured at the wall — supersedes the photo estimate</td>
+        </tr>
+        <tr>
+          <td>Living room<span class="ref">IMG_7178–81</span></td>
+          <td>Depth, front face to back</td>
+          <td class="num">100 mm</td>
+          <td><span class="conf ok">Measured</span></td>
+          <td>Measured at the wall</td>
+        </tr>
+        <tr>
+          <td>Office<span class="ref">IMG_7161–64</span></td>
+          <td>Depth, front face to back</td>
+          <td class="num">60 mm</td>
+          <td><span class="conf ok">Measured</span></td>
+          <td>Measured at the wall — the shallowest of the four</td>
+        </tr>
+        <tr>
+          <td>Living room</td>
+          <td>Front face height</td>
+          <td class="num">360–380 mm</td>
+          <td><span class="conf mid">Medium</span></td>
+          <td>Rule shorter than the face, scaled by ratio (7179)</td>
+        </tr>
+        <tr>
+          <td>Living room</td>
+          <td>Grille bar pitch</td>
+          <td class="num">5–6 mm</td>
+          <td><span class="conf ok">Good</span></td>
+          <td>Rule flat on the grille, many periods across the scale (7180)</td>
+        </tr>
+        <tr>
+          <td>Living room</td>
+          <td>Channel gap between fin banks</td>
+          <td class="num">10–15 mm</td>
+          <td><span class="conf mid">Medium</span></td>
+          <td>Rule crosses both fin banks; edges soft (7181)</td>
+        </tr>
+        <tr>
+          <td>Living room</td>
+          <td>Headroom to sill</td>
+          <td class="num">100 mm</td>
+          <td><span class="conf ok">Measured</span></td>
+          <td>Measured at the wall — supersedes the photo estimate</td>
+        </tr>
+        <tr>
+          <td>Guest WC<span class="ref">IMG_7165–67</span></td>
+          <td>Grille slot pitch</td>
+          <td class="num">11–12 mm</td>
+          <td><span class="conf mid">Medium</span></td>
+          <td>Rule flat on the grille (7166)</td>
+        </tr>
+        <tr>
+          <td>Guest WC</td>
+          <td>Length × height</td>
+          <td class="num">≈600 × 500 mm</td>
+          <td><span class="conf low">Low</span></td>
+          <td>Counted against wall tiles of assumed size (7165)</td>
+        </tr>
+        <tr>
+          <td>Guest WC</td>
+          <td>Type</td>
+          <td class="num">11 or 21</td>
+          <td><span class="conf mid">Medium</span></td>
+          <td>Only one fin bank visible down the slot (7167)</td>
+        </tr>
+        <tr>
+          <td>Office<span class="ref">IMG_7161–64</span></td>
+          <td>Headroom to sill</td>
+          <td class="num">40–70 mm</td>
+          <td><span class="conf low">Low</span></td>
+          <td>Scaled off the rule lying on the grille, different plane (7161)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="col">
+    <p style="margin-top:20px">Fan count follows from length once it is known — roughly one 120 mm fan per 250–300 mm, so a 2 m radiator wants seven or eight, which is well above the four or five the §4 sizing estimate assumed for 700 W. Worth revisiting once the lengths are real.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="measure">
+  <div class="sec-head">
+    <span class="sec-num">I</span>
+    <h2>The measurement list</h2>
+  </div>
+
+  <div class="col">
+    <p>In priority order, with headroom now struck off. The first item decides whether the project's core geometry survives, so it is worth doing before anything else. Each says where to find the feature, using the photos as the reference.</p>
+  </div>
+
+  <ol class="checks">
+    <li>
+      <span>
+        <span class="what">Does the top grille or front cover lift off?</span>
+        <span class="how">On the two long low units, try lifting the full-length grille and pulling the front panel forward off its clips. If either comes away, fans can go inside the casing and the headroom problem disappears. <em>Also settles whether these are panel radiators or convector casings.</em></span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Channel gap, all four panel radiators</span>
+        <span class="how">Lay a caliper's jaws down through the top slot until they touch the fin tips on both sides. Not the sheet-metal slot above it — those differ. In IMG_7181 this is the dark band running between the two rows of wavy fins. <em>Decides FIG 4: duct in, or seal on top.</em></span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Slot width in the sheet metal</span>
+        <span class="how">Rule flat across the top, measuring the opening in the pressed steel — the feature you see edge-on in IMG_7163 and IMG_7166. This sets the collar's footprint if FIG 4's right-hand option wins.</span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Headroom — office and guest WC</span>
+        <span class="how">The two that were not measured. Same method: rule standing on the radiator top, read off where the sill underside crosses. The guest WC may have no sill at all, in which case it is unlimited and the easiest of the four.</span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Overall length and height, each radiator</span>
+        <span class="how">Tape measure along the wall, and floor to top edge. These drive fan count and the P2 tile lengths; they do not need to be precise to the millimetre.</span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Depth of the guest WC unit, and wall standoff on all four</span>
+        <span class="how">Depth is now known everywhere except the guest WC — rule across the end cap, as in IMG_7176. Then the gap from each back face to the wall, which sets how far the magnet skirt can reach round. <em>Depth decides the fan diameter, so the guest WC one is a real gap.</em></span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Floor clearance</span>
+        <span class="how">Floor to the bottom edge. In IMG_7178 and IMG_7179 the units look like they nearly reach the skirting, which would rule out a bottom-mounted deflector (P3) as well as any fallback to upward flow.</span>
+      </span>
+    </li>
+    <li>
+      <span>
+        <span class="what">Tube diameter and pitch — the two bathrooms</span>
+        <span class="how">Only needed if the tube radiators stay in scope. Caliper across one tube, then centre-to-centre between two adjacent ones.</span>
+      </span>
+    </li>
+  </ol>
+
+  <div class="callout cool" style="margin-top:36px">
+    <span class="tag">On re-shooting</span>
+    <p>The room constraints are real and more photos will not fix most of these — a rule photographed at an angle in a tight corner will always be hard to read. Measure by hand against this list instead, and use the photos only to confirm you are looking at the same feature I am.</p>
+  </div>
+</section>
+
+<footer class="end">
+  fan-stand · concept primer · drawn from doc/ photo set of 2026-08-16<br>
+  All figures are schematic. No dimension here is a design input until section I is filled in.
+</footer>
+
+</div>

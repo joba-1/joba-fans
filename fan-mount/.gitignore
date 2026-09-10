@@ -1,0 +1,13 @@
+.claude/settings.local.json
+
+# Fotos bleiben lokal (Originale + konvertierte JPEGs)
+doc/*.HEIC
+doc/jpg/
+
+# FreeCAD-Sicherungskopien
+*.FCBak
+
+# Fotos bleiben lokal (auch in Unterordnern)
+doc/**/*.HEIC
+
+# Gcode nur fuer den symmetrischen Halter mitfuehren (Druckdatei zum Job)
