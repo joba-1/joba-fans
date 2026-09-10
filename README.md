@@ -23,14 +23,21 @@ Subtree-Merge — seine 61 Commits sind also erhalten, liegen aber unter den
 zeigt darum nur den Merge selbst. So kommt man an die echte Historie:
 
 ```sh
-git log --oneline 4fa60c5              # der alte Zweigkopf, 61 Commits
-git log --oneline 4fa60c5 -- MEASUREMENTS.md
+git log --oneline e5e0e0c              # der alte Zweigkopf, 61 Commits
+git log --oneline e5e0e0c -- MEASUREMENTS.md
 git log --follow --full-history --all -- MEASUREMENTS.md
 ```
 
-Die Fotos der Halterungen sind **nicht** im Repo: 26 HEIC-Originale (40 MB)
-und ihre JPEG-Fassungen liegen weiter unter `/data/joachim/git/fan-stand/doc/`
-und waren auch dort nie versioniert.
+Nicht im Repo, und zwar mit Absicht:
+
+* **Die Fotos der Halterungen** — 26 HEIC-Originale (40 MB) und ihre
+  JPEG-Fassungen. Sie liegen unter `/data/joachim/git/fan-stand/doc/` und waren
+  auch dort nie versioniert.
+* **Gcode.** Am 2026-09-10 aus der Historie entfernt: 62 MB und damit der
+  größte Posten im Repo, dabei aus den STL- und FreeCAD-Dateien jederzeit neu
+  zu erzeugen. Die zuletzt gedruckten Fassungen liegen unter
+  `/data/joachim/gcode-rette/`, die Historie davor im Bundle
+  `/data/joachim/fan-speed-vor-rewrite-20260910.bundle`.
 
 ## Schaltung
 
