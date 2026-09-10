@@ -27,3 +27,6 @@ __pycache__/
 # (MPN / supplier columns).
 fab/gerbers/
 fab/*.zip
+
+# Statusdatei, die der Slicer neben den Export legt
+result.json
