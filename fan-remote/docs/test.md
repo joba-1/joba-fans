@@ -43,7 +43,7 @@ Not covered by the automated tests; run with a scope or logic analyser and a rea
 | 8 | Reset the board while a fan runs | note the burst length (documents the PWM floating issue) |
 | 9 | MQTT: set speed/preset/power, watch retained state | topics as in spec.md; HA entities appear |
 | 10 | OTA update | succeeds; settings and last speeds survive |
-| 10b | `pio run -e ota_c6 -t upload --upload-port fan-control-1.local` with the host firewall closed | upload succeeds, board returns with the new git id; `curl -F` without credentials → 401, without a file → 500, nothing reboots |
+| 10b | `pio run -e ota_c6 -t upload --upload-port fan-control-1` with the host firewall closed | upload succeeds, board returns with the new git id; `curl -F` without credentials → 401, without a file → 500, nothing reboots |
 | 11 | Two boards | separate ids, two HA devices, no topic clashes |
 | 12 | Find each fan's real *Min* | lowest duty that keeps it turning from a *running* state; set it in settings |
 

@@ -2,7 +2,7 @@
 
 ## The web page
 
-Open `http://fan-control-N.local/` (N is the number from `devices.csv`; also on the serial output and in the
+Open `http://fan-control-N/` (the board announces this name in its DHCP request, so a router or DNS server that registers DHCP hostnames resolves it - the firmware does not use mDNS; N is the number from `devices.csv`; also on the serial output and in the
 router's device list) or the board's IP. Works on phones and desktops, light and
 dark, German or English following the browser language.
 
@@ -65,7 +65,7 @@ Renaming the board or a fan in the settings updates the names in Home Assistant 
 entities and gives a returning unique id its old entity id back (tested with HA 2026.9: removing
 and re-announcing the discovery messages, as Zigbee2MQTT's `homeassistant_rename` does, restored
 the old ids). To get new ids from the current names use Settings → Network → **Recreate Home
-Assistant entities** (or `curl -u admin:… -d recreate=1 http://fan-control-1.local/api/discovery`):
+Assistant entities** (or `curl -u admin:… -d recreate=1 http://fan-control-1/api/discovery`):
 the board removes its entities in Home Assistant, waits 2.5 s and announces them again under a new
 generation number, so HA builds fresh entity ids. History and customisations of the old entities
 are lost, so use it right after naming a new board, not later.
@@ -84,8 +84,8 @@ mosquitto_sub -h mqtt -t 'fan-control/fan-control-1/#' -v
 ## HTTP
 
 ```sh
-curl http://fan-control-1.local/api/state
-curl -d ch=1 -d speed=40 http://fan-control-1.local/api/set
-curl -d ch=all -d preset=quiet http://fan-control-1.local/api/set
-curl http://fan-control-1.local/api/netstatus
+curl http://fan-control-1/api/state
+curl -d ch=1 -d speed=40 http://fan-control-1/api/set
+curl -d ch=all -d preset=quiet http://fan-control-1/api/set
+curl http://fan-control-1/api/netstatus
 ```

@@ -102,7 +102,7 @@ static void addDevice(JsonDocument &d) {
   dev["manufacturer"] = "DIY";
   dev["sw_version"] = FW_VERSION;
   char url[40];
-  snprintf(url, sizeof url, "http://%s.local/", deviceId());
+  snprintf(url, sizeof url, "http://%s/", deviceId());
   dev["configuration_url"] = url;
 }
 

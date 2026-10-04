@@ -1,7 +1,6 @@
 #include "Net.h"
 
 #include <ArduinoOTA.h>
-#include <ESPmDNS.h>
 #include <WiFi.h>
 #include <WiFiManager.h>
 #include <esp_sntp.h>
@@ -38,12 +37,11 @@ static void sntpSynced(struct timeval *) { resSet(resNtp(), true, "synced"); }
 static void startServices() {
   if (servicesUp) return;
   servicesUp = true;
-  MDNS.begin(deviceId());
-  MDNS.addService("http", "tcp", 80);
   configTzTime(CFG_TIMEZONE, settings().ntpHost);
   sntp_set_time_sync_notification_cb(sntpSynced);
   resSet(resNtp(), false, "waiting");
 
+  ArduinoOTA.setMdnsEnabled(false);   // no mDNS: the name comes from the DHCP hostname (DNS)
   ArduinoOTA.setHostname(deviceId());
   ArduinoOTA.setPassword(settings().adminPass);
   ArduinoOTA.onStart([]() { powerActivity(); logf(LOG_INFO, "OTA start"); });

@@ -1,4 +1,4 @@
-// Net.h — WiFi (WiFiManager portal), mDNS, NTP, ArduinoOTA.
+// Net.h — WiFi (WiFiManager portal), NTP, ArduinoOTA.
 #pragma once
 #include <Arduino.h>
 

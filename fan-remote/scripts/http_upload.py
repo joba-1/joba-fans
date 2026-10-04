@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Upload firmware to a board over HTTP: POST /api/update on the board's own web server.
 
-    python3 scripts/http_upload.py fan-control-1.local .pio/build/xiao_c6/firmware.bin
-    pio run -e ota_c6 -t upload --upload-port fan-control-1.local      # the same, via PlatformIO
+    python3 scripts/http_upload.py fan-control-1 .pio/build/xiao_c6/firmware.bin
+    pio run -e ota_c6 -t upload --upload-port fan-control-1      # the same, via PlatformIO
 
 The host only makes an outbound connection to the board's port 80, so no firewall port has
 to be opened on the host (ArduinoOTA needs one: the board connects back). Password: env

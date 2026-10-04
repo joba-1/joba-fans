@@ -9,7 +9,7 @@ the XIAO ESP32-C3 (the module the board is designed for) and the pin-compatible 
 on a bench C6 with one fan; the hardware bring-up on the real fan board is still open (see
 [docs/test.md](docs/test.md)). The pin table matches the board's pad nets.
 
-* **Web remote** on every board (`http://fan-control-1.local/`): live RPM, on/off, preset
+* **Web remote** on every board (`http://fan-control-1/`): live RPM, on/off, preset
   speeds, a free slider, per fan and for all fans. Phone first, German and English.
 * **Safe, quiet start.** The duty is raised slowly until the tach shows the fan
   turning, then slewed to the target; a blocked fan is detected and retried with
@@ -43,7 +43,7 @@ That one password does the settings login, the setup access point and OTA. A fre
 `fan-control-N-setup`; join it and enter WiFi, name and broker. Later updates go over WiFi:
 
 ```sh
-pio run -e ota -t upload --upload-port fan-control-1.local     # no firewall port needed
+pio run -e ota -t upload --upload-port fan-control-1     # no firewall port needed
 ```
 
 Details in [docs/admin.md](docs/admin.md).

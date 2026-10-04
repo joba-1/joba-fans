@@ -10,7 +10,7 @@ flashed from this tree - on purpose (home network), so keep `config.ini` safe.
 
 ```sh
 pio run -e xiao_c3 -t upload                  # new board, USB-C
-pio run -e ota -t upload --upload-port fan-control-1.local   # update over WiFi (XIAO C6: -e ota_c6)
+pio run -e ota -t upload --upload-port fan-control-1   # update over WiFi (XIAO C6: -e ota_c6)
 ```
 
 A XIAO ESP32-C6 works too (same pin positions): `-e xiao_c6` / `-e ota_c6`.
@@ -47,10 +47,10 @@ and the new ones keep the entity ids, then clear the old `fan-control/<oldid>/#`
 Compile-time values are only defaults. Per board, behind the admin login:
 
 ```sh
-curl -u admin:<pw> -X POST http://fan-control-1.local/api/netconfig \
+curl -u admin:<pw> -X POST http://fan-control-1/api/netconfig \
      -d mqttHost=mqtt -d syslogHost=syslog -d ntpHost=de.pool.ntp.org
-curl -u admin:<pw> -X POST http://fan-control-1.local/api/netconfig -d defaults=1   # back to config.ini
-curl http://fan-control-1.local/api/netstatus     # firmware, version, WiFi, each resource and its last result
+curl -u admin:<pw> -X POST http://fan-control-1/api/netconfig -d defaults=1   # back to config.ini
+curl http://fan-control-1/api/netstatus     # firmware, version, WiFi, each resource and its last result
 ```
 
 Stored in NVS (a firmware update keeps it), applied at the next boot. The broker name
@@ -63,13 +63,13 @@ syslog name is re-resolved hourly and after a failed send.
   (`app-name fan-remote`, host = device id). Stall/recovery and config changes are logged.
 * **Forgetting WiFi**: settings → *Forget WiFi*, or `POST /api/wifireset`. The board
   reboots into the setup portal.
-* **Updating over WiFi:** `pio run -e ota -t upload --upload-port fan-control-N.local`
+* **Updating over WiFi:** `pio run -e ota -t upload --upload-port fan-control-N`
   (`ota_c6` for a C6) pushes the image to the board's own web server (`POST /api/update`,
   admin login). The host only makes an outbound connection, so **no firewall port is needed**.
   The script retries on a flaky link; a board that was flashed with an older firmware without
   `/api/update` answers 404 and needs one USB or ArduinoOTA flash first. A wrong chip image is
   rejected at the end of the upload and leaves the running firmware alone. By hand:
-  `curl -u admin:<pw> -F firmware=@.pio/build/xiao_c6/firmware.bin http://fan-control-1.local/api/update`.
+  `curl -u admin:<pw> -F firmware=@.pio/build/xiao_c6/firmware.bin http://fan-control-1/api/update`.
 * **ArduinoOTA fallback** (`-e espota` / `espota_c6`): the board connects back to the host, so a
   host firewall must let that through: pin the port with `FAN_OTA_HOST_PORT=3333` and open it
   (`sudo firewall-cmd --add-port=3333/tcp`, runtime only). `FAN_OTA_PASSWORD=…` overrides the
