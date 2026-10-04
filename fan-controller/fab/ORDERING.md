@@ -1,6 +1,7 @@
 # Ordering options
 
-Board: 72.9 × 25.0 mm, 2 layers. Target quantity 20.
+Board: 72.9 × 25.0 mm, 2 layers. Target quantity at planning time: 20 (10 were finally ordered, see the
+Outcome at the end).
 
 Per board: **16 SMD parts** (12× 0603 resistors, 0805 cap, SMA diode, 1812
 polyfuse, SOT-223 regulator) and **8 through-hole** (4 fan headers, 2 socket
@@ -103,3 +104,11 @@ shipping (~€23) and bare PCBs (~€18) alone are €41 before any labour.
 **Going with fully assembled**, subject to the real quote landing near the
 ~€95–100 estimate. If it comes back much higher, the lever is the
 through-hole count — that is what drives the labour cost.
+
+---
+
+## Outcome
+
+Ordered from **PCBWay**, turnkey, **10 units** (not the 20 planned above): €75.77 in total, €7.58 per board.
+That is more than the ~€4.70 per board estimated for Option A. The breakdown and the problems met on the way
+are in the [build log](../docs/build-log.html), stage 08.

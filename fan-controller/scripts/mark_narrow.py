@@ -2,7 +2,7 @@
 """Mark power/ground tracks that are below their target width.
 
 Usage:
-    python3 fan-controller/mark_narrow.py [board.kicad_pcb] [--skip-benign]
+    python3 mark_narrow.py [board.kicad_pcb] [--skip-benign]
 
 Markers go on User.Eco1: visible in the PCB editor, and kept out of fab
 output as long as gerbers are exported with an explicit --layers list (a
@@ -22,12 +22,14 @@ joint fragments, and GND runs sitting directly over the B.Cu ground plane
 Target widths from IPC-2152, 1oz external copper, 10C rise:
     1.0mm -> 2.39A    0.6mm -> 1.65A    0.2mm -> 0.74A
 """
+import os
 import sys
 
 import pcbnew
 
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
-PATH = args[0] if args else "fan-controller/fan-controller.kicad_pcb"
+PATH = args[0] if args else os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "fan-controller.kicad_pcb")
 SKIP_BENIGN = "--skip-benign" in sys.argv[1:]
 
 LAYER = pcbnew.Eco1_User

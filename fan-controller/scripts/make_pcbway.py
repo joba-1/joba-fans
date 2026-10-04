@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-"""BOM und CPL im PCBWay-Format erzeugen.
+"""Generate the BOM and CPL in PCBWay format.
 
-Aufruf: python3 fan-controller/make_pcbway.py
+Usage: python3 make_pcbway.py
 
-PCBWay ist beim Format deutlich toleranter als JLCPCB: .xls/.xlsx/.csv,
-keine festen Spaltennamen. Verlangt werden Designator, Menge, Gehaeuse und
-Teilenummer; bei Widerstaenden und Kondensatoren genuegen Wert und Gehaeuse.
-PCBWay empfiehlt ausserdem, PTH und SMD zu kennzeichnen - dafuer gibt es
-hier die Spalte Type.
+PCBWay is much more tolerant about the format than JLCPCB: .xls/.xlsx/.csv,
+no fixed column names. It asks for designator, quantity, package and part
+number; for resistors and capacitors, value and package are enough. PCBWay
+also recommends marking PTH and SMD - the Type column is for that.
 
-PCBWay bestueckt Durchsteckteile als regulaere Dienstleistung (Through-Hole
-Assembly). Anders als bei JLCPCB werden hier deshalb ALLE Teile bestueckt,
-und BOM wie CPL enthalten auch die THT-Positionen - ohne CPL-Eintrag wuesste
-die Bestueckung nicht, wo sie hingehoeren.
+PCBWay assembles through-hole parts as a regular service (through-hole
+assembly). Unlike with JLCPCB, ALL parts are therefore assembled here, and
+BOM and CPL include the THT positions too - without a CPL entry the
+assembly would not know where they belong.
 
-Die Spalte Type unterscheidet PTH und SMD, wie von PCBWay empfohlen: THT
-wird von Hand oder im Wellenloetbad gesetzt und getrennt kalkuliert.
+The Type column distinguishes PTH and SMD, as PCBWay recommends: THT is
+placed by hand or in a wave-solder bath and priced separately.
 """
 import csv
 import os
@@ -24,26 +23,27 @@ import subprocess
 import sys
 import tempfile
 
-SCH = "fan-controller/fan-controller.kicad_sch"
-PCB = "fan-controller/fan-controller.kicad_pcb"
-OUT = "fab/pcbway"
+HERE = os.path.dirname(os.path.abspath(__file__))
+SCH = os.path.join(HERE, "..", "fan-controller.kicad_sch")
+PCB = os.path.join(HERE, "..", "fan-controller.kicad_pcb")
+OUT = os.path.join(HERE, "..", "fab", "pcbway")
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, HERE)
 from make_bom import LCSC, ROLE_VALUES, THT_REFS, collapse, refkey  # noqa: E402
 
 # Sourcing notes for the through-hole parts. PCBWay assembles them but has
 # to buy them first, and the KiCad footprint names are not enough for that.
 # Dimensions taken from the board's own footprints. English throughout -
 # these lines are read by PCBWay staff.
-# Positionen, bei denen ein Footprint mehrere physische Bauteile aufnimmt.
+# Positions where one footprint takes several physical parts.
 #
-# Die Qty-Spalte meint die Stueckzahl PRO PLATINE, nicht die Anzahl der
-# Designatoren. Von PCBWay am 2026-09-02 so korrigiert: U1 war mit Qty 1
-# eingereicht und wurde als eine Buchsenleiste pro Platine kalkuliert,
-# obwohl zwei gebraucht werden. Ein Hinweis im Value-Feld oder in der Note
-# reicht nicht - die Kalkulation folgt der Spalte.
+# The Qty column means the number of pieces PER BOARD, not the number of
+# designators. PCBWay corrected this on 2026-09-02: U1 had been submitted
+# with Qty 1 and was priced as one female header per board, although two are
+# needed. A hint in the Value field or in the note is not enough - the
+# calculation follows the column.
 QTY_PER_FOOTPRINT = {
-    "U1": 2,        # zwei 1x7-Buchsenleisten auf dem XIAO-Footprint
+    "U1": 2,        # two 1x7 female headers on the XIAO footprint
 }
 
 THT_SPEC = {
@@ -55,8 +55,8 @@ THT_SPEC = {
     # U1 is the socket position: the footprint is the XIAO module, but what
     # goes there is TWO 1x7 female headers. The module itself is not
     # assembled - the customer plugs it in later.
-    # Stueckzahl steht in der Qty-Spalte und NUR dort - "2x" hier dazu
-    # liest sich als vier.
+    # The count lives in the Qty column and ONLY there - adding "2x" here
+    # reads as four.
     "U1": ("female header 1x7 straight, 2.54mm pitch, row spacing "
            "15.24mm - do NOT fit the module itself"),
 }
@@ -100,12 +100,12 @@ with open(bom_path, "w", newline="") as f:
         refs = sorted(g["refs"], key=refkey)
         is_tht = refs[0] in THT_REFS
         pkg = fp.split(":")[-1]
-        # Bei Positionen mit ausfuehrlicher Sourcing-Note reicht im
-        # Value-Feld der reine Teilename - sonst steht alles doppelt.
+        # For positions with a detailed sourcing note, the Value field only
+        # needs the plain part name - otherwise everything is stated twice.
         if refs[0] in THT_SPEC and " - " in part:
             part = part.split(" - ")[0]
-        # Kein "2x" im Value-Feld: die Stueckzahl steht in der Qty-Spalte,
-        # sonst liest sich Qty 2 mal "2x ..." als vier Stueck.
+        # No "2x" in the Value field: the count is in the Qty column,
+        # otherwise Qty 2 with "2x ..." reads as four pieces.
         qty = len(refs) * QTY_PER_FOOTPRINT.get(refs[0], 1)
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         note = " ".join(notes)
@@ -143,7 +143,7 @@ with open(cpl_path, "w", newline="") as f:
                     f'{float(r["Rot"]):.2f}',
                     "PTH" if r["Ref"] in THT_REFS else "SMD"])
 
-print(f"{bom_path}: {len(groups)} Positionen (inkl. PTH als Information)")
+print(f"{bom_path}: {len(groups)} lines (including PTH for information)")
 n_tht = sum(1 for r in pos if r["Ref"] in THT_REFS)
-print(f"{cpl_path}: {len(pos)} Bestueckpositionen "
+print(f"{cpl_path}: {len(pos)} placements "
       f"({len(pos)-n_tht} SMD, {n_tht} PTH)")

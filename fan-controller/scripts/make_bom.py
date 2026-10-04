@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build an assembly-ready BOM from the schematic.
 
-Usage: python3 fan-controller/make_bom.py [schematic.kicad_sch] [out.csv]
+Usage: python3 make_bom.py [schematic.kicad_sch] [out.csv]
 
 kicad-cli's own grouping compares every listed field, so the four fan headers
 never merge: their Values are FAN1..FAN4 (which channel each drives) even
@@ -9,14 +9,14 @@ though they are one identical part. That reads to an assembler as four
 different components. So the raw per-part export is regrouped here on
 footprint + part type, keeping the channel names in a separate column.
 
-Ausgabeformat sind JLCPCBs vier Spalten: Comment, Designator, Footprint,
-LCSC Part #. Deren Import lehnt abweichende Kopfzeilen ab (wie schon bei der
-CPL). "LCSC Part #" bleibt leer - entweder selbst ausfuellen oder den
-Bestuecker aus seinem Lager substituieren lassen.
+The output format is JLCPCB's four columns: Comment, Designator, Footprint,
+LCSC Part #. Their import rejects other headers (as it already does for the
+CPL). "LCSC Part #" stays empty where no number is known - either fill it in
+yourself or let the assembler substitute from stock.
 
-DNP-Teile werden weggelassen statt markiert: U1 (das XIAO-Modul) wird
-gesockelt und von dir beigestellt. Die Fassungen selbst muessen dagegen
-bestueckt werden und stehen daher drin.
+DNP parts are left out rather than marked: U1 (the XIAO module) is socketed
+and supplied by the customer. The sockets themselves do have to be fitted
+and are therefore included.
 """
 import csv
 import os
@@ -25,20 +25,19 @@ import subprocess
 import sys
 import tempfile
 
-SCH = sys.argv[1] if len(sys.argv) > 1 else "fan-controller/fan-controller.kicad_sch"
-OUT = sys.argv[2] if len(sys.argv) > 2 else "fab/fan-controller-bom.csv"
+HERE = os.path.dirname(os.path.abspath(__file__))
+SCH = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "..", "fan-controller.kicad_sch")
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, "..", "fab", "fan-controller-bom.csv")
 
-# Durchsteckteile werden selbst beschafft und geloetet - JLCPCBs Katalog
-# fuehrt sie nicht. Sie muessen aus BOM UND CPL raus, sonst meldet der
-# Import wieder fehlende Designatoren. Liste: fab/THT-BESTELLLISTE.md
+# Through-hole parts are sourced and soldered by hand - JLCPCB's catalogue
+# does not carry them. They must be removed from the BOM AND the CPL, or the
+# import again complains about missing designators. List: fab/THT-ORDER-LIST.md
 THT_REFS = {"C1", "J1", "J2", "J3", "J4", "J5", "U1"}
 
-# Parts whose Value names a role rather than a part type. The BOM needs the
-# part type for sourcing; the role is kept in a Note column.
-# LCSC-Teilenummern. Ohne diese raet JLCPCBs Zuordnung, und THT-Teile
-# findet sie meist gar nicht ("No matches").
+# LCSC part numbers. Without them JLCPCB's matching guesses, and it usually
+# does not find THT parts at all ("No matches").
 #
-# Bestaetigt - von JLCPCBs eigener BOM-Zuordnung geliefert:
+# Confirmed - supplied by JLCPCB's own BOM matching:
 LCSC = {
     "C2":  "C440198",    # 10uF 0805, Murata GRM21BR61H106KE43L, Basic
     "D1":  "C8678",      # SS34 SMA, MDD, Basic
@@ -46,27 +45,29 @@ LCSC = {
     "R1":  "C25804",     # 10k 0603 1%, Uniroyal, Basic
     "R5":  "C21190",     # 1k  0603 1%, Uniroyal, Basic
     "R9":  "C23138",     # 330 0603 1%, Uniroyal, Basic
-    # Recherchiert, NICHT von JLCPCB bestaetigt - vor dem Bestellen im
-    # Katalog gegenpruefen (Bauform, Spannung, Lagerbestand):
-    "F1":  "C209713",    # SMD1812P150TF/24, 1.5A 24V 1812. Die /8-Variante
-                         #   (C209721) waere mit 8V zu wenig fuer 12V.
-    "U1":  "C5303",      # 2.54mm Buchsenleiste 1x40, zum Ablaengen auf 1x7
-    # Nicht gefunden - J1 (Hohlbuchse 5.5x2.1) und J2-J5 (Stiftleiste 1x4)
-    # bleiben leer und muessen im Web-Interface gewaehlt werden.
+    # Researched, NOT confirmed by JLCPCB - check against the catalogue
+    # before ordering (package, voltage, stock):
+    "F1":  "C209713",    # SMD1812P150TF/24, 1.5A 24V 1812. The /8 variant
+                         #   (C209721) is only 8V, too little for 12V.
+    "U1":  "C5303",      # 2.54mm female header 1x40, to be cut to 1x7
+    # Not found - J1 (barrel jack 5.5x2.1) and J2-J5 (pin header 1x4)
+    # stay empty and have to be chosen in the web interface.
 }
 
+# Parts whose Value names a role rather than a part type. The BOM needs the
+# part type for sourcing; the role is kept in a Note column.
 ROLE_VALUES = {
     "FAN1": "4-pin PC fan header",
     "FAN2": "4-pin PC fan header",
     "FAN3": "4-pin PC fan header",
     "FAN4": "4-pin PC fan header",
     "DC_Jack_12V": "DC barrel jack 5.5x2.1mm",
-    # U1 ist im Schaltplan das XIAO-Modul, auf der Platine aber die
-    # Fassungsposition: die 14 Durchsteckpads des Modul-Footprints sind
-    # die Loecher fuer zwei 1x7-Buchsenleisten. Das Modul selbst wird
-    # gesteckt, nicht bestueckt. Die Fassungen haben kein eigenes
-    # Schaltplan-Symbol, also muessen sie hier haengen - sonst stehen sie
-    # in keiner CPL und JLCPCB weist die BOM-Zeile zurueck.
+    # U1 is the XIAO module in the schematic, but on the board it is the
+    # socket position: the 14 through-hole pads of the module footprint are
+    # the holes for two 1x7 female headers. The module itself is plugged in,
+    # not assembled. The sockets have no schematic symbol of their own, so
+    # they have to hang here - otherwise they are in no CPL and JLCPCB
+    # rejects the BOM line.
     "XIAO ESP32-C3": "1x7 female header 2.54mm - "
                      "module is plugged in later, do not fit",
 }
@@ -92,12 +93,12 @@ def refkey(ref):
 
 
 def collapse(refs):
-    """Alle Designatoren als Kommaliste: R1,R2,R3,R4
+    """All designators as a comma list: R1,R2,R3,R4
 
-    Keine Bereichsschreibweise ("R1-R4"): JLCPCB gleicht BOM und CPL
-    designatorweise ab und meldet sonst "designators don't exist in the
-    CPL file". Ohne Leerzeichen nach dem Komma, damit der Parser die
-    Namen nicht mit Leerraum liest.
+    No range notation ("R1-R4"): JLCPCB matches BOM and CPL designator by
+    designator and otherwise reports "designators don't exist in the CPL
+    file". No space after the comma, so the parser does not read the names
+    with whitespace.
     """
     return ",".join(sorted(refs, key=refkey))
 
@@ -124,10 +125,10 @@ with open(OUT, "w", newline="") as f:
     w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
     for (fp, part, dnp), g in sorted(groups.items(), key=lambda kv: refkey(sorted(kv[1]["refs"], key=refkey)[0])):
         if dnp:
-            continue          # U1: gesockelt, vom Kunden beigestellt
+            continue          # U1: socketed, supplied by the customer
         comment = part
-        # Rollenbezeichnungen anhaengen (FAN1..FAN4), aber nicht bei
-        # Positionen, deren Comment die Rolle ohnehin schon beschreibt.
+        # Append the role names (FAN1..FAN4), but not for positions whose
+        # comment already describes the role.
         notes = [n for n in g["notes"] if n not in ROLE_VALUES]
         if notes:
             comment += " - " + " ".join(notes)
@@ -137,6 +138,6 @@ with open(OUT, "w", newline="") as f:
 
 placed = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if not dnp)
 skipped = sum(len(g["refs"]) for (fp, p, dnp), g in groups.items() if dnp)
-print(f"{OUT}: {len([k for k in groups if not k[2]])} Positionen im "
-      f"JLCPCB-Format, {placed} Teile zu bestuecken, "
-      f"{skipped} DNP weggelassen")
+print(f"{OUT}: {len([k for k in groups if not k[2]])} lines in "
+      f"JLCPCB format, {placed} parts to assemble, "
+      f"{skipped} DNP left out")

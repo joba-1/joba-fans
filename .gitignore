@@ -9,11 +9,9 @@ fp-info-cache
 *.kicad_prl
 .history/
 
-# KiCad 3D model cache / plot output
+# KiCad plot output and regenerable exports
 gerbers/
 *.zip
-
-# Regenerable exports (kicad-cli sch export netlist)
 *.net
 
 # Python
@@ -22,16 +20,15 @@ __pycache__/
 # OS
 .DS_Store
 
-# Fab package: gerbers and the zip are regenerable via make_fab.sh.
-# The BOM and CPL are tracked - they are reviewable and get hand-edited
-# (MPN / supplier columns).
-fab/gerbers/
-fab/*.zip
+# Fab package: the gerbers and the zip are regenerable via
+# fan-controller/scripts/make_fab.sh. The BOM and CPL are tracked - they are
+# reviewable and get hand-edited (MPN / supplier columns).
+fan-controller/fab/gerbers/
+fan-controller/fab/*.zip
 
-# Statusdatei, die der Slicer neben den Export legt
+# Status file the slicer drops next to its export
 result.json
 
-# Gcode gehoert nicht ins Repo: es ist aus den STL/FCStd jederzeit neu zu
-# erzeugen und war mit 62 MB ueber die Historie der groesste Posten darin.
-# Die zuletzt gedruckten Dateien liegen unter /data/joachim/gcode-rette/.
+# G-code is not source: it can always be regenerated from the STL/FCStd files
+# and was the biggest item in the history (62 MB) before it was removed.
 *.gcode
