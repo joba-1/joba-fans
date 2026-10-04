@@ -159,7 +159,13 @@ Verified when this repository was assembled: `board_params.scad` is identical to
 produces, `check_fit.py` passes all checks, and the three STLs match the OpenSCAD source (same bounding box
 and volume).
 
-For viewing: `part = "all"` shows the assembly with indicated components, `part = "explode"` with the lid
+For viewing: `part = "all"` (the default) shows a **see-through** assembly — case and lid nearly transparent, the board
+with its parts (socketed XIAO with its USB-C receptacle, fan connectors, jack, capacitor) in solid colours — so the
+openings can be checked against the real parts (`board_mock(a)` sets the opacity):
+
+![See-through view](img/fan-housing-xray.png)
+
+Other views: `part = "explode"` shows the assembly with the lid
 lifted off, `part = "closed"` the closed case, `part = "lid_guide"` the lid in print orientation with the
 light guide lifted off. `part = "latch"` cuts a 5 mm thick slice across one latch and puts it at the origin
 — for judging the engagement in the OpenSCAD GUI, where you can rotate freely. As a still image that is of

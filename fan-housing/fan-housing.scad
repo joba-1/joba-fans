@@ -11,7 +11,7 @@
 //    part = "tray"   tray           (cream PETG)
 //    part = "lid"    lid            (cream PETG)
 //    part = "guide"  light guide    (transparent PETG)
-//    part = "all"    assembly for visual inspection
+//    part = "all"    see-through assembly for visual inspection
 // ===========================================================================
 
 include <board_params.scad>
@@ -337,18 +337,26 @@ module cutbox() {
     translate([snap_x[0] - slab/2, -80, -80]) cube([slab, 160, 160]);
 }
 
-module board_mock() {
-    color("darkgreen") translate([0, 0, 0]) cube([board_l, board_w, pcb_t]);
-    color("gray")   box(U1_x[0], U1_y[0], z_pcb_top,
-                        U1_x[1], U1_y[1], z_pcb_top + h_xiao);
-    color("white")  for (j = [[J2_x, J2_y], [J3_x, J3_y], [J4_x, J4_y], [J5_x, J5_y]])
-                        box(j[0][0] - fan_grow_x, j[1][0] - fan_grow_y, z_pcb_top,
-                            j[0][1] + fan_grow_x, j[1][1] + fan_grow_y,
-                            z_pcb_top + h_fan);
-    color("black")  box(J1_x[0], J1_y[0], z_pcb_top,
-                        J1_x[1], J1_y[1], z_pcb_top + h_jack);
-    color("silver") box(C1_x[0], C1_y[0], z_pcb_top,
-                        C1_x[1], C1_y[1], z_pcb_top + 12.5);
+// Stand-in for the populated board, for the views. a = opacity (1 = solid).
+// The jack is drawn as wide as the real one: its footprint courtyard is jack_trim
+// wider on each side than the body, and the opening in the wall follows the body.
+module board_mock(a = 1) {
+    color("darkgreen", a) cube([board_l, board_w, pcb_t]);
+    // XIAO: two socket strips, the module board on top, the USB-C receptacle at its low-Y end
+    color("dimgray", a) for (x = [U1_x[0], U1_x[1] - 2.54 - 0.8])
+        box(x, U1_y[0] + 1.5, z_pcb_top, x + 3.34, U1_y[1] - 1.5, z_pcb_top + h_socket);
+    color("gray", a)    box(U1_x[0], U1_y[0], z_pcb_top + h_socket,
+                            U1_x[1], U1_y[1], z_pcb_top + h_socket + h_xiao_pcb);
+    color("silver", a)  box(win_cx - 4.5, U1_y[0], z_pcb_top + h_socket + h_xiao_pcb,
+                            win_cx + 4.5, U1_y[0] + 7.3, z_pcb_top + h_xiao);
+    color("white", a)   for (j = [[J2_x, J2_y], [J3_x, J3_y], [J4_x, J4_y], [J5_x, J5_y]])
+                            box(j[0][0] - fan_grow_x, j[1][0] - fan_grow_y, z_pcb_top,
+                                j[0][1] + fan_grow_x, j[1][1] + fan_grow_y,
+                                z_pcb_top + h_fan);
+    color("black", a)  box(J1_x[0], J1_y[0] + jack_trim, z_pcb_top,
+                           J1_x[1], J1_y[1] - jack_trim, z_pcb_top + h_jack);
+    color("lightsteelblue", a) box(C1_x[0], C1_y[0], z_pcb_top,
+                           C1_x[1], C1_y[1], z_pcb_top + 12.5);
 }
 
 // Printable orientation: lid and light guide are turned by 180 degrees
@@ -436,8 +444,9 @@ else if (part == "closed") {
     color(col_guide) guide();
 }
 else {
-    tray();
-    board_mock();
-    color("ivory",   0.55) lid();
-    color("skyblue", 0.75) guide();
+    // Default view: see-through case, so the board and the openings can be inspected.
+    color("ivory", 0.10) tray();
+    board_mock(0.85);
+    color("ivory", 0.10) lid();
+    color("skyblue", 0.5) guide();
 }
