@@ -82,7 +82,7 @@ Verified against `fan-controller.kicad_pcb`, not just the net plan:
 ### Speed model
 
 `speed` (user) 0…100. `0` = off. Otherwise `duty = min + (max − min) · speed / 100`
-with per-fan `min` (lowest duty that keeps the fan turning, default 20 %) and `max`
+with per-fan `min` (lowest duty that keeps the fan turning, default 5 %) and `max`
 (noise cap, default 100 %).
 
 ### Safe, quiet start

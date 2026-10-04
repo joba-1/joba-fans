@@ -54,7 +54,7 @@ static void fillDefaults(Settings &s, bool netOnly) {
   for (int i = 0; i < kFans; i++) {
     s.ch[i].name[0] = 0;   // empty = default label, "Fan N" or "Lüfter N" by language
     s.ch[i].enabled = true;
-    s.ch[i].minPct = 20;
+    s.ch[i].minPct = 5;    // lowest duty a fan is asked to keep turning at; raise it for fans that stall
     s.ch[i].maxPct = 100;
     s.ch[i].tach = true;
     s.ch[i].ppr = 2;
@@ -168,33 +168,46 @@ void settingsEraseNet() {
   p.end();
 }
 
+// Like settingsSaveNet(): only values that differ from the defaults are stored, so a changed
+// default (say the minimum duty) reaches every board that never overrode it.
 void settingsSaveAll() {
+  Settings d;
+  fillDefaults(d, false);
   Preferences p;
   if (!p.begin(NS, false)) return;
-  p.putUChar("rampUp", g.rampUp);
-  p.putUChar("rampDown", g.rampDown);
-  p.putUChar("bootMode", g.bootMode);
-  p.putBool("protect", g.protectControl);
-  p.putUChar("hagen", g.haGen);
+  auto u8 = [&](const char *key, uint8_t v, uint8_t def) {
+    if (v == def) p.remove(key);
+    else p.putUChar(key, v);
+  };
+  auto flag = [&](const char *key, bool v, bool def) {
+    if (v == def) p.remove(key);
+    else p.putBool(key, v);
+  };
+  u8("rampUp", g.rampUp, d.rampUp);
+  u8("rampDown", g.rampDown, d.rampDown);
+  u8("bootMode", g.bootMode, d.bootMode);
+  flag("protect", g.protectControl, d.protectControl);
+  u8("hagen", g.haGen, d.haGen);
   for (int i = 0; i < kPresets; i++) {
     char k[8];
     snprintf(k, sizeof k, "pre%d", i);
-    p.putUChar(k, g.presets[i]);
+    u8(k, g.presets[i], d.presets[i]);
   }
   for (int i = 0; i < kFans; i++) {
     char k[12];
     snprintf(k, sizeof k, "c%dname", i);
-    p.putString(k, g.ch[i].name);
+    if (strcmp(g.ch[i].name, d.ch[i].name) == 0) p.remove(k);
+    else p.putString(k, g.ch[i].name);
     snprintf(k, sizeof k, "c%den", i);
-    p.putBool(k, g.ch[i].enabled);
+    flag(k, g.ch[i].enabled, d.ch[i].enabled);
     snprintf(k, sizeof k, "c%dmin", i);
-    p.putUChar(k, g.ch[i].minPct);
+    u8(k, g.ch[i].minPct, d.ch[i].minPct);
     snprintf(k, sizeof k, "c%dmax", i);
-    p.putUChar(k, g.ch[i].maxPct);
+    u8(k, g.ch[i].maxPct, d.ch[i].maxPct);
     snprintf(k, sizeof k, "c%dtach", i);
-    p.putBool(k, g.ch[i].tach);
+    flag(k, g.ch[i].tach, d.ch[i].tach);
     snprintf(k, sizeof k, "c%dppr", i);
-    p.putUChar(k, g.ch[i].ppr);
+    u8(k, g.ch[i].ppr, d.ch[i].ppr);
   }
   p.end();
 }

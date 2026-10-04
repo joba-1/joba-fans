@@ -500,6 +500,18 @@ static void onUpdateDone(AsyncWebServerRequest *r) {
   logf(LOG_WARN, "firmware update refused: %s", error.c_str());
 }
 
+// Collects a small request body into a malloc'd buffer that the request frees itself.
+static void collectBody(AsyncWebServerRequest *r, uint8_t *data, size_t len, size_t index, size_t total) {
+  if (total == 0 || total > kMaxBody) return;
+  if (index == 0) {
+    r->_tempObject = malloc(total + 1);
+    if (!r->_tempObject) return;
+  }
+  if (!r->_tempObject) return;
+  memcpy(static_cast<uint8_t *>(r->_tempObject) + index, data, len);
+  if (index + len == total) static_cast<char *>(r->_tempObject)[total] = 0;
+}
+
 static void sendEmbedded(AsyncWebServerRequest *r, const char *type, const uint8_t *start,
                          const uint8_t *end, bool gz, const char *cache) {
   AsyncWebServerResponse *resp = r->beginResponse(200, type, start, end - start);
@@ -537,7 +549,9 @@ void webBegin() {
   server.on("/api/netconfig", HTTP_POST, handleNetconfig);
   server.on("/api/discovery", HTTP_POST, handleDiscovery);
   server.on("/api/config", HTTP_GET, handleConfigGet);
-  server.on("/api/config", HTTP_POST, handleConfigPost);
+  // JSON body: the body handler must sit on the route itself (AsyncWebServer::onRequestBody only
+  // serves URLs without a route, which is why the first version never received the body).
+  server.on("/api/config", HTTP_POST, handleConfigPost, nullptr, collectBody);
   server.on("/api/update", HTTP_POST, onUpdateDone, onUpdateBody);
   server.on("/api/reboot", HTTP_POST, [](AsyncWebServerRequest *r) {
     if (!sameOrigin(r) || !authed(r)) return;
@@ -551,17 +565,6 @@ void webBegin() {
     r->onDisconnect([]() { netForgetWifi(); });
   });
 
-  // JSON bodies for /api/config: collect into a malloc'd buffer the request frees itself.
-  server.onRequestBody([](AsyncWebServerRequest *r, uint8_t *data, size_t len, size_t index, size_t total) {
-    if (r->url() != "/api/config" || total == 0 || total > kMaxBody) return;
-    if (index == 0) {
-      r->_tempObject = malloc(total + 1);
-      if (!r->_tempObject) return;
-    }
-    if (!r->_tempObject) return;
-    memcpy(static_cast<uint8_t *>(r->_tempObject) + index, data, len);
-    if (index + len == total) static_cast<char *>(r->_tempObject)[total] = 0;
-  });
 
   events.onConnect([](AsyncEventSourceClient *c) {
     powerActivity(); c->send(stateJson().c_str(), "state", millis(), 2000); });

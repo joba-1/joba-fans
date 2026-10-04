@@ -41,7 +41,7 @@ Asks for the admin login (user `admin`). Everything is stored on the board.
 
 * **Fans**: name (empty = "Fan N" / "Lüfter N"), enabled, *Min* and *Max* duty, tach wired, pulses per revolution
   (PC fans: 2). Set *Min* to the lowest duty at which your fan still turns reliably
-  (20 % is typical for PWM fans; try 10–30). *Max* caps the loudest setting.
+  (default 5 %; many PWM fans keep turning at that, some stall below 15–20 %, so raise it if a card turns "Stalled" at low speeds). *Max* caps the loudest setting.
 * **Preset speeds**: the five chips, in speed units (not duty).
 * **Behaviour**: how fast the duty may rise/fall, and what happens after power-up
   (restore last speeds, or all off).
