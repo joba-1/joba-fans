@@ -159,9 +159,9 @@ Verified when this repository was assembled: `board_params.scad` is identical to
 produces, `check_fit.py` passes all checks, and the three STLs match the OpenSCAD source (same bounding box
 and volume).
 
-For viewing: `part = "all"` (the default) shows a **see-through** assembly — case and lid nearly transparent, the board
-with its parts (socketed XIAO with its USB-C receptacle, fan connectors, jack, capacitor) in solid colours — so the
-openings can be checked against the real parts (`board_mock(a)` sets the opacity):
+For viewing: `part = "all"` (the default) shows the assembly with a solid tray and a **translucent lid** — look
+down through the lid at the board with its parts (socketed XIAO with its USB-C receptacle, fan connectors, jack,
+capacitor) to check the openings against the real parts (`board_mock(a)` sets the board's opacity):
 
 ![See-through view](img/fan-housing-xray.png)
 

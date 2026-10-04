@@ -11,7 +11,7 @@
 //    part = "tray"   tray           (cream PETG)
 //    part = "lid"    lid            (cream PETG)
 //    part = "guide"  light guide    (transparent PETG)
-//    part = "all"    see-through assembly for visual inspection
+//    part = "all"    assembly for inspection: solid tray, translucent lid
 // ===========================================================================
 
 include <board_params.scad>
@@ -444,9 +444,9 @@ else if (part == "closed") {
     color(col_guide) guide();
 }
 else {
-    // Default view: see-through case, so the board and the openings can be inspected.
-    color("ivory", 0.10) tray();
-    board_mock(0.85);
-    color("ivory", 0.10) lid();
-    color("skyblue", 0.5) guide();
+    // Default view: solid tray, translucent lid, so you look through the lid at the board.
+    color(col_case) tray();
+    board_mock(0.9);
+    color("ivory", 0.40) lid();
+    color("skyblue", 0.70) guide();
 }
