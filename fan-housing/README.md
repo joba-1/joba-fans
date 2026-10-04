@@ -47,7 +47,7 @@ mouse ears and add a brim around them). The four perimeters are not cosmetic —
    the solder joints.
 3. Plug in the fan connectors and lay the cables into the notches of the long walls. The notches are open
    at the top so that you lay the cables in instead of threading them — the connector does not fit through
-   a closed hole. They are only 1 mm deep: the lid pinches the cable lightly, which is also the strain relief.
+   a closed hole. They are only 1.5 mm deep: the lid holds the cable lightly, which is also the strain relief.
 4. Press the lid on until the four noses click in. To open, press the long walls outward a little at the
    latch points (at X 27.5 and 67 mm).
 
@@ -62,10 +62,11 @@ a through-cut would be visible from outside. On the left the vent slots.
 
 * **Barrel jack:** right end wall. It overhangs the board edge anyway and so sticks out of the wall. The
   opening is the jack's width minus `jack_trim` = 1.4 mm on each side.
-* **Four cable notches**, 8 mm wide and 1 mm deep (`notch_depth`), above the fan connectors in the long
+* **Four cable notches**, 8 mm wide and 1.5 mm deep (`notch_depth`; the cable is 0.9 mm), above the fan connectors in the long
   walls. The lid closes them at the top; the cable is then captive.
-* **USB-C** in the lower long wall, for re-flashing without opening: a closed window `usb_h` = 4 mm high,
-  centred on the receptacle of the socketed XIAO. Can be switched off with `usb_opening = false`.
+* **USB-C** in the lower long wall, for re-flashing without opening: a closed window `usb_h` = 8 mm high
+  (the plug's overmold, not just the 3.3 mm receptacle, has to fit), 13 mm wide, centred on the receptacle
+  of the socketed XIAO. Can be switched off with `usb_opening = false`.
 * **Vent slots** in the left end wall and in the lid above the AMS1117. At a 12 V input it dissipates about
   0.7 W; in a tight box this size that becomes noticeable. Can be switched off with `vents = false`.
 * **Light window** in the lid above the XIAO — see below.

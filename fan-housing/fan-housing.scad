@@ -66,7 +66,7 @@ fan_grow_y = 0.7;
 
 // ---------------------------------------------------------------- options
 usb_opening    = true;   // window for re-flashing without opening
-usb_h          = 4.0;    // height of that window, centred on the USB-C receptacle
+usb_h          = 8.0;    // height of that window, centred on the USB-C receptacle
 jack_trim      = 1.4;    // the jack opening is this much narrower than the jack, per side
 ears           = true;   // 'mouse ears': thin discs at the four bottom corners that hold
                          // the tray down while it cools. Cut them off after printing.
@@ -109,7 +109,7 @@ snap_pk_d  = 0.9;        // depth of the pocket in the wall (out of 2.4mm)
 
 // ------------------------------------------------------- cable exits
 notch_w     = 8.0;   // width of the slots for the fan cables
-notch_depth = 1.0;   // depth below the top edge of the tray: the cable only just fits
+notch_depth = 1.5;   // depth below the top edge of the tray: the cable (0.9 mm) with margin
                      // between tray and lid
 
 fan_x = [ (J2_x[0]+J2_x[1])/2, (J3_x[0]+J3_x[1])/2 ];   // lower long wall
