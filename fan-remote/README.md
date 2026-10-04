@@ -1,7 +1,13 @@
 # fan-remote
 
-Firmware for the four-channel fan controller in `../fan-controller/` (XIAO ESP32-C3).
-One board drives four 4-pin PC fans with 25 kHz PWM and reads their RPM.
+Firmware for the four-channel fan controller board in [`../fan-controller/`](../fan-controller/) (XIAO
+ESP32-C3), part of the [joba-fans](../README.md) project. One board drives four 4-pin PC fans with 25 kHz
+PWM and reads their RPM.
+
+**Status:** version 0.1.0 (git tag `fan-remote-v0.1.0`). Unit tests pass on the PC and the image builds for
+the XIAO ESP32-C3 (the module the board is designed for) and the pin-compatible ESP32-C6. It has been run
+on a bench C6 with one fan; the hardware bring-up on the real fan board is still open (see
+[docs/test.md](docs/test.md)). The pin table matches the board's pad nets.
 
 * **Web remote** on every board (`http://fan-control-1.local/`): live RPM, on/off, preset
   speeds, a free slider, per fan and for all fans. Phone first, German and English.
@@ -21,8 +27,8 @@ docs/test.md    test plan and the hardware bring-up checklist
 ## Quick start
 
 ```sh
-~/.platformio/penv/bin/pio test -e native      # unit tests, no hardware
-~/.platformio/penv/bin/pio run -e xiao_c3 -t upload   # first flash over USB-C
+pio test -e native      # unit tests, no hardware
+pio run -e xiao_c3 -t upload   # first flash over USB-C
 ```
 
 Boards are numbered in `devices.csv` (MAC → number): register a new one first, then flash.
@@ -32,8 +38,8 @@ The number is the host name (`fan-control-N`), the MQTT topic and the Home Assis
 python3 scripts/register_device.py --port /dev/ttyACM0     # prints fan-control-N
 ```
 
-The first build creates `config.ini` (gitignored). One password, `<admin password>`, does the
-settings login, the setup access point and OTA. A fresh board opens the access point
+The first build creates `config.ini` (gitignored) with a random admin password and prints it.
+That one password does the settings login, the setup access point and OTA. A fresh board opens the access point
 `fan-control-N-setup`; join it and enter WiFi, name and broker. Later updates go over WiFi:
 
 ```sh

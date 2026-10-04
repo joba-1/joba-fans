@@ -2,10 +2,11 @@
 
 ## Build and flash
 
-Needs PlatformIO (`~/.platformio/penv/bin/pio`). The first build creates `config.ini`
-from `config.ini.template`; edit the file (mode 600, gitignored) for the service aliases
-(`mqtt`, `syslog`), the HA prefix, standby timing and so on. The admin password is `<admin password>`
-for the settings login, the setup access point and OTA, on purpose (home network).
+Needs PlatformIO (`pio`). The first build creates `config.ini` from `config.ini.template`
+and prints a **random admin password** once; edit the file (mode 600, gitignored) for the
+service aliases (`mqtt`, `syslog`), the HA prefix, standby timing and so on. That one password
+is the settings login, the setup access point password and the OTA password of every board
+flashed from this tree - on purpose (home network), so keep `config.ini` safe.
 
 ```sh
 pio run -e xiao_c3 -t upload                  # new board, USB-C
@@ -29,7 +30,7 @@ Assistant ids. Numbers are never reused.
    `register_device.py 58:e6:c5:19:38:60 "kitchen"`.
 2. Flash over USB-C (`pio run -e xiao_c3 -t upload`, `-e xiao_c6` for a C6). The table is
    compiled in, so build after registering.
-3. The board opens the access point `fan-control-N-setup` (password `<admin password>`). Join it from a
+3. The board opens the access point `fan-control-N-setup` (password: `admin_password` from `config.ini`). Join it from a
    phone; the page asks for WiFi, a friendly name and the broker alias.
 4. The board appears in HA within seconds (broker + MQTT integration + discovery on).
 5. Open the page → settings → fans: set names, *Min* duty and which channels exist.

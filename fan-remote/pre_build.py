@@ -3,8 +3,8 @@
 
 PlatformIO pre-build script.
 
-* config.ini: created from config.ini.template on the first build, then read and turned
-  into -D defines.
+* config.ini: created from config.ini.template on the first build (with a random admin
+  password, printed once), then read and turned into -D defines.
 * devices.csv (MAC -> board number) becomes src/DeviceTable.h.
 * Version: VERSION file plus git describe and commit date, as -D defines.
 * web/index.html -> web/index.html.gz (deterministic), embedded by platformio.ini.
@@ -13,7 +13,7 @@ PlatformIO pre-build script.
 import configparser
 import gzip
 import os
-import shutil
+import secrets
 import subprocess
 
 Import("env")  # noqa: F821  (provided by PlatformIO)
@@ -37,9 +37,12 @@ def git(*args):
 # ---- config.ini -------------------------------------------------------------
 cfg_path = os.path.join(proj, "config.ini")
 if not os.path.exists(cfg_path):
-    shutil.copyfile(os.path.join(proj, "config.ini.template"), cfg_path)
+    pw = secrets.token_urlsafe(9)
+    text = read(os.path.join(proj, "config.ini.template")).decode("utf-8").replace("@RANDOM@", pw)
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        f.write(text)
     os.chmod(cfg_path, 0o600)
-    print("[config] created config.ini from the template")
+    print("[config] created config.ini from the template - admin password: %s (kept in config.ini)" % pw)
 
 cp = configparser.ConfigParser(inline_comment_prefixes=(";",))
 cp.read(cfg_path, encoding="utf-8")
@@ -101,7 +104,8 @@ if not os.path.exists(hp) or open(hp, encoding="utf-8").read() != header:
 
 # ---- version ----------------------------------------------------------------
 version = open(os.path.join(proj, "VERSION"), encoding="utf-8").read().strip()
-describe = git("describe", "--always", "--dirty", "--tags") or "nogit"
+# The repository holds several components; only the firmware's own tags (fan-remote-v*) count.
+describe = git("describe", "--always", "--dirty", "--match", "fan-remote-v*") or "nogit"
 commit_ts = git("show", "-s", "--format=%cI", "HEAD") or "unknown"
 strings["FW_VERSION"] = version
 strings["FW_GIT"] = describe

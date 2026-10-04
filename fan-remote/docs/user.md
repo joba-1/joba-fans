@@ -49,7 +49,7 @@ once), **Save network** the broker, syslog and NTP (applies after a reboot).
 * **Preset speeds**: the five chips, in speed units (not duty).
 * **Behaviour**: how fast the duty may rise/fall, and what happens after power-up
   (restore last speeds, or all off).
-* **Network**: broker, syslog, NTP. Applies after a reboot. The login is user `admin`, password `<admin password>`.
+* **Network**: broker, syslog, NTP. Applies after a reboot. The login is user `admin`; the password is `admin_password` from the build's `config.ini`.
 
 ## Home Assistant
 

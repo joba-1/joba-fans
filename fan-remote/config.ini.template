@@ -1,14 +1,15 @@
 ; config.ini.template — fan-remote
-; Build-time defaults. pre_build.py copies this to config.ini on the first build.
-; config.ini is gitignored.
+; Build-time defaults. pre_build.py copies this to config.ini on the first build, replaces
+; @RANDOM@ with a random admin password and prints it. config.ini is gitignored.
 ;
 ; Everything below can be changed per board at runtime
 ; (web UI settings or POST /api/netconfig) and is then kept in NVS; these values
 ; are only the defaults of a fresh board. See docs/admin.md.
 
 [user_config]
-; One password for the settings login, the setup access point and OTA on every board.
-; Home network, so deliberately simple (min. 8 characters: WPA2 needs that for the AP).
+; One password for the settings login, the setup access point and OTA on every board
+; flashed from this tree (min. 8 characters: WPA2 needs that for the AP). Keep this file
+; mode 600; it is the only place the password is stored besides the boards themselves.
 admin_password = @RANDOM@
 admin_user = admin
 

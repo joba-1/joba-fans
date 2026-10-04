@@ -1,6 +1,6 @@
 # fan-remote — firmware for the 4-channel fan controller
 
-Firmware for the XIAO ESP32-C3 on the `fan-controller` board (see `../README.md`).
+Firmware for the XIAO ESP32-C3 on the `fan-controller` board (see [`../fan-controller/README.md`](../../fan-controller/README.md)).
 One board drives up to four 4-pin PC fans. Several boards run side by side.
 
 ## Goals
@@ -67,14 +67,14 @@ Verified against `fan-controller.kicad_pcb`, not just the net plan:
 
 | Decision | Why |
 |---|---|
-| Arduino + PlatformIO, not ESPHome | Same toolchain and libraries as `Joba_Modbus`; the custom web UI and the spin-up logic would fight ESPHome's component model. |
+| Arduino + PlatformIO, not ESPHome | Plain Arduino-ESP32 code and libraries; the custom web UI and the spin-up logic would fight ESPHome's component model. |
 | Fan task independent of the network | Safety: fans keep their last speed with no WiFi, no broker, no browser. |
 | Speed 1…100 maps onto the *usable* duty range `[min, max]` per fan | "1 %" is the quietest speed that really runs; HA's percentage slider has no dead zone below the stall point. `0` is off. |
 | Presets stored as speeds, edited in the UI | Fans differ; "Low" should be what the user finds quiet, not a fixed number. |
 | Channel numbers 1…4 in topics and the UI | Matches the silkscreen (FAN1…FAN4). |
 | Device id = `fan-control-N`, N from `devices.csv` (MAC → number), never reused | Readable, stable MQTT topics and HA unique ids instead of MAC digits; the friendly name is separate and renameable. An unregistered board runs as `fan-control-new-xxxxxx` so it is still unique and recognisable. |
 | Friendly name starts as the id (`fan-control-N`); a fan without a name of its own has an empty name | The page labels it "Fan N" or "Lüfter N" by browser language, Home Assistant "Fan N". No language is baked into the stored data. |
-| One fixed admin password, `<admin password>`, for settings, AP and OTA | Home network: a per-board secret to look up is more trouble than protection. Still HTTP Basic with a constant-time compare and a lockout; changeable per board via `/api/netconfig`. |
+| One admin password per build tree (random, in the gitignored `config.ini`) for settings, AP and OTA | Home network: a per-board secret to look up is more trouble than protection. Still HTTP Basic with a constant-time compare and a lockout; changeable per board via `/api/netconfig`. |
 | Control endpoints open on the LAN, settings behind Basic auth | The remote must work from any phone without a login dance. `protectControl` turns the login on for control as well. Deviation from "UI needs auth" is limited to the LAN-only case. |
 
 ## Fan control
@@ -161,9 +161,10 @@ normal soft start.
 | `POST /api/netconfig` | Basic | `name`, `mqttHost`, `mqttPort`, `mqttUser`, `mqttPass`, `syslogHost`, `ntpHost`, `defaults=1`; stored in NVS, applied at next boot |
 | `POST /api/update` | Basic | firmware image (multipart field `firmware`); written to the next OTA slot, validated, then reboot. The host connects out to port 80: no host firewall port needed (ArduinoOTA remains as a fallback) |
 | `POST /api/discovery` | Basic | resend the Home Assistant discovery; `recreate=1` first removes the old entities and announces new ones under generation + 1 (unique ids and discovery topics carry `_gN`), so entity ids are rebuilt from the current names |
+| `GET /api/wake` | – | the page sends it on touch; counts as an interaction and wakes the board from standby |
 | `POST /api/reboot`, `POST /api/wifireset` | Basic | |
 
-`netstatus` / `netconfig` follow the reference in `Joba_Modbus` (CodingStandards §2).
+`netstatus` / `netconfig` give every external resource (broker, syslog, NTP) a host, a last status and a last access time, and keep the settings editable at run time.
 
 ### MQTT
 
@@ -201,10 +202,10 @@ Credentials for the broker are stored in NVS, never in the repo.
   briefly, see above; acceptable against a hung controller).
 * All inputs validated (ranges, enum values, string lengths); no `String` building
   from request data into responses without JSON escaping (ArduinoJson).
-* Settings, OTA and reboot need the admin password (`<admin password>` by default) (Basic auth, constant-time
-  compare). OTA is password protected. No credentials in the repository:
-  `config.ini` is gitignored, the template carries placeholders.
-* MQTT commands can change speeds only — never network targets (CodingStandards §2).
+* Settings, OTA and reboot need the admin password (Basic auth, constant-time compare; by default
+  the random one from `config.ini`). OTA is password protected. No credentials in the repository:
+  `config.ini` is gitignored, the template carries a placeholder that the first build replaces.
+* MQTT commands can change speeds only — never network targets.
 
 ## Open points / future
 
