@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Mock of the device's HTTP API for working on web/index.html without hardware.
 
-    python3 scripts/mock_server.py [port]        # default 8099
+    python3 scripts/mock_server.py [port] [delay_s]   # default 8099, no delay
 
 Serves the page, /events (SSE), /api/state, /api/set, /api/config, /api/netstatus
 with four simulated fans (one of them stalled), using the same JSON as the firmware.
+`delay_s` holds every POST /api/set back that long, to look at the pending markers of the
+page (the real board answers in 10 ms to 250 ms depending on WiFi power save).
 No authentication: this is a design aid, not a reimplementation.
 """
 import json
@@ -18,6 +20,7 @@ from urllib.parse import parse_qs
 ROOT = Path(__file__).resolve().parent.parent / "web"
 PRESETS = [("quiet", 10), ("low", 30), ("medium", 50), ("high", 75), ("max", 100)]
 lock = threading.Lock()
+DELAY = 0.0
 cfg = {"name": "Fans Living room", "rampUp": 10, "rampDown": 20, "bootMode": 0, "protectControl": False,
        "presets": [p[1] for p in PRESETS],
        "ch": [{"name": n, "enabled": e, "min": 20, "max": 100, "tach": True, "ppr": 2}
@@ -74,6 +77,8 @@ class H(BaseHTTPRequestHandler):
             self.send(200, (ROOT / "index.html").read_bytes(), "text/html")
         elif self.path == "/logo.svg":
             self.send(200, (ROOT / "logo.svg").read_bytes(), "image/svg+xml")
+        elif self.path == "/api/wake":
+            self.send(204, "", "text/plain")
         elif self.path == "/api/state":
             self.send(200, json.dumps(state()))
         elif self.path == "/api/config":
@@ -81,6 +86,7 @@ class H(BaseHTTPRequestHandler):
         elif self.path == "/api/netstatus":
             self.send(200, json.dumps({"firmware": "fan-remote", "version": "0.1.0", "git": "mock", "hostname": "fan-a1b2c3",
                 "ip": "192.168.1.50", "ssid": "home", "rssi": -58, "uptimeS": 4242, "freeHeap": 180000,
+                "power": {"mode": "standby", "cpuMhz": 80, "standbyInS": 0, "pwmHz": 25000},
                 "resources": [{"name": "mqtt", "host": "mqtt", "status": "connected", "lastOkAgoS": 2},
                               {"name": "syslog", "host": "syslog", "status": "sent", "lastOkAgoS": 40},
                               {"name": "ntp", "host": "de.pool.ntp.org", "status": "synced", "lastOkAgoS": 900}]}))
@@ -103,6 +109,7 @@ class H(BaseHTTPRequestHandler):
         n = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(n).decode()
         if self.path == "/api/set":
+            time.sleep(DELAY)
             q = {k: v[0] for k, v in parse_qs(body).items()}
             idx = range(4) if q.get("ch") == "all" else [int(q["ch"]) - 1]
             with lock:
@@ -131,6 +138,7 @@ class H(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8099
+    DELAY = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0
     threading.Thread(target=sim, daemon=True).start()
     print("mock device on http://localhost:%d/" % port)
     ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()

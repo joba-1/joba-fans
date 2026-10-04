@@ -1,15 +1,14 @@
 ; config.ini.template — fan-remote
-; Build-time defaults. pre_build.py copies this to config.ini on the first build
-; (and puts a random admin password in it). config.ini is gitignored.
+; Build-time defaults. pre_build.py copies this to config.ini on the first build.
+; config.ini is gitignored.
 ;
-; Everything below except admin_password can be changed per board at runtime
+; Everything below can be changed per board at runtime
 ; (web UI settings or POST /api/netconfig) and is then kept in NVS; these values
 ; are only the defaults of a fresh board. See docs/admin.md.
 
 [user_config]
-; Password for the settings pages, OTA and the setup access point of every board
-; flashed from this tree. A board's own password (set in the WiFi setup portal)
-; overrides it. Keep this file mode 600.
+; One password for the settings login, the setup access point and OTA on every board.
+; Home network, so deliberately simple (min. 8 characters: WPA2 needs that for the AP).
 admin_password = @RANDOM@
 admin_user = admin
 
@@ -23,4 +22,12 @@ ha_prefix = homeassistant        ; Home Assistant discovery prefix
 syslog_host = syslog             ; empty = no syslog
 syslog_port = 514
 ntp_host = de.pool.ntp.org
+; Standby: full power (160 MHz, WiFi awake) for idle_seconds after any user interaction
+; (page load, button, HA/MQTT command, settings, OTA), then WiFi modem sleep and a lower CPU
+; clock. power_save = 0 keeps the board at full power all the time. Never below 80 MHz:
+; WiFi needs it and the PWM timer clock is derived from it.
+power_save = 1
+idle_seconds = 60
+cpu_active_mhz = 160
+cpu_idle_mhz = 80
 timezone = CET-1CEST,M3.5.0,M10.5.0/3

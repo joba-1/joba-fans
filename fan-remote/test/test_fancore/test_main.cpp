@@ -230,8 +230,54 @@ void test_rpm_meter_wraps_and_single_edge() {
   TEST_ASSERT_TRUE(m.rpm() > 0 && m.rpm() <= 30);
 }
 
+void test_device_number_lookup() {
+  const DeviceEntry t[] = {{{0x58, 0xe6, 0xc5, 0x19, 0x38, 0x60}, 1}, {{0x24, 0xec, 0x4a, 0x02, 0x58, 0xe4}, 7}};
+  const uint8_t a[6] = {0x24, 0xec, 0x4a, 0x02, 0x58, 0xe4};
+  const uint8_t b[6] = {0x58, 0xe6, 0xc5, 0x19, 0x38, 0x60};
+  const uint8_t c[6] = {0x58, 0xe6, 0xc5, 0x19, 0x38, 0x61};   // differs in the last byte
+  TEST_ASSERT_EQUAL(7, deviceNumber(t, 2, a));
+  TEST_ASSERT_EQUAL(1, deviceNumber(t, 2, b));
+  TEST_ASSERT_EQUAL(0, deviceNumber(t, 2, c));
+  TEST_ASSERT_EQUAL(0, deviceNumber(t, 0, a));                 // empty table
+}
+
+void test_device_id_format() {
+  const uint8_t m[6] = {0x58, 0xe6, 0xc5, 0x19, 0x38, 0x60};
+  char id[24];
+  formatDeviceId(id, sizeof id, 3, m);
+  TEST_ASSERT_EQUAL_STRING("fan-3", id);
+  formatDeviceId(id, sizeof id, 12, m);
+  TEST_ASSERT_EQUAL_STRING("fan-12", id);
+  formatDeviceId(id, sizeof id, 0, m);
+  TEST_ASSERT_EQUAL_STRING("fan-new-193860", id);
+}
+
+void test_power_policy() {
+  PowerPolicy p; p.configure(60000);
+  TEST_ASSERT_FALSE(p.idle(1000, false));            // nothing seen yet: stay active
+  p.activity(1000);
+  TEST_ASSERT_FALSE(p.idle(60999, false));
+  TEST_ASSERT_TRUE(p.idle(61000, false));            // exactly the timeout later
+  TEST_ASSERT_FALSE(p.idle(61000, true));            // portal / OTA / no WiFi force full power
+  p.activity(61000);                                 // any interaction wakes it up again
+  TEST_ASSERT_FALSE(p.idle(61001, false));
+  TEST_ASSERT_EQUAL_UINT32(59000, p.idleInMs(62000));
+  TEST_ASSERT_EQUAL_UINT32(0, p.idleInMs(200000));
+}
+
+void test_power_policy_millis_wrap() {
+  PowerPolicy p; p.configure(60000);
+  p.activity(0xFFFFFF00u);
+  TEST_ASSERT_FALSE(p.idle(0xFFFFFF00u + 30000u, false));   // wrapped, only 30 s later
+  TEST_ASSERT_TRUE(p.idle(0xFFFFFF00u + 60000u, false));
+}
+
 int main() {
   UNITY_BEGIN();
+  RUN_TEST(test_device_number_lookup);
+  RUN_TEST(test_device_id_format);
+  RUN_TEST(test_power_policy);
+  RUN_TEST(test_power_policy_millis_wrap);
   RUN_TEST(test_duty_mapping);
   RUN_TEST(test_starts_from_low_duty_and_stays_below_kick);
   RUN_TEST(test_first_duty_is_gentle);

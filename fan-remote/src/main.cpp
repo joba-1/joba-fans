@@ -6,6 +6,7 @@
 #include "Fans.h"
 #include "Mqtt.h"
 #include "Net.h"
+#include "Power.h"
 #include "NetLog.h"
 #include "Settings.h"
 #include "Web.h"
@@ -38,6 +39,7 @@ void setup() {
   logf(LOG_INFO, "fan-remote %s (%s) %s", FW_VERSION, FW_GIT, deviceId());
 
   fans.begin();
+  powerBegin();
   Settings &s = settings();
   for (int i = 0; i < kFans; i++) savedSpeed[i] = s.lastSpeed[i];
   if (s.bootMode == 0) {
@@ -60,6 +62,7 @@ void loop() {
     webUp = true;
   }
   fans.logEvents();
+  powerLoop();
   netlogLoop();
   mqttLoop();
   if (webUp) webLoop();

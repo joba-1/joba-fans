@@ -3,5 +3,6 @@
 config.ini
 web/index.html.gz
 src/BuildInfo.h
+src/DeviceTable.h
 __pycache__/
 *.pyc

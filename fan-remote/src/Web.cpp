@@ -9,6 +9,7 @@
 #include "Mqtt.h"
 #include "Net.h"
 #include "NetLog.h"
+#include "Power.h"
 #include "Settings.h"
 
 extern const uint8_t pageStart[] asm("_binary_web_index_html_gz_start");
@@ -179,6 +180,11 @@ static String netstatusJson() {
   d["rssi"] = WiFi.RSSI();
   d["uptimeS"] = millis() / 1000;
   d["freeHeap"] = ESP.getFreeHeap();
+  JsonObject pw = d["power"].to<JsonObject>();
+  pw["mode"] = powerIdle() ? "standby" : "active";
+  pw["cpuMhz"] = powerCpuMhz();
+  pw["standbyInS"] = powerIdleInS();
+  pw["pwmHz"] = fans.pwmHz(0);
   JsonArray res = d["resources"].to<JsonArray>();
   resJson(res, "mqtt", settings().mqttHost, resMqtt());
   resJson(res, "syslog", settings().syslogHost, resSyslog());
@@ -241,6 +247,7 @@ static int channelParam(AsyncWebServerRequest *r, bool &ok) {
 static volatile bool pushNow = false;
 
 static void handleSet(AsyncWebServerRequest *r) {
+  powerActivity();
   if (!controlAllowed(r)) return;
   bool ok;
   int ch = channelParam(r, ok);
@@ -263,6 +270,7 @@ static void handleSet(AsyncWebServerRequest *r) {
 }
 
 static void handleNetconfig(AsyncWebServerRequest *r) {
+  powerActivity();
   if (!sameOrigin(r) || !authed(r)) return;
   Settings &s = settings();
   if (r->hasParam("defaults", true)) {
@@ -290,6 +298,7 @@ static void handleNetconfig(AsyncWebServerRequest *r) {
     if (strParam(r, "adminPass", tmp, sizeof s.adminPass)) {
       if (strlen(tmp) < 8) return err(r, 400, "admin password needs at least 8 characters");
       strcpy(s.adminPass, tmp);
+      netSetOtaPassword(s.adminPass);   // the next upload uses it without a reboot
     }
   }
   settingsSaveNet();
@@ -298,11 +307,13 @@ static void handleNetconfig(AsyncWebServerRequest *r) {
 }
 
 static void handleConfigGet(AsyncWebServerRequest *r) {
+  powerActivity();
   if (!authed(r)) return;
   json(r, 200, configJson());
 }
 
 static void handleConfigPost(AsyncWebServerRequest *r) {
+  powerActivity();
   if (!sameOrigin(r) || !authed(r)) return;
   char *body = static_cast<char *>(r->_tempObject);
   if (!body) return err(r, 400, "no body");
@@ -398,6 +409,7 @@ void webBegin() {
       "img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'");
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *r) {
+    powerActivity();
     sendEmbedded(r, "text/html", pageStart, pageEnd, true, "no-cache");
   });
   server.on("/logo.svg", HTTP_GET, [](AsyncWebServerRequest *r) {
@@ -405,6 +417,11 @@ void webBegin() {
   });
   server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *r) { r->redirect("/logo.svg"); });
 
+  // The page calls this when a finger touches it, so the radio is awake for the real command.
+  server.on("/api/wake", HTTP_GET, [](AsyncWebServerRequest *r) {
+    powerActivity();
+    r->send(204);
+  });
   server.on("/api/state", HTTP_GET, [](AsyncWebServerRequest *r) { json(r, 200, stateJson()); });
   server.on("/api/set", HTTP_POST, handleSet);
   server.on("/api/netstatus", HTTP_GET, [](AsyncWebServerRequest *r) { json(r, 200, netstatusJson()); });
@@ -435,7 +452,8 @@ void webBegin() {
     if (index + len == total) static_cast<char *>(r->_tempObject)[total] = 0;
   });
 
-  events.onConnect([](AsyncEventSourceClient *c) { c->send(stateJson().c_str(), "state", millis(), 2000); });
+  events.onConnect([](AsyncEventSourceClient *c) {
+    powerActivity(); c->send(stateJson().c_str(), "state", millis(), 2000); });
   server.addHandler(&events);
 
   server.onNotFound([](AsyncWebServerRequest *r) { r->send(404, "text/plain", "not found"); });

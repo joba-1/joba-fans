@@ -44,4 +44,5 @@ void settingsSaveSpeeds();               // lastSpeed / lastOn
 void settingsDefaults(bool netOnly);     // back to config.ini defaults (not saved)
 void settingsEraseNet();                 // forget runtime network targets
 
-const char *deviceId();                  // "fan-a1b2c3", stable, from the MAC
+const char *deviceId();                  // "fan-3": the number registered for this MAC in devices.csv
+bool deviceRegistered();                 // false: temporary id "fan-new-xxxxxx", register the board

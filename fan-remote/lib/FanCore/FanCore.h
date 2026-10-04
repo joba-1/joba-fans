@@ -84,4 +84,39 @@ class RpmMeter {
   uint16_t rpm_ = 0;
 };
 
+// ---- device identity -------------------------------------------------------------------
+// Boards are named by a running number kept in devices.csv (MAC -> number), not by
+// MAC-derived digits. An unregistered board still works under a recognisable temporary id.
+struct DeviceEntry {
+  uint8_t mac[6];
+  uint16_t n;
+};
+// Number registered for this MAC, or 0.
+int deviceNumber(const DeviceEntry *table, unsigned len, const uint8_t mac[6]);
+// "fan-3" for a registered board, "fan-new-a1b2c3" (last three MAC bytes) otherwise.
+void formatDeviceId(char *out, unsigned n, int number, const uint8_t mac[6]);
+
+// ---- idle / active policy ---------------------------------------------------------------
+// Full power for `timeoutMs` after the last user interaction, low power after that.
+class PowerPolicy {
+ public:
+  void configure(uint32_t timeoutMs) { timeoutMs_ = timeoutMs; }
+  void activity(uint32_t nowMs) { last_ = nowMs; seen_ = true; }
+  // `forceActive`: something needs the radio at full speed (setup portal, OTA, no WiFi yet).
+  bool idle(uint32_t nowMs, bool forceActive) const {
+    if (forceActive || !seen_) return false;
+    return (uint32_t)(nowMs - last_) >= timeoutMs_;
+  }
+  uint32_t idleInMs(uint32_t nowMs) const {   // 0 when already idle
+    if (!seen_) return timeoutMs_;
+    uint32_t e = nowMs - last_;
+    return e >= timeoutMs_ ? 0 : timeoutMs_ - e;
+  }
+
+ private:
+  uint32_t timeoutMs_ = 60000;
+  uint32_t last_ = 0;
+  bool seen_ = false;
+};
+
 }  // namespace fancore

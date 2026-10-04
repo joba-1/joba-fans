@@ -1,6 +1,7 @@
 #include "FanCore.h"
 
 #include <math.h>
+#include <stdio.h>
 
 namespace fancore {
 
@@ -170,6 +171,21 @@ void RpmMeter::addWindow(uint32_t edges, uint32_t firstUs, uint32_t lastUs, uint
   }
   if (rpm > 65535) rpm = 65535;
   rpm_ = (uint16_t)(rpm + 0.5);
+}
+
+int deviceNumber(const DeviceEntry *table, unsigned len, const uint8_t mac[6]) {
+  for (unsigned i = 0; i < len; i++) {
+    bool same = true;
+    for (int b = 0; b < 6; b++)
+      if (table[i].mac[b] != mac[b]) { same = false; break; }
+    if (same) return table[i].n;
+  }
+  return 0;
+}
+
+void formatDeviceId(char *out, unsigned n, int number, const uint8_t mac[6]) {
+  if (number > 0) snprintf(out, n, "fan-%d", number);
+  else snprintf(out, n, "fan-new-%02x%02x%02x", mac[3], mac[4], mac[5]);
 }
 
 }  // namespace fancore

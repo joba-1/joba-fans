@@ -10,7 +10,8 @@ One board drives up to four 4-pin PC fans. Several boards run side by side.
    fan and for all fans at once. Responsive, phone first.
 3. **Safe and quiet switch-on**, also at low speeds (see "Fan control").
 4. MQTT control and state, with Home Assistant MQTT discovery.
-5. Any number of boards without per-board builds: one image, identity from the MAC.
+5. Any number of boards without per-board builds: one image, identity from `devices.csv` (MAC → number).
+6. Low power in standby: full power for a minute after any interaction, then WiFi modem sleep and a lower CPU clock.
 
 Non-goals: temperature control loops (that lives in Home Assistant / the heat-pump
 tooling and talks to the fans over MQTT), cloud access, BLE.
@@ -71,7 +72,8 @@ Verified against `fan-controller.kicad_pcb`, not just the net plan:
 | Speed 1…100 maps onto the *usable* duty range `[min, max]` per fan | "1 %" is the quietest speed that really runs; HA's percentage slider has no dead zone below the stall point. `0` is off. |
 | Presets stored as speeds, edited in the UI | Fans differ; "Low" should be what the user finds quiet, not a fixed number. |
 | Channel numbers 1…4 in topics and the UI | Matches the silkscreen (FAN1…FAN4). |
-| Device id = `fan-` + last 3 MAC bytes, never changes | Stable MQTT topics and HA unique ids; the friendly name is separate and renameable. |
+| Device id = `fan-N`, N from `devices.csv` (MAC → number), never reused | Readable, stable MQTT topics and HA unique ids instead of MAC digits; the friendly name is separate and renameable. An unregistered board runs as `fan-new-xxxxxx` so it is still unique and recognisable. |
+| One fixed admin password, `<admin password>`, for settings, AP and OTA | Home network: a per-board secret to look up is more trouble than protection. Still HTTP Basic with a constant-time compare and a lockout; changeable per board via `/api/netconfig`. |
 | Control endpoints open on the LAN, settings behind Basic auth | The remote must work from any phone without a login dance. `protectControl` turns the login on for control as well. Deviation from "UI needs auth" is limited to the LAN-only case. |
 
 ## Fan control
@@ -105,6 +107,30 @@ searches instead:
 
 All speed changes are slew-limited (`rampUpPctS` 10 %/s, `rampDownPctS` 20 %/s):
 no sudden pitch changes in a living room. Turning off ramps down, then cuts the PWM.
+
+### Web feedback
+
+Input is acknowledged at once but never guessed: the control that was used gets a
+"pending" marker (pulsing chip, spinner on the power button, dimmed number with a dot on
+the slider). Speed, badge, RPM and the lit preset chip change only when the controller
+reports them; the marker clears when the reported speed matches the request, or after 3 s
+with a hint. The slider sends its first value immediately, then at most every 120 ms.
+
+### Standby power saving
+
+`power_save = 1` (default). Any user interaction (page load, command, settings, HA/MQTT
+command, OTA, the page's `/api/wake` on touch) means **active**: CPU 160 MHz, WiFi awake.
+`idle_seconds` (60) after the last one the board goes to **standby**: WiFi modem sleep,
+CPU 80 MHz. It stays active while the setup portal is open or WiFi is down. Measured on
+the bench board: active answers in 1…5 ms; in standby pings average ≈ 115 ms, and the
+page's wake request (sent when a finger touches it) absorbs that, so the command that
+follows takes ≈ 13 ms.
+
+The floor is 80 MHz: WiFi needs it, and the LEDC PWM timer runs from the 80 MHz APB clock,
+which CPU clocks ≥ 80 MHz leave alone. Checked on the C6 with a fan running: the PWM stays
+at 25 000 Hz and the RPM does not change across the switch (`/api/netstatus` → `power.pwmHz`).
+Not checked on a C3 yet. Fan control is not interaction: a running fan alone does not keep
+the board awake. `power_save = 0` keeps full power always.
 
 ### RPM
 
@@ -153,7 +179,8 @@ Base `fans/<id>` (prefix configurable at build time). `<n>` is 1…4.
 | `fans/<id>/info` | pub, retained | JSON: version, ip, rssi, uptime |
 
 Home Assistant discovery (`homeassistant/…`, retained, re-sent on every connect):
-one `fan` per enabled channel (on/off, percentage 1…100, preset modes), a `sensor`
+one `fan` per enabled channel (on/off, percentage 1…100, preset modes), a `number` "speed"
+slider (0…100 %, step 1, same topics as the fan's percentage), a `sensor`
 (rpm) and a `binary_sensor` (problem) per channel, diagnostic sensors for RSSI and
 uptime. All entities share one HA *device* per board.
 
@@ -166,7 +193,7 @@ Credentials for the broker are stored in NVS, never in the repo.
   briefly, see above; acceptable against a hung controller).
 * All inputs validated (ranges, enum values, string lengths); no `String` building
   from request data into responses without JSON escaping (ArduinoJson).
-* Settings, OTA and reboot need the admin password (Basic auth, constant-time
+* Settings, OTA and reboot need the admin password (`<admin password>` by default) (Basic auth, constant-time
   compare). OTA is password protected. No credentials in the repository:
   `config.ini` is gitignored, the template carries placeholders.
 * MQTT commands can change speeds only — never network targets (CodingStandards §2).

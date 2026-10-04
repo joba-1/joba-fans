@@ -32,6 +32,7 @@ class Fans {
 
   FanStatus status(int ch);
   uint32_t revision();                         // bumps on speed / state / fault changes
+  uint32_t pwmHz(int ch);                      // frequency the LEDC timer really runs at
   void logEvents();                            // call from loop(): reports stalls / recoveries
 
  private:

@@ -7,6 +7,7 @@
 #include "Fans.h"
 #include "Net.h"
 #include "NetLog.h"
+#include "Power.h"
 #include "Settings.h"
 
 static WiFiClient net;
@@ -120,12 +121,14 @@ static void discovery() {
   for (int i = 0; i < kFans; i++) {
     const int n = i + 1;
     const ChannelCfg &c = settings().ch[i];
-    char objFan[40], objRpm[40], objFault[40];
+    char objFan[40], objNum[40], objRpm[40], objFault[40];
+    topic(objNum, sizeof objNum, "%s_%d_speed", id, n);
     topic(objFan, sizeof objFan, "%s_%d", id, n);
     topic(objRpm, sizeof objRpm, "%s_%d_rpm", id, n);
     topic(objFault, sizeof objFault, "%s_%d_fault", id, n);
     if (!c.enabled) {
       send(ha, "fan", objFan, nullptr);
+      send(ha, "number", objNum, nullptr);
       send(ha, "sensor", objRpm, nullptr);
       send(ha, "binary_sensor", objFault, nullptr);
       continue;
@@ -155,6 +158,27 @@ static void discovery() {
       for (int k = 0; k < kPresets; k++) modes.add(kPresetIds[k]);
       addDevice(d);
       send(ha, "fan", objFan, &d);
+    }
+    {
+      // A plain 0..100 % slider on the device page and in every default dashboard (the fan
+      // entity's own speed control hides behind its more-info dialog).
+      JsonDocument d;
+      snprintf(uid, sizeof uid, "%s %s", c.name, "speed");
+      d["name"] = uid;
+      d["unique_id"] = objNum;
+      d["availability_topic"] = status;
+      topic(tp, sizeof tp, "%s/%d/speed/set", base, n);
+      d["command_topic"] = tp;
+      topic(tp, sizeof tp, "%s/%d/speed/state", base, n);
+      d["state_topic"] = tp;
+      d["min"] = 0;
+      d["max"] = 100;
+      d["step"] = 1;
+      d["mode"] = "slider";
+      d["unit_of_measurement"] = "%";
+      d["icon"] = "mdi:fan-speed-3";
+      addDevice(d);
+      send(ha, "number", objNum, &d);
     }
     if (c.tach) {
       JsonDocument d;
@@ -263,6 +287,7 @@ static void onMessage(char *tpc, uint8_t *payload, unsigned len) {
   } else {
     return;
   }
+  powerActivity();
   seenRev = 0;  // publish the new state right away
 }
 

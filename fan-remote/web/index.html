@@ -110,6 +110,19 @@ input[type=range]::-moz-range-thumb {
 }
 .chip small { display: block; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
 .chip:hover { border-color: var(--accent); }
+.chip, .pwr, .icon-btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.chip:active { transform: scale(.96); background: var(--accent-soft); }
+/* "sent, not confirmed yet": shown at once on input, cleared when the device reports the new state */
+.chip.pending { border-color: var(--accent); background: var(--accent-soft); animation: pulse .9s ease-in-out infinite; }
+.chip[aria-pressed="true"].pending { color: var(--accent-ink); background: var(--accent); }
+.pwr { position: relative; }
+.pwr.pending::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid transparent;
+  border-top-color: var(--accent); animation: spin .7s linear infinite; }
+.slider output.pending { opacity: .6; }
+.slider output.pending::before { content: "●"; font-size: .6em; margin-right: 5px; vertical-align: .15em; animation: blink .8s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 28%, transparent); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes blink { 50% { opacity: .15; } }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .chip[aria-pressed="true"] small { color: inherit; opacity: .85; }
 .warn { margin: 12px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: .85rem; }
@@ -163,7 +176,7 @@ table.st td:first-child { color: var(--muted); white-space: nowrap; }
   .dlg-b { max-height: calc(100vh - 62px); }
   .row { grid-template-columns: 1fr; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -198,7 +211,7 @@ const T = {
     all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
     quiet: "Quiet", low: "Low", medium: "Medium", high: "High", max: "Max", mixed: "mixed",
     online: "Online", offline: "No connection", mqttOn: "MQTT", mqttOff: "MQTT off",
-    stalled: "Fan blocked or not connected. Retrying with backoff.", noTach: "no tach",
+    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", noTach: "no tach",
     power: "Power", speed: "Speed", settings: "Settings", close: "Close", save: "Save", saved: "Saved",
     device: "Device", devName: "Name", fansH: "Fans", presetsH: "Preset speeds", behaviour: "Behaviour",
     network: "Network", status: "Status",
@@ -207,7 +220,7 @@ const T = {
     rampUp: "Speed up, %/s", rampDown: "Slow down, %/s", boot: "After power-up", bootLast: "Restore last speeds",
     bootOff: "All off", protect: "Require login for control too",
     mqttHost: "MQTT broker", mqttPort: "Port", mqttUser: "MQTT user", mqttPass: "MQTT password", mqttPassKeep: "(unchanged)",
-    syslog: "Syslog host", ntp: "NTP host", newPass: "New admin password", netHint: "Network changes apply after the next reboot. Empty fields stay unchanged.",
+    syslog: "Syslog host", ntp: "NTP host", netHint: "Network changes apply after the next reboot. Empty fields stay unchanged.",
     saveNet: "Save network", reboot: "Reboot", rebootAsk: "Reboot the controller? The fans keep their speeds, but briefly float during the restart.",
     wifiReset: "Forget WiFi", wifiAsk: "Forget the WiFi credentials and open the setup access point?",
     loginNeeded: "Login required", err: "Request failed", fw: "Firmware", uptime: "Uptime", ip: "IP", ssid: "WiFi", heap: "Free heap",
@@ -217,7 +230,7 @@ const T = {
     all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
     quiet: "Leise", low: "Niedrig", medium: "Mittel", high: "Hoch", max: "Max", mixed: "gemischt",
     online: "Verbunden", offline: "Keine Verbindung", mqttOn: "MQTT", mqttOff: "MQTT aus",
-    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", noTach: "kein Tacho",
+    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", noTach: "kein Tacho",
     power: "Ein/Aus", speed: "Drehzahl", settings: "Einstellungen", close: "Schließen", save: "Speichern", saved: "Gespeichert",
     device: "Gerät", devName: "Name", fansH: "Lüfter", presetsH: "Voreinstellungen", behaviour: "Verhalten",
     network: "Netzwerk", status: "Status",
@@ -226,7 +239,7 @@ const T = {
     rampUp: "Hochfahren, %/s", rampDown: "Runterfahren, %/s", boot: "Nach dem Einschalten", bootLast: "Letzte Stufen wiederherstellen",
     bootOff: "Alles aus", protect: "Auch die Steuerung nur mit Login",
     mqttHost: "MQTT-Broker", mqttPort: "Port", mqttUser: "MQTT-Benutzer", mqttPass: "MQTT-Passwort", mqttPassKeep: "(unverändert)",
-    syslog: "Syslog-Host", ntp: "NTP-Host", newPass: "Neues Admin-Passwort", netHint: "Netzwerkänderungen gelten nach dem nächsten Neustart. Leere Felder bleiben unverändert.",
+    syslog: "Syslog-Host", ntp: "NTP-Host", netHint: "Netzwerkänderungen gelten nach dem nächsten Neustart. Leere Felder bleiben unverändert.",
     saveNet: "Netzwerk speichern", reboot: "Neustart", rebootAsk: "Controller neu starten? Die Lüfter behalten ihre Stufen, laufen während des Neustarts aber kurz unkontrolliert.",
     wifiReset: "WLAN vergessen", wifiAsk: "WLAN-Zugangsdaten vergessen und den Einrichtungs-Zugangspunkt öffnen?",
     loginNeeded: "Anmeldung erforderlich", err: "Anfrage fehlgeschlagen", fw: "Firmware", uptime: "Laufzeit", ip: "IP", ssid: "WLAN", heap: "Freier Heap",
@@ -283,24 +296,74 @@ const post = (path, data) => api(path, {
   body: new URLSearchParams(data).toString()
 });
 
-let sendTimers = new Map(), pending = new Map();
-function sendSpeed(ch, speed, now) {
-  // While dragging, send at most every 120 ms; the last value always goes out.
-  pending.set(ch, speed);
-  const go = () => {
-    sendTimers.delete(ch);
-    const v = pending.get(ch); pending.delete(ch);
-    if (v == null) return;
-    post("/api/set", { ch: ch || "all", speed: v }).then(applyState).catch(e => {
-      if (e.status === 401) toast(t("loginNeeded")); else toast(t("err") + ": " + e.message);
-    });
-  };
-  if (now) { clearTimeout(sendTimers.get(ch)); go(); return; }
-  if (!sendTimers.has(ch)) sendTimers.set(ch, setTimeout(go, 120));
+/* Input is acknowledged at once ("pending" markers on the control that was used), but the
+   page never shows a guessed state: speed, badge, RPM and the lit preset chip change only
+   when the controller reports them. The marker clears when the reported speed matches the
+   request, or after 3 s with a hint. */
+const SEND_GAP = 120;
+const gate = new Map();      // ch -> {timer, queued}: leading send, then at most one per 120 ms
+
+function markPending(c, want, ui) {
+  if (!c) return;
+  clearPending(c, true);
+  c.pend = { want, ui, since: performance.now() };
+  if (ui.kind === "chip" && c.chipEls[ui.i]) c.chipEls[ui.i].classList.add("pending");
+  if (ui.kind === "pwr") c.pwr.classList.add("pending");
+  if (ui.kind === "slider") c.out.classList.add("pending");
+  c.el.setAttribute("aria-busy", "true");
 }
-function command(ch, data) {
-  post("/api/set", { ch: ch || "all", ...data }).then(applyState)
-    .catch(e => toast(e.status === 401 ? t("loginNeeded") : t("err") + ": " + e.message));
+function clearPending(c, keepDrag) {
+  if (!c.pend) return;
+  c.chipEls.forEach(b => b.classList.remove("pending"));
+  c.pwr.classList.remove("pending"); c.out.classList.remove("pending");
+  c.el.removeAttribute("aria-busy");
+  c.pend = null;
+  if (!keepDrag) drag.delete(c.n);
+}
+function failed(c, e) {
+  if (c) clearPending(c);
+  toast(e.status === 401 ? t("loginNeeded") : t("err") + ": " + e.message);
+  api("/api/state").then(applyState).catch(() => {});
+}
+// Has the controller reported what was asked for? chs = state entries this card covers.
+function confirmed(w, chs) {
+  return chs.every(ch => w.speed != null ? ch.speed === w.speed : w.on ? ch.speed > 0 : ch.speed === 0);
+}
+function settle(c, chs) {
+  if (!c || !c.pend) return;
+  if (confirmed(c.pend.want, chs)) clearPending(c);
+  else if (performance.now() - c.pend.since > 3000) { clearPending(c); toast(t("noAck")); }
+}
+
+function postSpeed(n, v) {
+  const c = cards.get(n);
+  c.sent = v;
+  markPending(c, { speed: v }, { kind: "slider" });
+  post("/api/set", { ch: n || "all", speed: v }).then(applyState).catch(e => failed(c, e));
+}
+function sendSpeed(n, v, final) {
+  const c = cards.get(n), g = gate.get(n);
+  if (final) {
+    if (g) { clearTimeout(g.timer); gate.delete(n); }
+    if (c.sent !== v || (g && g.queued != null)) postSpeed(n, v);   // change + pointerup both land here
+    return;
+  }
+  if (!g) {
+    postSpeed(n, v);
+    gate.set(n, { timer: setTimeout(() => flushSpeed(n), SEND_GAP), queued: null });
+  } else g.queued = v;
+}
+function flushSpeed(n) {
+  const g = gate.get(n); if (!g) return;
+  if (g.queued == null) { gate.delete(n); return; }
+  const v = g.queued; g.queued = null;
+  postSpeed(n, v);
+  g.timer = setTimeout(() => flushSpeed(n), SEND_GAP);
+}
+function command(n, data, want, ui) {
+  const c = cards.get(n);
+  markPending(c, want, ui);
+  post("/api/set", { ch: n || "all", ...data }).then(applyState).catch(e => failed(c, e));
 }
 
 /* ---------- cards ---------- */
@@ -311,8 +374,8 @@ function makeCard(n) {
   const name = h("h2"), badge = h("span", { class: "badge" });
   const rpmV = h("b"), rpmU = h("small", {}, t("rpm"));
   const pwr = h("button", { class: "pwr", "aria-label": t("power"), type: "button", onclick: () => {
-      const c = cards.get(n);
-      command(n, { power: c.speed > 0 ? "off" : "on" });
+      const c = cards.get(n), off = c.speed > 0;
+      command(n, { power: off ? "off" : "on" }, off ? { off: true } : { on: true }, { kind: "pwr" });
     } });
   pwr.innerHTML = PWR_SVG;
   const fan = h("div"); fan.innerHTML = FAN_SVG;
@@ -328,18 +391,20 @@ function makeCard(n) {
       isAll ? null : h("div", { class: "rpm" }, rpmV, rpmU), pwr),
     h("div", { class: "slider" }, range, out), isAll ? null : meta, chips, warn);
 
+  // The handle and its number are the user's own input, not device state; the pending
+  // marker on the number says the controller has not confirmed it yet.
   range.addEventListener("input", () => {
     drag.set(n, true);
     out.textContent = range.value + " %";
     range.style.setProperty("--p", range.value + "%");
     sendSpeed(n, +range.value, false);
   });
-  const release = () => { if (drag.has(n)) { sendSpeed(n, +range.value, true); setTimeout(() => drag.delete(n), 900); } };
+  const release = () => { if (drag.has(n)) sendSpeed(n, +range.value, true); };
   range.addEventListener("change", release);
   range.addEventListener("pointerup", release);
-  range.addEventListener("keyup", () => { sendSpeed(n, +range.value, true); });
+  range.addEventListener("keyup", release);
 
-  const c = { el, name, badge, rpmV, range, out, svg, chips, warn, meta, speed: 0, w: 0, wT: 0, ang: 0,
+  const c = { n, pwr, sent: null, pend: null, el, name, badge, rpmV, range, out, svg, chips, warn, meta, speed: 0, w: 0, wT: 0, ang: 0,
               chipEls: [], presetKey: "" };
   cards.set(n, c);
   return c;
@@ -350,9 +415,9 @@ function updateChips(c, n, presets, speedForActive) {
   if (c.presetKey !== key) {
     c.presetKey = key;
     c.chips.replaceChildren();
-    c.chipEls = presets.map(p => {
+    c.chipEls = presets.map((p, i) => {
       const b = h("button", { class: "chip", type: "button", "aria-pressed": "false",
-                              onclick: () => command(n, { preset: p.id }) },
+                              onclick: () => command(n, { preset: p.id }, { speed: p.speed }, { kind: "chip", i }) },
                   t(p.id), h("small", {}, p.speed + " %"));
       c.chips.append(b);
       return b;
@@ -423,6 +488,8 @@ function applyState(s) {
     updateChips(all, 0, s.presets, same ? sp[0] : -1);
     all.wT = Math.max(...active.map(c => cards.get(c.n).wT));
   }
+  for (const ch of active) settle(cards.get(ch.n), [ch]);
+  settle(all, active);
 }
 
 /* smooth fan rotation: the angular speed eases towards the target, so spin-up and
@@ -511,12 +578,10 @@ function buildSettings() {
   const mu = h("input", { type: "text", maxlength: 31, value: n.mqttUser, autocomplete: "off" });
   const mw = h("input", { type: "password", maxlength: 63, placeholder: n.mqttPassSet ? t("mqttPassKeep") : "", autocomplete: "new-password" });
   const sh = h("input", { type: "text", maxlength: 63, value: n.syslogHost }), nh = h("input", { type: "text", maxlength: 63, value: n.ntpHost });
-  const ap = h("input", { type: "password", maxlength: 47, autocomplete: "new-password" });
   const netSave = h("button", { class: "btn", type: "button", onclick: async () => {
     const d = { mqttHost: mh.value.trim(), mqttPort: mp.value, mqttUser: mu.value, syslogHost: sh.value.trim(), ntpHost: nh.value.trim(), name: name.value.trim() };
     if (mw.value) d.mqttPass = mw.value;
-    if (ap.value) d.adminPass = ap.value;
-    try { await post("/api/netconfig", d); toast(t("saved")); mw.value = ""; ap.value = ""; }
+    try { await post("/api/netconfig", d); toast(t("saved")); mw.value = ""; }
     catch (e) { toast(t("err") + ": " + e.message); }
   } }, t("saveNet"));
   const rb = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("rebootAsk"))) post("/api/reboot", {}).then(() => { dlg.close(); toast(t("reboot") + "…"); }).catch(() => {}); } }, t("reboot"));
@@ -525,7 +590,6 @@ function buildSettings() {
   B.append(h("fieldset", {}, h("legend", {}, t("network")),
     h("div", { class: "row" }, fld(t("mqttHost"), mh), fld(t("mqttPort"), mp), fld(t("mqttUser"), mu), fld(t("mqttPass"), mw),
       fld(t("syslog"), sh), fld(t("ntp"), nh)),
-    h("div", { class: "row one" }, fld(t("newPass"), ap)),
     h("p", { class: "hint" }, t("netHint")),
     h("div", { class: "btns" }, netSave, rb, wr)),
     h("fieldset", {}, h("legend", {}, t("status")), stBox));
@@ -533,10 +597,20 @@ function buildSettings() {
     const ago = s => s == null ? t("never") : (s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : Math.round(s / 3600) + " h") + " " + t("ago");
     const rows = [[t("fw"), "fan-remote " + ns.version + " (" + ns.git + ")"], [t("ip"), ns.ip + " · " + ns.hostname], [t("ssid"), ns.ssid + " · " + ns.rssi + " dBm"],
       [t("uptime"), Math.floor(ns.uptimeS / 3600) + " h " + Math.floor(ns.uptimeS % 3600 / 60) + " min"], [t("heap"), (ns.freeHeap / 1024).toFixed(0) + " kB"],
+      [t("pwrMode"), t(ns.power.mode === "standby" ? "modeStandby" : "modeActive") + " · " + ns.power.cpuMhz + " MHz · PWM " + ns.power.pwmHz + " Hz"],
       ...ns.resources.map(r => [r.name, (r.host || "–") + " · " + r.status + " · " + ago(r.lastOkAgoS)])];
     stBox.append(h("table", { class: "st" }, rows.map(r => h("tr", {}, h("td", {}, r[0]), h("td", {}, r[1])))));
   }).catch(() => {});
 }
+
+/* The controller idles with a lower clock and WiFi modem sleep; the first packet after a
+   pause is slow. A touch tells it to wake up before the real command follows. */
+let lastWake = -1e9;
+function wake() {
+  const n = performance.now();
+  if (n - lastWake > 20000) { lastWake = n; fetch("/api/wake").catch(() => {}); }
+}
+for (const ev of ["pointerdown", "keydown", "touchstart"]) addEventListener(ev, wake, { passive: true });
 
 /* ---------- go ---------- */
 api("/api/state").then(applyState).catch(markOffline);

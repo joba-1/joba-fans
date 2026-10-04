@@ -2,7 +2,7 @@
 
 ## The web page
 
-Open `http://fan-xxxxxx.local/` (the id is on the board's serial output and in the
+Open `http://fan-N.local/` (N is the number from `devices.csv`; also on the serial output and in the
 router's device list) or the board's IP. Works on phones and desktops, light and
 dark, German or English following the browser language.
 
@@ -18,6 +18,13 @@ Every enabled fan has a card:
 | Chips | Preset speeds: Quiet, Low, Medium, High, Max. The matching one is lit |
 
 The **All fans** card at the top sets every enabled fan at once.
+
+### Standby
+
+After a minute without any interaction the controller saves power (WiFi modem sleep, lower
+CPU clock); the fans are not affected. The first touch after a pause wakes it: the page
+shows the usual pending marker for a fraction of a second longer. Settings → Status shows
+the current mode.
 
 ### Soft start
 
@@ -38,12 +45,13 @@ Asks for the admin login (user `admin`). Everything is stored on the board.
 * **Preset speeds**: the five chips, in speed units (not duty).
 * **Behaviour**: how fast the duty may rise/fall, and what happens after power-up
   (restore last speeds, or all off).
-* **Network**: broker, syslog, NTP, admin password. Applies after a reboot.
+* **Network**: broker, syslog, NTP. Applies after a reboot. The login is user `admin`, password `<admin password>`.
 
 ## Home Assistant
 
 With MQTT discovery enabled (default) every board appears as a device with one *fan*
-per enabled channel (on/off, percentage, preset modes), an *RPM* sensor, a *stalled*
+per enabled channel (on/off, percentage, preset modes), a **Speed** slider (0–100 %, 1 % steps,
+a plain number entity that shows up on the device page and in default dashboards), an *RPM* sensor, a *stalled*
 problem sensor, plus WiFi signal and uptime. Entities appear within seconds of the
 board connecting to the broker. A fan entity at `0 %` is off; HA's percentage is the
 same 1…100 speed as the slider.
@@ -53,17 +61,17 @@ same 1…100 speed as the slider.
 Topics are `fans/<id>/…`; the full list is in [spec.md](spec.md). Examples:
 
 ```sh
-mosquitto_pub -h mqtt -t fans/fan-a1b2c3/1/speed/set  -m 35        # fan 1 to speed 35
-mosquitto_pub -h mqtt -t fans/fan-a1b2c3/all/preset/set -m quiet   # everything quiet
-mosquitto_pub -h mqtt -t fans/fan-a1b2c3/2/power/set  -m OFF
-mosquitto_sub -h mqtt -t 'fans/fan-a1b2c3/#' -v
+mosquitto_pub -h mqtt -t fans/fan-1/1/speed/set  -m 35        # fan 1 to speed 35
+mosquitto_pub -h mqtt -t fans/fan-1/all/preset/set -m quiet   # everything quiet
+mosquitto_pub -h mqtt -t fans/fan-1/2/power/set  -m OFF
+mosquitto_sub -h mqtt -t 'fans/fan-1/#' -v
 ```
 
 ## HTTP
 
 ```sh
-curl http://fan-a1b2c3.local/api/state
-curl -d ch=1 -d speed=40 http://fan-a1b2c3.local/api/set
-curl -d ch=all -d preset=quiet http://fan-a1b2c3.local/api/set
-curl http://fan-a1b2c3.local/api/netstatus
+curl http://fan-1.local/api/state
+curl -d ch=1 -d speed=40 http://fan-1.local/api/set
+curl -d ch=all -d preset=quiet http://fan-1.local/api/set
+curl http://fan-1.local/api/netstatus
 ```

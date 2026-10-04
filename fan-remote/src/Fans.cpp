@@ -199,6 +199,8 @@ FanStatus Fans::status(int ch) {
   return s;
 }
 
+uint32_t Fans::pwmHz(int ch) { return ledcReadFreq(kPwmPin[ch]); }
+
 void Fans::logEvents() {
   for (int i = 0; i < kFans; i++) {
     uint8_t e = event[i];

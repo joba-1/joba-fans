@@ -3,6 +3,8 @@
 #include <Preferences.h>
 #include <esp_mac.h>
 
+#include "DeviceTable.h"   // generated from devices.csv
+
 const char *const kPresetIds[kPresets] = {"quiet", "low", "medium", "high", "max"};
 
 static Settings g;
@@ -10,12 +12,25 @@ static const char *NS = "fan";
 
 Settings &settings() { return g; }
 
+static int deviceNo() {
+  static int n = -1;
+  if (n < 0) {
+    uint8_t mac[6];
+    esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    n = fancore::deviceNumber(kDeviceTable, kDeviceTableLen, mac);
+  }
+  return n;
+}
+
+bool deviceRegistered() { return deviceNo() > 0; }
+
+// "fan-3" from devices.csv; "fan-new-xxxxxx" for a board that is not registered yet.
 const char *deviceId() {
-  static char id[16];
+  static char id[24];
   if (!id[0]) {
     uint8_t mac[6];
     esp_read_mac(mac, ESP_MAC_WIFI_STA);
-    snprintf(id, sizeof id, "fan-%02x%02x%02x", mac[3], mac[4], mac[5]);
+    fancore::formatDeviceId(id, sizeof id, deviceNo(), mac);
   }
   return id;
 }
@@ -25,34 +40,37 @@ static void cpy(char *dst, size_t n, const String &s) {
   dst[n - 1] = 0;
 }
 
-void settingsDefaults(bool netOnly) {
-  cpy(g.mqttHost, sizeof g.mqttHost, CFG_MQTT_HOST);
-  g.mqttPort = CFG_MQTT_PORT;
-  cpy(g.mqttUser, sizeof g.mqttUser, CFG_MQTT_USER);
-  cpy(g.mqttPass, sizeof g.mqttPass, CFG_MQTT_PASSWORD);
-  cpy(g.syslogHost, sizeof g.syslogHost, CFG_SYSLOG_HOST);
-  cpy(g.ntpHost, sizeof g.ntpHost, CFG_NTP_HOST);
+static void fillDefaults(Settings &s, bool netOnly) {
+  cpy(s.mqttHost, sizeof s.mqttHost, CFG_MQTT_HOST);
+  s.mqttPort = CFG_MQTT_PORT;
+  cpy(s.mqttUser, sizeof s.mqttUser, CFG_MQTT_USER);
+  cpy(s.mqttPass, sizeof s.mqttPass, CFG_MQTT_PASSWORD);
+  cpy(s.syslogHost, sizeof s.syslogHost, CFG_SYSLOG_HOST);
+  cpy(s.ntpHost, sizeof s.ntpHost, CFG_NTP_HOST);
   if (netOnly) return;
 
-  cpy(g.name, sizeof g.name, String("Fans ") + (deviceId() + 4));
-  cpy(g.adminPass, sizeof g.adminPass, CFG_ADMIN_PASSWORD);
+  if (deviceRegistered()) snprintf(s.name, sizeof s.name, "Fans %d", deviceNo());
+  else cpy(s.name, sizeof s.name, "Fans (new)");
+  cpy(s.adminPass, sizeof s.adminPass, CFG_ADMIN_PASSWORD);
   for (int i = 0; i < kFans; i++) {
-    snprintf(g.ch[i].name, sizeof g.ch[i].name, "Fan %d", i + 1);
-    g.ch[i].enabled = true;
-    g.ch[i].minPct = 20;
-    g.ch[i].maxPct = 100;
-    g.ch[i].tach = true;
-    g.ch[i].ppr = 2;
-    g.lastSpeed[i] = 0;
-    g.lastOn[i] = 40;
+    snprintf(s.ch[i].name, sizeof s.ch[i].name, "Fan %d", i + 1);
+    s.ch[i].enabled = true;
+    s.ch[i].minPct = 20;
+    s.ch[i].maxPct = 100;
+    s.ch[i].tach = true;
+    s.ch[i].ppr = 2;
+    s.lastSpeed[i] = 0;
+    s.lastOn[i] = 40;
   }
   const uint8_t p[kPresets] = {10, 30, 50, 75, 100};
-  memcpy(g.presets, p, sizeof p);
-  g.rampUp = 10;
-  g.rampDown = 20;
-  g.bootMode = 0;
-  g.protectControl = false;
+  memcpy(s.presets, p, sizeof p);
+  s.rampUp = 10;
+  s.rampDown = 20;
+  s.bootMode = 0;
+  s.protectControl = false;
 }
+
+void settingsDefaults(bool netOnly) { fillDefaults(g, netOnly); }
 
 void settingsLoad() {
   settingsDefaults(false);
@@ -114,17 +132,27 @@ void settingsLoad() {
     if (g.presets[i] > 100) g.presets[i] = 100;
 }
 
+// Only values that differ from the config.ini defaults are stored. A value left at its
+// default stays unpinned, so a changed config.ini (a moved alias, a new password) reaches
+// every board that never overrode it.
 void settingsSaveNet() {
+  Settings d;
+  fillDefaults(d, false);
   Preferences p;
   if (!p.begin(NS, false)) return;
-  p.putString("name", g.name);
-  p.putString("adminPass", g.adminPass);
-  p.putString("mqttHost", g.mqttHost);
-  p.putUShort("mqttPort", g.mqttPort);
-  p.putString("mqttUser", g.mqttUser);
-  p.putString("mqttPass", g.mqttPass);
-  p.putString("syslogHost", g.syslogHost);
-  p.putString("ntpHost", g.ntpHost);
+  auto keep = [&](const char *key, const char *val, const char *def) {
+    if (strcmp(val, def) == 0) p.remove(key);
+    else p.putString(key, val);
+  };
+  keep("name", g.name, d.name);
+  keep("adminPass", g.adminPass, d.adminPass);
+  keep("mqttHost", g.mqttHost, d.mqttHost);
+  keep("mqttUser", g.mqttUser, d.mqttUser);
+  keep("mqttPass", g.mqttPass, d.mqttPass);
+  keep("syslogHost", g.syslogHost, d.syslogHost);
+  keep("ntpHost", g.ntpHost, d.ntpHost);
+  if (g.mqttPort == d.mqttPort) p.remove("mqttPort");
+  else p.putUShort("mqttPort", g.mqttPort);
   p.end();
 }
 

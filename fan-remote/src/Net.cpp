@@ -7,6 +7,7 @@
 #include <esp_sntp.h>
 
 #include "NetLog.h"
+#include "Power.h"
 #include "Settings.h"
 
 static WiFiManager wm;
@@ -15,7 +16,7 @@ static uint32_t lastSupervise = 0;
 static char apName[32];
 
 // Custom portal fields; their values are read in the save callback.
-static WiFiManagerParameter *pName, *pMqtt, *pPass;
+static WiFiManagerParameter *pName, *pMqtt;
 
 static void onSaveParams() {
   Settings &s = settings();
@@ -28,9 +29,6 @@ static void onSaveParams() {
   bool any = false;
   any |= take(s.name, sizeof s.name, pName->getValue());
   any |= take(s.mqttHost, sizeof s.mqttHost, pMqtt->getValue());
-  // Only an acceptable password replaces the current one; an empty field keeps it.
-  const char *pw = pPass->getValue();
-  if (pw && strlen(pw) >= 8) any |= take(s.adminPass, sizeof s.adminPass, pw);
   if (any) settingsSaveNet();
   logf(LOG_INFO, "setup portal: settings saved");
 }
@@ -48,7 +46,8 @@ static void startServices() {
 
   ArduinoOTA.setHostname(deviceId());
   ArduinoOTA.setPassword(settings().adminPass);
-  ArduinoOTA.onStart([]() { logf(LOG_INFO, "OTA start"); });
+  ArduinoOTA.onStart([]() { powerActivity(); logf(LOG_INFO, "OTA start"); });
+  ArduinoOTA.onProgress([](unsigned, unsigned) { powerActivity(); });
   ArduinoOTA.onEnd([]() { logf(LOG_INFO, "OTA done"); });
   ArduinoOTA.begin();
   logf(LOG_INFO, "online: %s ip %s rssi %d", deviceId(), WiFi.localIP().toString().c_str(),
@@ -60,18 +59,15 @@ void netBegin() {
   WiFi.mode(WIFI_STA);
   WiFi.setHostname(deviceId());
   WiFi.setAutoReconnect(true);
+  WiFi.setSleep(false);   // Power.cpp switches modem sleep on while nobody uses the remote
 
-  // Portal fields: friendly name, broker, admin password (also the AP and OTA password).
+  // Portal fields: friendly name and broker. The password is the fixed admin password.
   static WiFiManagerParameter name("name", "Device name", settings().name, 31);
   static WiFiManagerParameter mqtt("mqtt", "MQTT broker (host or alias)", settings().mqttHost, 63);
-  static WiFiManagerParameter pass("pass", "New admin password (min 8, empty = keep)", "", 47,
-                                   "type=\"password\" autocomplete=\"new-password\"");
   pName = &name;
   pMqtt = &mqtt;
-  pPass = &pass;
   wm.addParameter(&name);
   wm.addParameter(&mqtt);
-  wm.addParameter(&pass);
   wm.setSaveParamsCallback(onSaveParams);
   wm.setHostname(deviceId());
   wm.setTitle("fan-remote");
@@ -101,6 +97,7 @@ void netLoop() {
 
 bool netConnected() { return WiFi.status() == WL_CONNECTED; }
 bool netPortalActive() { return wm.getConfigPortalActive(); }
+void netSetOtaPassword(const char *pw) { ArduinoOTA.setPassword(pw); }
 
 void netForgetWifi() {
   wm.resetSettings();
