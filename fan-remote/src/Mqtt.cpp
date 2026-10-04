@@ -120,7 +120,40 @@ static void send(const char *ha, const char *comp, const char *objId, JsonDocume
   mq.endPublish();
 }
 
+// The unique id (and the discovery topic) carry the entity generation. Home Assistant gives a
+// returning unique id its old entity id back, so ids only follow a rename when the unique id
+// changes: "recreate" bumps the generation. Generation 0 keeps the plain ids.
+static void gen(char *s, size_t n, int g) {
+  if (g > 0) {
+    size_t l = strlen(s);
+    snprintf(s + l, n - l, "_g%d", g);
+  }
+}
+
+// Empty retained message on every discovery topic of generation g: Home Assistant removes
+// those entities (and their history stays behind with the removed ones).
+static void clearDiscovery(int g) {
+  const char *ha = CFG_HA_PREFIX;
+  const char *id = deviceId();
+  char o[48];
+  for (int n = 1; n <= kFans; n++) {
+    const struct { const char *comp, *fmt; } k[] = {
+        {"fan", "%s_%d"}, {"number", "%s_%d_speed"}, {"sensor", "%s_%d_rpm"}, {"binary_sensor", "%s_%d_fault"}};
+    for (auto &e : k) {
+      topic(o, sizeof o, e.fmt, id, n);
+      gen(o, sizeof o, g);
+      send(ha, e.comp, o, nullptr);
+    }
+  }
+  for (const char *key : {"rssi", "uptime"}) {
+    topic(o, sizeof o, "%s_%s", id, key);
+    gen(o, sizeof o, g);
+    send(ha, "sensor", o, nullptr);
+  }
+}
+
 static void discovery() {
+  const int G = settings().haGen;
   const char *ha = CFG_HA_PREFIX;
   const char *id = deviceId();
   char status[64], obj[48], uid[48], tp[96];
@@ -136,6 +169,10 @@ static void discovery() {
     topic(objFan, sizeof objFan, "%s_%d", id, n);
     topic(objRpm, sizeof objRpm, "%s_%d_rpm", id, n);
     topic(objFault, sizeof objFault, "%s_%d_fault", id, n);
+    gen(objNum, sizeof objNum, G);
+    gen(objFan, sizeof objFan, G);
+    gen(objRpm, sizeof objRpm, G);
+    gen(objFault, sizeof objFault, G);
     if (!c.enabled) {
       send(ha, "fan", objFan, nullptr);
       send(ha, "number", objNum, nullptr);
@@ -234,6 +271,7 @@ static void discovery() {
     JsonDocument d;
     d["name"] = g.name;
     topic(obj, sizeof obj, "%s_%s", id, g.key);
+    gen(obj, sizeof obj, G);
     d["unique_id"] = obj;
     d["availability_topic"] = status;
     d["state_topic"] = info;
@@ -328,7 +366,15 @@ void mqttBegin() {
 }
 
 static volatile bool refreshReq = false;
+static volatile bool recreateReq = false;
+static volatile int recreateFrom = 0;
+static bool recreateWait = false;
+static uint32_t recreateAt = 0;
 void mqttRefreshDiscovery() { refreshReq = true; }   // done by mqttLoop(): PubSubClient is single-threaded
+void mqttRecreateDiscovery(int oldGen) {
+  recreateFrom = oldGen;
+  recreateReq = true;
+}
 
 bool mqttConnected() { return mq.connected(); }
 
@@ -360,7 +406,18 @@ void mqttLoop() {
 
   mq.loop();
 
-  if (refreshReq) {   // renamed device / fan, or a channel switched on or off
+  if (recreateReq) {   // remove the old entities, wait for HA to drop them, announce new ones
+    recreateReq = false;
+    clearDiscovery(recreateFrom);
+    recreateWait = true;
+    recreateAt = millis();
+    logf(LOG_INFO, "mqtt: old Home Assistant entities removed (generation %d)", (int)recreateFrom);
+  }
+  if (recreateWait && millis() - recreateAt >= 2500) {   // Z2M waits too: else HA makes "_2" entities
+    recreateWait = false;
+    refreshReq = true;
+  }
+  if (refreshReq && !recreateWait) {   // renamed device / fan, or a channel switched on or off
     refreshReq = false;
     discovery();
     logf(LOG_INFO, "mqtt: discovery refreshed");

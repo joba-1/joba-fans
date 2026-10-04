@@ -160,6 +160,7 @@ normal soft start.
 | `GET /api/netstatus` | – | firmware, version, build date, hostname, IP, SSID, RSSI, every external resource with host, last status, last access |
 | `POST /api/netconfig` | Basic | `name`, `mqttHost`, `mqttPort`, `mqttUser`, `mqttPass`, `syslogHost`, `ntpHost`, `defaults=1`; stored in NVS, applied at next boot |
 | `POST /api/update` | Basic | firmware image (multipart field `firmware`); written to the next OTA slot, validated, then reboot. The host connects out to port 80: no host firewall port needed (ArduinoOTA remains as a fallback) |
+| `POST /api/discovery` | Basic | resend the Home Assistant discovery; `recreate=1` first removes the old entities and announces new ones under generation + 1 (unique ids and discovery topics carry `_gN`), so entity ids are rebuilt from the current names |
 | `POST /api/reboot`, `POST /api/wifireset` | Basic | |
 
 `netstatus` / `netconfig` follow the reference in `Joba_Modbus` (CodingStandards §2).
@@ -185,6 +186,11 @@ one `fan` per enabled channel (on/off, percentage 1…100, preset modes), a `num
 slider (0…100 %, step 1, same topics as the fan's percentage), a `sensor`
 (rpm) and a `binary_sensor` (problem) per channel, diagnostic sensors for RSSI and
 uptime. All entities share one HA *device* per board.
+
+Entity ids: Home Assistant restores the old entity id for a returning unique id (tested on 2026.9:
+clearing and re-announcing, as Zigbee2MQTT's `homeassistant_rename` does, changes nothing). So the
+unique ids carry a generation (`haGen` in NVS, 0 = plain ids); `/api/discovery?recreate=1` bumps it,
+clears the old topics, waits 2.5 s (otherwise HA creates `_2` entities) and announces the new ones.
 
 Credentials for the broker are stored in NVS, never in the repo.
 

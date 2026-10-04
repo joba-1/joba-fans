@@ -327,6 +327,24 @@ static void handleNetconfig(AsyncWebServerRequest *r) {
   json(r, 200, "{\"ok\":true,\"note\":\"applies at next boot\"}");
 }
 
+// POST /api/discovery: resend the Home Assistant discovery; with recreate=1 first remove the
+// old entities and announce new ones under a new generation (entity ids follow the names).
+static void handleDiscovery(AsyncWebServerRequest *r) {
+  powerActivity();
+  if (!sameOrigin(r) || !authed(r)) return;
+  if (r->hasParam("recreate", true)) {
+    Settings &s = settings();
+    const int old = s.haGen;
+    s.haGen = old >= 250 ? 1 : old + 1;
+    settingsSaveAll();
+    mqttRecreateDiscovery(old);
+    logf(LOG_INFO, "Home Assistant entities: recreate, generation %d -> %d", old, (int)s.haGen);
+  } else {
+    mqttRefreshDiscovery();
+  }
+  json(r, 200, "{\"ok\":true}");
+}
+
 static void handleConfigGet(AsyncWebServerRequest *r) {
   powerActivity();
   if (!authed(r)) return;
@@ -430,8 +448,18 @@ static void onUpdateBody(AsyncWebServerRequest *r, const String &, size_t index,
     upError = "";
     if (checkAuth(r) != AUTH_OK) { upError = "login required"; return; }
     if (!originOk(r)) { upError = "cross-origin request refused"; return; }
+    if (Update.isRunning()) Update.abort();   // left over from an upload whose connection died
     if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) { upError = Update.errorString(); return; }
     upOwner = r;
+    // A dropped connection never reaches onUpdateDone: free the updater here, or every retry
+    // would fail until the next reboot.
+    r->onDisconnect([r]() {
+      if (upOwner == r) {
+        Update.abort();
+        upOwner = nullptr;
+        logf(LOG_WARN, "firmware update: connection lost, aborted");
+      }
+    });
     logf(LOG_WARN, "firmware update started");
   }
   if (upOwner != r) return;   // refused, or another upload owns the flash
@@ -507,6 +535,7 @@ void webBegin() {
   server.on("/api/set", HTTP_POST, handleSet);
   server.on("/api/netstatus", HTTP_GET, [](AsyncWebServerRequest *r) { json(r, 200, netstatusJson()); });
   server.on("/api/netconfig", HTTP_POST, handleNetconfig);
+  server.on("/api/discovery", HTTP_POST, handleDiscovery);
   server.on("/api/config", HTTP_GET, handleConfigGet);
   server.on("/api/config", HTTP_POST, handleConfigPost);
   server.on("/api/update", HTTP_POST, onUpdateDone, onUpdateBody);

@@ -30,6 +30,7 @@ struct Settings {
   uint8_t rampDown;
   uint8_t bootMode;            // 0 = restore last speeds, 1 = all off
   bool protectControl;         // require the admin login for /api/set as well
+  uint8_t haGen;               // Home Assistant entity generation: part of every unique id
   uint8_t lastSpeed[kFans];    // target speeds, restored at boot
   uint8_t lastOn[kFans];       // last non-zero speed ("ON" brings this back)
 };

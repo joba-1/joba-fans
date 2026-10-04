@@ -67,6 +67,7 @@ static void fillDefaults(Settings &s, bool netOnly) {
   s.rampDown = 20;
   s.bootMode = 0;
   s.protectControl = false;
+  s.haGen = 0;
 }
 
 void settingsDefaults(bool netOnly) { fillDefaults(g, netOnly); }
@@ -91,6 +92,7 @@ void settingsLoad() {
   g.rampDown = p.getUChar("rampDown", g.rampDown);
   g.bootMode = p.getUChar("bootMode", g.bootMode);
   g.protectControl = p.getBool("protect", g.protectControl);
+  g.haGen = p.getUChar("hagen", 0);
   for (int i = 0; i < kPresets; i++) {
     char k[8];
     snprintf(k, sizeof k, "pre%d", i);
@@ -173,6 +175,7 @@ void settingsSaveAll() {
   p.putUChar("rampDown", g.rampDown);
   p.putUChar("bootMode", g.bootMode);
   p.putBool("protect", g.protectControl);
+  p.putUChar("hagen", g.haGen);
   for (int i = 0; i < kPresets; i++) {
     char k[8];
     snprintf(k, sizeof k, "pre%d", i);

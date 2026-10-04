@@ -60,7 +60,11 @@ Renaming the board or a fan in the settings updates the names in Home Assistant 
 **entity ids** stay as they were when the entities were first created: Home Assistant remembers deleted
 entities and gives a returning unique id its old entity id back (tested with HA 2026.9: removing
 and re-announcing the discovery messages, as Zigbee2MQTT's `homeassistant_rename` does, restored
-the old ids). To change ids, use Home Assistant itself (entity settings, or the registry API).
+the old ids). To get new ids from the current names use Settings → Network → **Recreate Home
+Assistant entities** (or `curl -u admin:… -d recreate=1 http://fan-control-1.local/api/discovery`):
+the board removes its entities in Home Assistant, waits 2.5 s and announces them again under a new
+generation number, so HA builds fresh entity ids. History and customisations of the old entities
+are lost, so use it right after naming a new board, not later.
 
 ## MQTT
 

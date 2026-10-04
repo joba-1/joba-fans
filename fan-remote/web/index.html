@@ -211,7 +211,7 @@ const T = {
     appName: "Fan controller", fan: "Fan", all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
     quiet: "Quiet", low: "Low", medium: "Medium", high: "High", max: "Max", mixed: "mixed",
     online: "Online", offline: "No connection", mqttOn: "MQTT", mqttOff: "MQTT off",
-    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", waiting: "Waiting for the controller …", noTach: "no tach",
+    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", haRecreate: "Recreate Home Assistant entities", haAsk: "Remove this controller\u2019s entities in Home Assistant and create them again? The entity ids are built anew from the current names; history and customisations of the old entities are lost.", haDone: "Entities recreated", waiting: "Waiting for the controller …", noTach: "no tach",
     power: "Power", speed: "Speed", settings: "Settings", close: "Close", save: "Save", saved: "Saved",
     device: "Device", devName: "Name", fansH: "Fans", presetsH: "Preset speeds", behaviour: "Behaviour",
     network: "Network", status: "Status",
@@ -230,7 +230,7 @@ const T = {
     appName: "Lüftersteuerung", fan: "Lüfter", all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
     quiet: "Leise", low: "Niedrig", medium: "Mittel", high: "Hoch", max: "Max", mixed: "gemischt",
     online: "Verbunden", offline: "Keine Verbindung", mqttOn: "MQTT", mqttOff: "MQTT aus",
-    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", waiting: "Warte auf die Steuerung …", noTach: "kein Tacho",
+    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", haRecreate: "Home-Assistant-Entitäten neu anlegen", haAsk: "Die Entitäten dieser Steuerung in Home Assistant entfernen und neu anlegen? Die Entitäts-IDs werden aus den aktuellen Namen neu gebildet; Verlauf und Anpassungen der alten Entitäten gehen verloren.", haDone: "Entitäten neu angelegt", waiting: "Warte auf die Steuerung …", noTach: "kein Tacho",
     power: "Ein/Aus", speed: "Drehzahl", settings: "Einstellungen", close: "Schließen", save: "Speichern", saved: "Gespeichert",
     device: "Gerät", devName: "Name", fansH: "Lüfter", presetsH: "Voreinstellungen", behaviour: "Verhalten",
     network: "Netzwerk", status: "Status",
@@ -606,12 +606,13 @@ function buildSettings() {
   } }, t("saveNet"));
   const rb = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("rebootAsk"))) post("/api/reboot", {}).then(() => { dlg.close(); toast(t("reboot") + "…"); }).catch(() => {}); } }, t("reboot"));
   const wr = h("button", { class: "btn danger", type: "button", onclick: () => { if (confirm(t("wifiAsk"))) post("/api/wifireset", {}).catch(() => {}); } }, t("wifiReset"));
+  const ha = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("haAsk"))) post("/api/discovery", { recreate: 1 }).then(() => toast(t("haDone"))).catch(e => toast(t("err") + ": " + e.message)); } }, t("haRecreate"));
   const stBox = h("div");
   B.append(h("fieldset", {}, h("legend", {}, t("network")),
     h("div", { class: "row" }, fld(t("mqttHost"), mh), fld(t("mqttPort"), mp), fld(t("mqttUser"), mu), fld(t("mqttPass"), mw),
       fld(t("syslog"), sh), fld(t("ntp"), nh)),
     h("p", { class: "hint" }, t("netHint")),
-    h("div", { class: "btns" }, netSave, rb, wr)),
+    h("div", { class: "btns" }, netSave, rb, wr), h("div", { class: "btns" }, ha)),
     h("fieldset", {}, h("legend", {}, t("status")), stBox));
   api("/api/netstatus").then(ns => {
     const ago = s => s == null ? t("never") : (s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : Math.round(s / 3600) + " h") + " " + t("ago");
