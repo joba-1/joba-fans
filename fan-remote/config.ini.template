@@ -1,6 +1,6 @@
 ; config.ini.template — fan-remote
-; Build-time defaults. pre_build.py copies this to config.ini on the first build, replaces
-; @RANDOM@ with a random admin password and prints it. config.ini is gitignored.
+; Build-time defaults. pre_build.py copies this to config.ini on the first build, swaps the
+; admin_password placeholder for a random password and prints it. config.ini is gitignored.
 ;
 ; Everything below can be changed per board at runtime
 ; (web UI settings or POST /api/netconfig) and is then kept in NVS; these values

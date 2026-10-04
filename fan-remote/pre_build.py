@@ -38,7 +38,7 @@ def git(*args):
 cfg_path = os.path.join(proj, "config.ini")
 if not os.path.exists(cfg_path):
     pw = secrets.token_urlsafe(9)
-    text = read(os.path.join(proj, "config.ini.template")).decode("utf-8").replace("@RANDOM@", pw)
+    text = read(os.path.join(proj, "config.ini.template")).decode("utf-8").replace("admin_password = @RANDOM@", "admin_password = " + pw)
     with open(cfg_path, "w", encoding="utf-8") as f:
         f.write(text)
     os.chmod(cfg_path, 0o600)
