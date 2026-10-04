@@ -1,7 +1,10 @@
-# fan-stand — 3D printed fan mounts for radiator cooling assist
+# fan-mount — 3D printed fan mounts for radiator cooling assist: requirements
 
-Status: **concept / requirements**. No geometry built yet.
-Date started: 2026-08-15
+This is the original requirements and concept document (started 2026-08-15). It is kept
+as written; what has actually been built since is summarised in the status table in the
+[component README](../README.md#status), and the design details are in
+[design-notes.md](design-notes.md). Where this document says "magnets", the built parts
+use printed pegs in the radiator slots and screws instead (see design-notes.md).
 
 ## 1. Problem
 
@@ -223,11 +226,11 @@ the magnet/clip geometry with P1), then P3, then P4.
 
 All dimensions driven from a **FreeCAD spreadsheet** so the same model
 re-generates for the different radiator types in the house (several types
-confirmed — see MEASUREMENTS.md).
+confirmed — see measurements.md).
 
 ## 8. Open questions / to measure
 
-Needed before P1 can be modelled — see MEASUREMENTS.md:
+Needed before P1 can be modelled — see measurements.md:
 
 - Radiator type (11 / 21 / 22 / 33) and manufacturer
 - Height, length, depth (front face to wall face)

@@ -1,25 +1,28 @@
-"""Fingerschutz-Haube fuer den Luefter - EINE Variante fuer alle Halter.
+"""Finger-guard hood (Schutz) for the fan - ONE variant for all mounts.
 
-Stuelpt sich ueber die Zarge und laesst sich abziehen. Der Halt kommt aus
-einer Schuerze mit Untermass, die auf der ganzen Umfangslaenge klemmt -
-kein Spiel, also kein Vibrationsgeraeusch.
+Slips over the collar (Zarge) and can be pulled off. The hold comes from a
+skirt with undersize that clamps along the whole circumference - no play, so
+no vibration noise.
 
-Die Streben laufen laengs zu den Heizungsschlitzen und uebernehmen deren
-Raster (Strebe = Blechsteg, Luecke = Schlitz), damit sich das Blechmuster
-optisch nach oben fortsetzt.
+The struts run lengthwise to the radiator slots and take over their pitch
+(strut = sheet web, gap = slot), so the sheet pattern continues visually
+upwards.
 
-NULLPUNKT: z=0 ist die OBERKANTE DER ZARGE, also dort, wo die Haube
-aufsitzt. Die Schuerze laeuft von da nach unten (negativ), Streben und
-Deckel liegen darueber.
+ORIGIN: z=0 is the TOP EDGE OF THE COLLAR, i.e. where the hood sits. The skirt
+runs downwards from there (negative); struts and top frame lie above.
+
+Run inside FreeCAD with a mount document open (ZIEL = its name, e.g.
+"RadiatorFanLarge"); the result goes into the document RadiatorFanGuard and
+into fan-mount/cad/ (set FAN_MOUNT_CAD to override).
 """
 import FreeCAD, Part, MeshPart, os
 
-# ZIEL ist der Name der HALTER-Variante; der Schutz kommt in ein eigenes
-# Dokument RadiatorFanGuard*, damit die Halter-Dateien unberuehrt bleiben.
+# ZIEL is the name of the MOUNT variant; the guard goes into a document of its
+# own, RadiatorFanGuard, so the mount files stay untouched.
 quelle = FreeCAD.getDocument(ZIEL)
-# Eine einzige Variante: die Haube haengt nur an der Zarge, und die ist
-# bei Small, Medium und Large gleich (126,6 mm). Seit die Streben nicht
-# mehr dem Blechraster folgen, gibt es keinen Unterschied mehr.
+# A single variant: the hood only depends on the collar, and that is the same
+# for Small, Medium and Large (126.6 mm). Since the struts no longer follow the
+# sheet pitch, there is no difference any more.
 GUARD = "RadiatorFanGuard"
 try:
     d = FreeCAD.getDocument(GUARD)
@@ -27,32 +30,32 @@ except NameError:
     d = FreeCAD.newDocument(GUARD)
 sh = d.getObject("Masse") or quelle.getObject("Masse")
 g = lambda a: float(sh.get(a))
-out = "/data/joachim/git/fan-stand/cad"
+out = os.environ.get("FAN_MOUNT_CAD") or os.path.dirname(d.FileName) or os.getcwd()
 
 
 def schutz():
     za, zh, ah, lh = g("z_aussen"), g("z_hoehe"), g("z_auflage"), g("luefterhoehe")
     sb, su, sd = g("schutz_schuerze"), g("schutz_unter"), g("schutz_dicke")
-    std = g("strebe_dicke")          # Streben duenner als die Wand
+    std = g("strebe_dicke")          # struts thinner than the wall
     ab, stb, rast = g("schutz_abstand"), g("strebe_b"), g("strebe_raster")
 
-    # Unterkante der Streben, relativ zur Zargenoberkante
+    # Lower edge of the struts, relative to the top of the collar
     z_streben = (ah + lh + ab) - zh
     if z_streben < 0:
-        raise SystemExit("Streben laegen unter der Zargenoberkante")
+        raise SystemExit("struts would lie below the top of the collar")
 
-    aussen = za + 2 * sd            # Aussenmass der Haube
-    x0 = -sd                        # linke Aussenkante (Zarge beginnt bei 0)
+    aussen = za + 2 * sd            # outer size of the hood
+    x0 = -sd                        # left outer edge (the collar starts at 0)
 
     teile = []
 
-    # 1) Schuerze: Kasten nach unten, innen mit Untermass -> klemmt
+    # 1) Skirt: box going down, undersized inside -> clamps
     teile.append(
         Part.makeBox(aussen, aussen, sb, FreeCAD.Vector(x0, x0, -sb)).cut(
             Part.makeBox(za - 2 * su, za - 2 * su, sb + 2,
                          FreeCAD.Vector(su, su, -sb - 1))))
 
-    # 2) Senkrechter Ring von der Schuerze hoch zur Strebenebene
+    # 2) Vertical ring from the skirt up to the strut level
     if z_streben > 0:
         teile.append(
             Part.makeBox(aussen, aussen, z_streben,
@@ -60,7 +63,7 @@ def schutz():
                 Part.makeBox(za, za, z_streben + 2,
                              FreeCAD.Vector(0, 0, -1))))
 
-    # 3) Deckelrahmen auf Strebenhoehe
+    # 3) Top frame at strut height
     rb = sd + 2.0
     teile.append(
         Part.makeBox(aussen, aussen, sd,
@@ -68,19 +71,18 @@ def schutz():
             Part.makeBox(aussen - 2 * rb, aussen - 2 * rb, sd + 2,
                          FreeCAD.Vector(x0 + rb, x0 + rb, z_streben - 1))))
 
-    # 4) Streben laengs (in Y), im Heizungsraster, mittig ausgerichtet
-    # Die Streben werden gleich gerundet erzeugt: eine Box hinterher zu
-    # suchen und zu fillen kostet bei ~11 Streben zu viel Rechenzeit.
-    # Gerundet werden die vier Laengskanten, also oben UND unten.
+    # 4) Struts lengthwise (in Y), on the radiator pitch, centred
+    # The struts are created already rounded: finding and filleting a box
+    # afterwards costs too much computing time with ~11 struts.
+    # The four lengthwise edges are rounded, i.e. top AND bottom.
     rs = g("strebe_r")
     n = int(za / rast)
     x = (za - (n * rast - (rast - stb))) / 2
     while x + stb <= za:
-        # Bündig mit der OBERSEITE des Deckelrahmens, nicht mit der
-        # Unterseite: gedruckt wird auf dem Kopf, und diese Flaeche liegt
-        # dann auf dem Bett. Waeren die duenneren Streben unten buendig,
-        # begaennen sie 0,9 mm ueber dem Bett und muessten als Bruecken
-        # ueber 129 mm gedruckt werden.
+        # Flush with the TOP of the top frame, not with the underside: it is
+        # printed upside down, and this face then lies on the bed. If the
+        # thinner struts were flush at the bottom, they would start 0.9 mm
+        # above the bed and would have to be printed as bridges over 129 mm.
         st = Part.makeBox(stb, aussen, std,
                           FreeCAD.Vector(x, x0, z_streben + sd - std))
         if rs > 0:
@@ -97,8 +99,8 @@ def schutz():
     for t in teile[1:]:
         r = r.fuse(t)
 
-    # Kanten brechen. Zwei Radien, weil die Streben duenner sind als die
-    # Aussenwand: kanten_r wuerde eine 2,5 mm dicke Strebe halbieren.
+    # Break edges. Two radii, because the struts are thinner than the outer
+    # wall: kanten_r would halve a 2.5 mm thick strut.
     def _runden(shape, radius, waehle):
         versucht = set()
         for _ in range(200):
@@ -129,9 +131,10 @@ def schutz():
     rad_a = g("kanten_r")
     b0 = r.BoundBox
 
-    # 1) Aussenkanten der Haube: die vier senkrechten Ecken UND die
-    #    umlaufenden waagerechten Kanten oben und unten. Zuletzt fehlten
-    #    die waagerechten, dadurch war die Haube nur an den Ecken gebrochen.
+    # 1) Outer edges of the hood: the four vertical corners AND the
+    #    circumferential horizontal edges at top and bottom. Lastly the
+    #    horizontal ones were missing, so the hood was only broken at the
+    #    corners.
     def _senkrecht(e, b):
         eb = e.BoundBox
         senk = eb.ZLength > rad_a and eb.XLength < 1e-6 and eb.YLength < 1e-6
@@ -155,12 +158,12 @@ def schutz():
 
 o = d.getObject("Schutz") or d.addObject("Part::Feature", "Schutz")
 o.Shape = schutz()
-o.Label = "Fingerschutz %s" % ZIEL.replace("RadiatorFan", "")
+o.Label = "Finger guard %s" % ZIEL.replace("RadiatorFan", "")
 d.recompute()
 d.saveAs(os.path.join(out, GUARD + ".FCStd")) if not d.FileName else d.save()
 s = o.Shape
 bb = s.BoundBox
-print("  Schutz %.1f x %.1f x %.1f mm  %.2f cm3  solids %d  gueltig %s" % (
+print("  guard %.1f x %.1f x %.1f mm  %.2f cm3  solids %d  valid %s" % (
     bb.XLength, bb.YLength, bb.ZLength, s.Volume / 1000, len(s.Solids), s.isValid()))
 
 gedreht = s.copy()
@@ -169,5 +172,5 @@ gedreht.translate(FreeCAD.Vector(0, 0, -gedreht.BoundBox.ZMin))
 m = MeshPart.meshFromShape(Shape=gedreht, LinearDeflection=0.05,
                            AngularDeflection=0.5, Relative=False)
 m.write(os.path.join(out, GUARD + ".stl"))
-print("  %s.stl (auf dem Kopf gedruckt)  solid=%s  Abw %.4f%%" % (
+print("  %s.stl (printed upside down)  solid=%s  deviation %.4f%%" % (
     GUARD, m.isSolid(), abs(m.Volume - s.Volume) / s.Volume * 100))

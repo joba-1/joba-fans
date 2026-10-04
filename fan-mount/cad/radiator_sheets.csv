@@ -1,0 +1,25 @@
+# Perforated-sheet geometry of the three radiators, top view across the wall.
+# All values in mm. Measured 2026-08-17 on site (steel rule + calipers).
+#
+# Layout across:  edge | field | [centre_web | field] | edge
+# depth is the DERIVED sum of the partial lengths, not an independent input.
+#
+# id           short name (A/B/C) of the radiator
+# room         where it hangs
+# depth        sum of the partial lengths (check value against the measurement)
+# edge         unperforated edge strip, both sides equal
+# field        width of one perforated field
+# fields       number of perforated fields (1 or 2)
+# centre_web   unperforated centre web between two fields (0 if fields=1)
+# slot         slot width across
+# web          web between two slots
+# pitch        slot + web (derived)
+# measured_depth  depth as measured directly
+#
+# The FreeCAD spreadsheets (cad/*.FCStd, sheet "Masse") hold the same numbers
+# under German aliases: tiefe=depth, rand=edge, lochfeld=field,
+# stegmitte=centre_web, schlitz=slot, steg=web.
+id,room,depth,edge,field,fields,centre_web,slot,web,pitch,measured_depth
+A,Office,65,13,39,1,0,7.6,3.4,11.0,65
+B,Living room,101,13,75,1,0,7.7,3.3,11.0,101
+C,Dining room,136,17,40,2,22,8.0,5.0,13.0,136

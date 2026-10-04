@@ -1,21 +1,21 @@
-"""Nur die Zapfen (Verschraubungsklötze) eines Halters als eigene Datei.
+"""Only the pegs (Zapfen, the screw blocks) of a mount, as a separate file.
 
-Die Zapfen werden separat gedruckt, wenn am Halter selbst nichts zu
-aendern ist - etwa nach einer Massekorrektur an zapfen_l. Nutzt dieselbe
-Geometriefunktion wie build_variante.py, damit Trichter, Rundungen und
-Kernloch identisch bleiben; der Halter im Zieldokument wird nicht
-angefasst.
+The pegs are printed separately when nothing on the mount itself needs to
+change - for example after a dimension correction to zapfen_l. Uses the same
+geometry function as build_variante.py so that funnels, roundings and core
+hole stay identical; the mount in the target document is not touched.
 
-In FreeCAD ausfuehren, ZIEL vorher setzen:
+Run inside FreeCAD with the document open, setting ZIEL first:
     ZIEL = "RadiatorFanLarge"
-    exec(open(".../scripts/build_zapfen.py").read())
+    exec(open(".../fan-mount/scripts/build_zapfen.py").read())
+The STL is written next to the opened document (set FAN_MOUNT_CAD to override).
 """
 import FreeCAD, Part, MeshPart, os
 
 d = FreeCAD.getDocument(ZIEL)
 sh = d.getObject("Masse")
 g = lambda a: float(sh.get(a))
-out = "/data/joachim/git/fan-stand/cad"
+out = os.environ.get("FAN_MOUNT_CAD") or os.path.dirname(d.FileName) or os.getcwd()
 
 
 def zapfen(x0=0.0, y0=0.0, sd=None):
@@ -39,8 +39,8 @@ def zapfen(x0=0.0, y0=0.0, sd=None):
     return koerper.removeSplitter()
 
 
-# Fuer den Einzeldruck nebeneinander in einer Reihe, mit Abstand: sie
-# muessen nicht dort liegen, wo im Halter Platz ist.
+# For single printing, side by side in a row with a gap: they do not have to
+# lie where there is room in the mount.
 ANZ = 4
 LUFT = 6.0
 zb, zl = g("zapfen_b"), g("zapfen_l")
@@ -53,7 +53,7 @@ for t in stueck[1:]:
 name = "ZapfenLarge"
 oz = d.getObject(name) or d.addObject("Part::Feature", name)
 oz.Shape = gz
-oz.Label = "Zapfen einzeln (%dx)" % ANZ
+oz.Label = "Zapfen, separate (%dx)" % ANZ
 d.recompute()
 
 bb = gz.BoundBox
@@ -61,8 +61,8 @@ mg = MeshPart.meshFromShape(Shape=gz, LinearDeflection=0.05,
                             AngularDeflection=0.5, Relative=False)
 stl = os.path.join(out, name + ".stl")
 mg.write(stl)
-print("  %s: %d Koerper, %.1f x %.1f x %.1f mm, %.2f cm3, solid=%s" % (
+print("  %s: %d bodies, %.1f x %.1f x %.1f mm, %.2f cm3, solid=%s" % (
     name, len(gz.Solids), bb.XLength, bb.YLength, bb.ZLength,
     gz.Volume / 1000, mg.isSolid()))
-print("  Zapfenlaenge jetzt: %.1f mm" % zl)
-print("  geschrieben:", stl)
+print("  peg length now: %.1f mm" % zl)
+print("  written:", stl)

@@ -1,11 +1,10 @@
 .claude/settings.local.json
 
-# Fotos bleiben lokal (Originale + konvertierte JPEGs)
-doc/*.HEIC
-doc/jpg/
+# The photos stay local (originals + converted JPEGs): 40 MB, not source
+*.HEIC
+*.heic
+docs/jpg/
+doc/
 
-# FreeCAD-Sicherungskopien
+# FreeCAD backup copies
 *.FCBak
-
-# Fotos bleiben lokal (auch in Unterordnern)
-doc/**/*.HEIC

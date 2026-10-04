@@ -1,15 +1,24 @@
-"""Halter im Dokument ZIEL erzeugen (Variable von aussen gesetzt).
+"""Build the mount (Halter) in the document named by ZIEL (set from outside).
 
-Nutzt dieselben Funktionen wie scripts/passprobe.py, aber gegen die
-Tabelle des neuen Dokuments - dort sitzt der Luefter mittig (kein
-Wandversatz) und die Rippen liegen ohne Versatz auf den Randstreifen.
+Run inside FreeCAD with the document already open, e.g.
+    ZIEL = "RadiatorFanLarge"
+    exec(open(".../fan-mount/scripts/build_variante.py").read())
+STL and FCStd are written next to the opened document (fan-mount/cad/);
+set the environment variable FAN_MOUNT_CAD to write somewhere else.
+
+Uses the same functions as scripts/passprobe.py, but against the spreadsheet of
+the new document - there the fan sits centred (no wall offset) and the ribs lie
+on the unperforated edge strips without an offset.
+
+German names are kept for the spreadsheet aliases (Masse) and local variables
+- see the glossary in docs/design-notes.md.
 """
 import FreeCAD, Part, MeshPart, os
 
 d = FreeCAD.getDocument(ZIEL)
 sh = d.getObject("Masse")
 g = lambda a: float(sh.get(a))
-out = "/data/joachim/git/fan-stand/cad"
+out = os.environ.get("FAN_MOUNT_CAD") or os.path.dirname(d.FileName) or os.getcwd()
 
 nase_h = 1.5
 
@@ -27,9 +36,9 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     rb, dy = g("rippe_b"), g("rippe_dy")
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, dy, 0)))
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, tiefe - rb + dy, 0)))
-    # Blech C hat ZWEI Lochfelder mit einem ungelochten Mittelsteg dazwischen.
-    # Der traegt eine dritte Rippe, ohne Luftaustritt zu verdecken - genau
-    # das, wofuer der Steg da ist.
+    # Sheet C has TWO perforated fields with an unperforated centre web
+    # between them. It carries a third rib without covering any air outlet -
+    # exactly what the web is there for.
     try:
         ms = g("stegmitte")
     except Exception:
@@ -90,7 +99,7 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
             gerundet += 1
         except Exception:
             pass
-    print("  Kanten gerundet: %d" % gerundet)
+    print("  edges rounded: %d" % gerundet)
 
     kr = g("kehle_r")
     if kr > 0:
@@ -143,10 +152,10 @@ def zapfen(x0=0.0, y0=0.0, sd=None):
     cx, cy = x0 + b / 2, y0 + l / 2
     koerper = koerper.cut(Part.makeCylinder(sd / 2, h + 2,
                                            FreeCAD.Vector(cx, cy, -1)))
-    # Trichter an BEIDEN Enden: die Schraube findet den Anfang, ohne
-    # wegzukippen. Beginnt beim frueheren mittleren Durchmesser (2,5 mm)
-    # und laeuft auf das Kernloch zu. Beidseitig, weil der Zapfen
-    # umgedreht verwendbar bleiben soll.
+    # Funnel at BOTH ends: the screw finds the start without tipping over.
+    # It begins at the former mid-range diameter (2.5 mm) and tapers to the
+    # core hole. On both sides because the peg has to stay usable turned
+    # over.
     td, tt = g("trichter_d"), g("trichter_t")
     if td > sd:
         koerper = koerper.cut(Part.makeCone(td / 2, sd / 2, tt,
@@ -161,39 +170,39 @@ o.Shape = halter(g("a_tiefe"), g("a_hinten"), g("a_rand"))
 o.Label = "Halter %s" % ZIEL
 d.recompute()
 bb = o.Shape.BoundBox
-print("  Halter %.0fx%.0fx%.0f mm  %.2f cm3" % (
+print("  mount %.0fx%.0fx%.0f mm  %.2f cm3" % (
     bb.XLength, bb.YLength, bb.ZLength, o.Shape.Volume / 1000))
 
 zi = g("z_innen")
 zb, zl = g("zapfen_b"), g("zapfen_l")
-# Die Zapfen liegen fuer den DRUCK dort, wo der Halter offen ist. Bei einem
-# Blech mit zwei Lochfeldern ist die Mitte belegt (Rippe auf dem Mittelsteg),
-# also auf das erste Lochfeld ausweichen.
+# For PRINTING the pegs lie where the mount is open. On a sheet with two
+# perforated fields the middle is occupied (rib on the centre web), so move
+# to the first field.
 try:
     _ms = g("stegmitte")
 except Exception:
     _ms = 0.0
 if _ms > 0:
-    # Zapfenlaenge = Lochfeldbreite, also stossen sie sonst bündig an die
-    # angrenzenden Rippen und verschmelzen beim fuse zu einem Koerper.
-    # 3 mm nach vorne ruecken schafft beidseitig Luft.
-    # mittig in den FREIEN Bereich zwischen Rippe 1 und Mittelrippe legen,
-    # nicht mittig ins Lochfeld: die Rippen ueberdecken dessen Raender.
+    # Peg length = width of the perforated field, so they would otherwise
+    # butt flush against the adjacent ribs and merge into one body on fuse.
+    # Moving them 3 mm forward makes room on both sides.
+    # Centre them in the FREE area between rib 1 and the centre rib, not in
+    # the middle of the field: the ribs cover its edges.
     _frei_von = g("rippe_b")
     _frei_bis = g("a_rand") + g("a_lochfeld")
     ymid = _frei_von + (_frei_bis - _frei_von - zl) / 2
 else:
     ymid = g("a_tiefe") / 2 - zl / 2
-# Zwei Zapfen genuegen - beide Kernlochgroessen haben sich bewaehrt,
-# der neue Wert liegt dazwischen.
+# Two pegs are enough - both core-hole sizes have proven themselves, the
+# new value lies in between.
 saetze = [g("zapfen_sd"), g("zapfen_sd")]
 n = len(saetze)
 if _ms > 0 and n > 2:
-    # Zwei Lochfelder: die Zapfen auf beide verteilen. In einer Reihe
-    # stossen sie bei 7,8 mm Breite sonst aneinander und verschmelzen
-    # beim fuse. Bei nur zwei Zapfen ist dafuer reichlich Platz.
-    # Reihe 2 ebenso mittig in ihren freien Bereich: zwischen Mittelrippe
-    # und hinterer Rippe.
+    # Two perforated fields: spread the pegs over both. In a single row they
+    # would touch at 7.8 mm width and merge on fuse. With only two pegs there
+    # is plenty of room for that.
+    # Row 2 likewise centred in its free area: between the centre rib and the
+    # rear rib.
     _f2_von = g("a_rand") + g("a_lochfeld") + _ms
     _f2_bis = g("a_tiefe") - g("rippe_b")
     reihe2 = _f2_von + (_f2_bis - _f2_von - zl) / 2
@@ -213,15 +222,15 @@ gz = stueck[0]
 for t in stueck[1:]:
     gz = gz.fuse(t)
 oz.Shape = gz
-oz.Label = "Zapfen (je 2x M2/M3/M4)"
+oz.Label = "Zapfen (pegs, 2x each M2/M3/M4)"
 d.recompute()
 
 ges = o.Shape.fuse(oz.Shape)
 mg = MeshPart.meshFromShape(Shape=ges, LinearDeflection=0.05,
                             AngularDeflection=0.5, Relative=False)
 mg.write(os.path.join(out, ZIEL + ".stl"))
-print("  Komplett: %d Koerper, %.2f cm3, solid=%s" % (
+print("  complete: %d bodies, %.2f cm3, solid=%s" % (
     len(ges.Solids), ges.Volume / 1000, mg.isSolid()))
 
 d.saveAs(os.path.join(out, ZIEL + ".FCStd"))
-print("  gespeichert:", d.FileName)
+print("  saved:", d.FileName)

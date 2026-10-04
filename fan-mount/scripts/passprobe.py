@@ -1,16 +1,26 @@
-"""Passproben-Rahmen aus der Tabelle 'Masse' erzeugen.
+"""Generate the fit-test frames (Passproben) from the 'Masse' spreadsheet.
 
-In FreeCAD ausfuehren (Ansicht -> Panels -> Python-Konsole):
-    exec(open('/data/joachim/git/fan-stand/scripts/passprobe.py').read())
+Run inside FreeCAD with fan-mount/cad/passprobe.FCStd open
+(View -> Panels -> Python console):
+    exec(open('<repo>/fan-mount/scripts/passprobe.py').read())
 
-Erzeugt/aktualisiert Rahmen_A/B/C und schreibt die STLs nach cad/.
-Alle Masse kommen aus der Tabelle, keine Zahl steht hier fest ausser der
-Nasengeometrie (nase_h/nase_l) und der Teilelucke im Layout.
+Creates/updates Rahmen_A/B/C and writes the STLs next to the opened document
+(fan-mount/cad/). All dimensions come from the spreadsheet; nothing is
+hard-coded here except the nose geometry (nase_h/nase_l) and the gap between
+parts in the layout.
+
+The second half of this file builds "Halter A", the first design of the mount
+for radiator A (halter_A.stl, halter_A_komplett.stl). It is kept for
+reference; the current mounts are built by build_variante.py
+(RadiatorFanSmall/Medium/Large).
+
+German names are kept for the spreadsheet aliases (Masse) and local variables
+- see the glossary in docs/design-notes.md.
 """
 import FreeCAD, Part, MeshPart, os
 
-# Der interne Dokumentname kommt beim Oeffnen aus dem Dateinamen und ist
-# dann klein geschrieben; beim Neuanlegen gross. Beide zulassen.
+# The internal document name comes from the file name when opened and is then
+# lower case; when newly created it is capitalised. Allow both.
 d = None
 for _n in ("Passprobe", "passprobe"):
     try:
@@ -19,7 +29,7 @@ for _n in ("Passprobe", "passprobe"):
     except NameError:
         pass
 if d is None:
-    raise RuntimeError("Dokument Passprobe nicht offen")
+    raise RuntimeError("document Passprobe is not open")
 sh  = d.getObject("Masse")
 g   = lambda a: float(sh.get(a))
 
@@ -27,15 +37,15 @@ nase_h, nase_l, luecke = 1.5, 1.5, 12.0
 
 
 def rahmen(tiefe, x0):
-    """Randumgriff-Klammer. y-Aufbau: Backe | Blech | Backe."""
+    """Edge-grip clamp. Layout along y: jaw | sheet | jaw."""
     pd, bd, maul, L = g("plattendicke"), g("backendicke"), g("maulweite"), g("probelaenge")
     breite = tiefe + 2 * bd
     h = maul + nase_h
     teile = [
-        Part.makeBox(L, breite, pd, FreeCAD.Vector(x0, 0, 0)),                  # Platte
-        Part.makeBox(L, bd, h,      FreeCAD.Vector(x0, 0, -h)),                 # Backe vorne
-        Part.makeBox(L, bd, h,      FreeCAD.Vector(x0, bd + tiefe, -h)),        # Backe hinten
-        Part.makeBox(L, nase_l, nase_h, FreeCAD.Vector(x0, bd, -h)),            # Nase vorne
+        Part.makeBox(L, breite, pd, FreeCAD.Vector(x0, 0, 0)),                  # plate
+        Part.makeBox(L, bd, h,      FreeCAD.Vector(x0, 0, -h)),                 # jaw front
+        Part.makeBox(L, bd, h,      FreeCAD.Vector(x0, bd + tiefe, -h)),        # jaw back
+        Part.makeBox(L, nase_l, nase_h, FreeCAD.Vector(x0, bd, -h)),            # nose front
         Part.makeBox(L, nase_l, nase_h, FreeCAD.Vector(x0, bd + tiefe - nase_l, -h)),
     ]
     r = teile[0]
@@ -45,10 +55,10 @@ def rahmen(tiefe, x0):
 
 
 def pruefe(shape, tiefe):
-    """Maul muss ueber die volle Blechtiefe frei sein, Nasen muessen greifen.
+    """The jaw must be free over the full sheet depth, the noses must grip.
 
-    x wird relativ zum Teil gewaehlt - die Teile stehen im Layout nebeneinander
-    versetzt, ein absolutes x trifft nur das erste.
+    x is chosen relative to the part - in the layout the parts stand offset
+    next to each other, an absolute x would only hit the first one.
     """
     bd, maul = g("backendicke"), g("maulweite")
     x = shape.BoundBox.XMin + g("probelaenge") / 2
@@ -73,28 +83,28 @@ for hk, alias in (("A", "a_tiefe"), ("B", "b_tiefe"), ("C", "c_tiefe")):
     m = MeshPart.meshFromShape(Shape=o.Shape, LinearDeflection=0.05,
                                AngularDeflection=0.5, Relative=False)
     m.write(os.path.join(out, "passprobe_%s.stl" % hk))
-    print("%s %3.0fx%3.0fx%.0f  Maul frei=%s  Nase greift=%s  solid=%s  Bett=%s" % (
+    print("%s %3.0fx%3.0fx%.0f  jaw free=%s  nose grips=%s  solid=%s  bed=%s" % (
         hk, bb.XLength, bb.YLength, bb.ZLength, frei, greift, m.isSolid(),
-        "OK" if max(bb.XLength, bb.YLength) <= bett else "ZU GROSS"))
+        "OK" if max(bb.XLength, bb.YLength) <= bett else "TOO LARGE"))
     x += g("probelaenge") + luecke
 
 d.recompute()
-print("Fehler:", [o.Name for o in d.Objects if o.isValid() is False])
+print("errors:", [o.Name for o in d.Objects if o.isValid() is False])
 
 
 # ---------------------------------------------------------------------------
-# Halter: Passprobe + Zarge (Luefteraufnahme) in einem Teil
+# Halter (mount): fit-test frame + collar (fan seat) in one part
 # ---------------------------------------------------------------------------
 
 def halter(tiefe, hinten_ueber, rand, x0=0.0):
-    """Flache Zarge, liegt lose auf dem Blech (Befestigung: eigenes Teil).
+    """Flat collar, rests loosely on the sheet (fastening: a part of its own).
 
-    Koordinaten: y=0 ist die Blech-HINTERKANTE (Wandseite), y=tiefe die
-    Vorderkante. hinten_ueber sagt, wie weit der Luefter ueber die
-    Hinterkante hinausragt - daraus ergibt sich der asymmetrische Sitz.
+    Coordinates: y=0 is the REAR edge of the sheet (wall side), y=tiefe the
+    front edge. hinten_ueber says how far the fan projects beyond the rear
+    edge - that gives the asymmetric seat.
 
-    Das Teil endet bei z=0 und steht damit ohne Drehen ueberhangfrei auf
-    dem Bett.
+    The part ends at z=0 and therefore stands on the bed without turning and
+    without overhangs.
     """
     zi, za, zd = g("z_innen"), g("z_aussen"), g("z_dicke")
     zh, ah, al = g("z_hoehe"), g("z_auflage"), g("z_ecke")
@@ -102,22 +112,22 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
 
     teile = [Part.makeBox(za, za, zh, FreeCAD.Vector(xk, -hinten_ueber - zd, 0)).cut(
                  Part.makeBox(zi, zi, zh + 2, FreeCAD.Vector(x0, -hinten_ueber, -1)))]
-    # Vier quadratische Luefterauflagen in den Zargenecken.
+    # Four square fan rests in the collar corners.
     for dx, dy2 in ((0, 0), (1, 0), (0, 1), (1, 1)):
         teile.append(Part.makeBox(al, al, ah, FreeCAD.Vector(
             x0 + (zi - al) * dx, -hinten_ueber + (zi - al) * dy2, 0)))
-    # RIPPEN statt eines durchgehenden Stegs: nur auf den ungelochten
-    # Randstreifen. Ein Vollsteg ueber die ganze Tiefe verdeckt 64 % des
-    # Luefteraustritts - genau den Teil, der ueber dem Lochfeld liegt.
-    # Beide Rippen um rippe_dy verschoben, damit Rippe 1 nahtlos an die
-    # vordere Auflage anschliesst; ihr gegenseitiger Abstand bleibt gleich.
+    # RIBS instead of a continuous web: only on the unperforated edge strips.
+    # A solid web across the full depth covers 64 % of the fan outlet - exactly
+    # the part above the perforated field.
+    # Both ribs are shifted by rippe_dy so that rib 1 joins the front rest
+    # seamlessly; the distance between them stays the same.
     rb, dy = g("rippe_b"), g("rippe_dy")
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, dy, 0)))
     teile.append(Part.makeBox(za, rb, ah, FreeCAD.Vector(xk, tiefe - rb + dy, 0)))
-    # BLENDE: deckt links und rechts die Nachbarschlitze ab, damit die Luft
-    # nicht durch sie zurueck nach oben kurzschliesst, statt durch die
-    # Konvektorbleche nach unten zu gehen. Nur ueber der Blechtiefe, damit
-    # nichts frei in der Luft haengt.
+    # BLENDE (baffle): covers the neighbouring slots left and right so the air
+    # does not short-circuit back up through them instead of going down
+    # through the convector fins. Only over the sheet depth, so nothing hangs
+    # free in the air.
     bb_ = g("blende_b")
     teile.append(Part.makeBox(bb_, tiefe, ah, FreeCAD.Vector(xk - bb_, 0, 0)))
     teile.append(Part.makeBox(bb_, tiefe, ah, FreeCAD.Vector(xk + za, 0, 0)))
@@ -126,10 +136,10 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
     for t in teile[1:]:
         r = r.fuse(t)
 
-    # Aussenkanten brechen - erst verschmelzen, dann runden, sonst trifft der
-    # Radius Kanten, die spaeter ohnehin verschwinden. Nur senkrechte Kanten
-    # am Aussenumriss und die obere Umlaufkante der Zarge; Auflageflaechen
-    # und die Unterseite bleiben plan.
+    # Break outer edges - fuse first, then round, otherwise the radius hits
+    # edges that disappear later anyway. Only vertical edges on the outer
+    # contour and the upper circumferential edge of the collar; rest faces and
+    # the underside stay flat.
     rad = g("kanten_r")
     bb = r.BoundBox
     kanten = []
@@ -141,10 +151,10 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
         oben = abs(eb.ZMin - bb.ZMax) < 1e-6 and abs(eb.ZLength) < 1e-6
         if (senkrecht and aussen) or oben:
             kanten.append(e)
-    # Aussenkanten brechen. Nur GERADE senkrechte Kanten am Aussenumriss und
-    # die obere Umlaufkante - Auflageflaechen und Unterseite bleiben plan.
-    # Einzeln runden: OCCT scheitert an der ganzen Liste, an einzelnen Kanten
-    # fast nie. Nach jedem Fillet neu suchen, denn die Indizes wandern.
+    # Break outer edges. Only STRAIGHT vertical edges on the outer contour and
+    # the upper circumferential edge - rest faces and underside stay flat.
+    # Round one at a time: OCCT fails on the whole list, almost never on single
+    # edges. Search again after each fillet, because the indices move.
     rad = g("kanten_r")
 
     def _kandidat(shape):
@@ -152,19 +162,19 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
         for e in shape.Edges:
             try:
                 if e.Curve.__class__.__name__ != "Line":
-                    continue                    # schon gerundet
+                    continue                    # already rounded
             except TypeError:
-                continue                        # Kantentyp ohne Curve
+                continue                        # edge type without a Curve
             eb = e.BoundBox
             senk = eb.ZLength > rad and eb.XLength < 1e-6 and eb.YLength < 1e-6
             rand = (abs(eb.XMin - b.XMin) < 1e-6 or abs(eb.XMax - b.XMax) < 1e-6
                     or abs(eb.YMin - b.YMin) < 1e-6 or abs(eb.YMax - b.YMax) < 1e-6)
             oben = (abs(eb.ZMin - b.ZMax) < 1e-6 and eb.ZLength < 1e-6
                     and e.Length > rad)
-            # Die DREI freien Oberkanten je Blende: zwei Laengsseiten und die
-            # Stirnseite aussen. Sie liegen auf Auflagehoehe, nicht auf
-            # BoundBox.ZMax. Die vierte Kante - der Uebergang zur Zarge -
-            # bleibt scharf: dort ist eine Materialverstaerkung erwuenscht.
+            # The THREE free top edges of each baffle: two long sides and the
+            # outer end. They lie at rest height, not at BoundBox.ZMax. The
+            # fourth edge - the transition to the collar - stays sharp: a
+            # reinforcement of material is wanted there.
             auf_hoehe = (abs(eb.ZMin - g("z_auflage")) < 1e-6
                          and eb.ZLength < 1e-6 and e.Length > rad)
             laengs = abs(eb.XLength) > 1e-6 and (
@@ -178,7 +188,7 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
                 yield e
 
     gerundet, versucht = 0, set()
-    for _ in range(60):                         # Obergrenze gegen Endlosschleife
+    for _ in range(60):                         # upper limit against endless loops
         ziel = marke = None
         for e in _kandidat(r):
             kennung = (round(e.BoundBox.XMin, 2), round(e.BoundBox.YMin, 2),
@@ -188,21 +198,21 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
                 break
         if ziel is None:
             break
-        versucht.add(marke)                     # auch bei Misserfolg vermerken,
-        try:                                    # sonst blockiert eine einzelne
-            r = r.makeFillet(rad, [ziel])       # unrundbare Kante alle weiteren
-            gerundet += 1
+        versucht.add(marke)                     # note it even on failure,
+        try:                                    # otherwise a single edge that
+            r = r.makeFillet(rad, [ziel])       # cannot be rounded blocks all
+            gerundet += 1                       # the following ones
         except Exception:
-            pass                                # Kante zu kurz fuer den Radius
-    print("  Kanten gerundet: %d" % gerundet)
+            pass                                # edge too short for the radius
+    print("  edges rounded: %d" % gerundet)
 
-    # KEHLE am Uebergang Blende -> Zargenwand. Das ist eine Innenkante: die
-    # Rundung laeuft andersherum als an den Aussenkanten und fuegt Material
-    # hinzu statt es wegzunehmen. Sie versteift die 2 mm duenne Blende genau
-    # dort, wo sie an der 28 mm hohen Zargenwand haengt.
+    # FILLET (Kehle) at the transition baffle -> collar wall. This is an inner
+    # edge: the rounding runs the other way than on the outer edges and adds
+    # material instead of removing it. It stiffens the 2 mm thin baffle exactly
+    # where it hangs on the 28 mm high collar wall.
     #
-    # Muss NACH den Aussenkanten kommen: die Laengsrundungen der Blende
-    # laufen sonst bis an den Uebergang durch und fressen die Kehle weg.
+    # Must come AFTER the outer edges: otherwise the lengthwise roundings of the
+    # baffle run through to the transition and eat the fillet away.
     kr = g("kehle_r")
     if kr > 0:
         for _ in range(8):
@@ -229,10 +239,10 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
             except Exception:
                 break
 
-    # Verschraubungsloecher nach Luefternorm: Lochabstand schraub_lk (105 mm
-    # beim 120er), also (lueftergroesse - schraub_lk)/2 von jeder Luefterkante.
-    # Bezug ist die Luefterecke, nicht die Auflage - so wandern die Loecher
-    # korrekt mit, wenn sich Luefterlage oder Zargenspiel aendert.
+    # Screw holes to the fan standard: hole spacing schraub_lk (105 mm for a
+    # 120 mm fan), i.e. (lueftergroesse - schraub_lk)/2 from every fan edge.
+    # The reference is the fan corner, not the rest - so the holes move
+    # correctly with the fan position or collar clearance.
     sp = g("z_spiel") / 2
     lx0, ly0 = x0 + sp, -hinten_ueber + sp
     off = (g("lueftergroesse") - g("schraub_lk")) / 2
@@ -241,8 +251,8 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
                            ly0 + off + g("schraub_lk") * dy2, -1)
         r = r.cut(Part.makeCylinder(g("schraub_d") / 2, ah + 2, c))
 
-    # Je ein Schraubloch pro Blende fuer den Zapfen darunter: mittig zur
-    # Heizungstiefe (y) und mittig in der Blende (x).
+    # One screw hole per baffle for the peg underneath: centred on the radiator
+    # depth (y) and centred in the baffle (x).
     bb_ = g("blende_b")
     for cx in (xk - bb_ / 2, xk + za + bb_ / 2):
         r = r.cut(Part.makeCylinder(g("blende_sd") / 2, ah + 2,
@@ -251,7 +261,7 @@ def halter(tiefe, hinten_ueber, rand, x0=0.0):
 
 
 def _loecher_ok(s, hinten_ueber):
-    """Alle vier Bohrungen offen, und rundum bleibt Material stehen."""
+    """All four bores open, and material remains all around."""
     sp, ah, zi, al = g("z_spiel") / 2, g("z_auflage"), g("z_innen"), g("z_ecke")
     lk, dm = g("schraub_lk"), g("schraub_d")
     off = (g("lueftergroesse") - lk) / 2
@@ -259,74 +269,74 @@ def _loecher_ok(s, hinten_ueber):
     for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
         cx, cy = sp + off + lk * dx, -hinten_ueber + sp + off + lk * dy
         if ins(FreeCAD.Vector(cx, cy, ah / 2)):
-            return False                       # Loch nicht durchgehend
+            return False                       # hole not through
         for ex, ey in ((dm / 2 + 1.2, 0), (-dm / 2 - 1.2, 0),
                        (0, dm / 2 + 1.2), (0, -dm / 2 - 1.2)):
             if not ins(FreeCAD.Vector(cx + ex, cy + ey, ah / 2)):
-                return False                   # Rand ausgebrochen
+                return False                   # edge broken out
     return True
 
 
 def pruefe_halter(s, tiefe, hinten_ueber, rand):
-    """Vier Bedingungen an die flache Zarge (Teil endet bei z=0)."""
+    """Checks on the flat collar (the part ends at z=0)."""
     zi, ah, zd = g("z_innen"), g("z_auflage"), g("z_dicke")
     ins = lambda xx, yy, zz: s.isInside(FreeCAD.Vector(xx, yy, zz), 1e-6, True)
-    # Bezug ist die ZARGE bei x=0, nicht die BoundBox - die waechst mit der
-    # Blende und verschiebt sonst alle Pruefpunkte.
+    # The reference is the COLLAR at x=0, not the BoundBox - that grows with the
+    # baffle and would otherwise shift all test points.
     hi, x = hinten_ueber, 3.0
 
     def durchgehend(y0, y1):
         return all(ins(x, y0 + (y1 - y0) * (i + 0.5) / 40, ah / 2) for i in range(40))
 
     return {
-        "flach ab z=0":    abs(s.BoundBox.ZMin) < 1e-6,
-        "passt aufs Bett": max(s.BoundBox.XLength, s.BoundBox.YLength) <= g("druckbett"),
-        "keine Ueberhaenge": not any(
+        "flat from z=0":   abs(s.BoundBox.ZMin) < 1e-6,
+        "fits the bed":   max(s.BoundBox.XLength, s.BoundBox.YLength) <= g("druckbett"),
+        "no overhangs":   not any(
             f.Surface.__class__.__name__ == "Plane"
             and f.normalAt(0.5, 0.5).z <= -0.9 and f.BoundBox.ZMin > 0.01
             for f in s.Faces),
-        # Der Weg vom Luefter zum Lochfeld muss frei sein. Fehlt diese
-        # Pruefung, faellt ein Boden unter dem Luefter nicht auf.
-        "Lochfeld offen": not any(
+        # The path from the fan to the perforated field must be free. Without
+        # this check a floor under the fan goes unnoticed.
+        "field open":     not any(
             ins(zi * (i + 0.5) / 9,
                 rand + (tiefe - 2 * rand) * (j + 0.5) / 11, ah / 2)
             for i in range(9) for j in range(11)),
-        # Rippe 1 muss nahtlos an die vordere Auflage anschliessen.
-        "Naht vorne":     durchgehend(-hi, g("rippe_dy") + g("rippe_b")),
-        # Die vier Schraubloecher muessen frei sein und in den Auflagen liegen.
-        "Schraubloecher": _loecher_ok(s, hinten_ueber),
+        # Rib 1 must join the front rest seamlessly.
+        "front seam":    durchgehend(-hi, g("rippe_dy") + g("rippe_b")),
+        # The four screw holes must be free and lie within the rests.
+        "screw holes":    _loecher_ok(s, hinten_ueber),
     }
 
 
-if __name__ != "nicht_ausfuehren":
+if __name__ != "do_not_run":
     o = d.getObject("Halter_A") or d.addObject("Part::Feature", "Halter_A")
     o.Shape = halter(g("a_tiefe"), g("a_hinten"), g("a_rand"))
-    o.Label = "Halter A (Buero, %.0f-mm-Luefter)" % g("luefterhoehe")
+    o.Label = "Halter A (office, %.0f mm fan)" % g("luefterhoehe")
     d.recompute()
     res = pruefe_halter(o.Shape, g("a_tiefe"), g("a_hinten"), g("a_rand"))
     for k, v in res.items():
-        print("  %-16s %s" % (k, "OK" if v else "FEHLER"))
+        print("  %-16s %s" % (k, "OK" if v else "FAIL"))
     m = MeshPart.meshFromShape(Shape=o.Shape, LinearDeflection=0.05,
                                AngularDeflection=0.5, Relative=False)
-    m.write(os.path.join(out, "halter_A.stl"))   # flach, keine Drehung noetig
+    m.write(os.path.join(out, "halter_A.stl"))   # flat, no turning needed
     bb = o.Shape.BoundBox
     print("  Halter A %.0fx%.0fx%.0f mm  %.1f cm3  solid=%s  %s" % (
         bb.XLength, bb.YLength, bb.ZLength, o.Shape.Volume / 1000, m.isSolid(),
-        "BESTANDEN" if all(res.values()) else "FEHLGESCHLAGEN"))
+        "PASSED" if all(res.values()) else "FAILED"))
 
 
 # ---------------------------------------------------------------------------
-# Zapfen: hohle Quader, die formschluessig in die Heizungsschlitze fassen
+# Zapfen (pegs): blocks that engage the radiator slots with a positive fit
 # ---------------------------------------------------------------------------
 
 def zapfen(x0=0.0, y0=0.0, sd=None):
-    """Massiver Quader mit gerundeten Kanten, der formschluessig in einen
-    Heizungsschlitz fasst.
+    """Solid block with rounded edges that engages a radiator slot with a
+    positive fit.
 
-    Aussenmass = Schlitzbreite minus Spiel x Lochfeldbreite, sitzt also
-    formschluessig im Schlitz und kann sich weder drehen noch wandern.
-    Wird von oben durch die Blende verschraubt; zapfen_sd ist das KERNLOCH
-    fuer eine selbstschneidende M3, kein Durchgangsloch.
+    Outer size = slot width minus clearance x width of the perforated field,
+    so it sits in the slot with a positive fit and can neither turn nor
+    wander. It is screwed from above through the baffle; zapfen_sd is the
+    CORE hole for a self-tapping M3, not a clearance hole.
     """
     b, l = g("zapfen_b"), g("zapfen_l")
     h, rad = g("zapfen_h"), g("zapfen_r")
@@ -334,28 +344,28 @@ def zapfen(x0=0.0, y0=0.0, sd=None):
         sd = g("zapfen_sd")
 
     aussen = Part.makeBox(b, l, h, FreeCAD.Vector(x0, y0, 0))
-    # Nur die vier SENKRECHTEN Kanten runden - oben bleibt die Flaeche plan
-    # zur Anlage an der Blende, unten die Kante zum Einfuehren.
+    # Round only the four VERTICAL edges - the top face stays flat to rest
+    # against the baffle, at the bottom the edge for insertion.
     senk = [e for e in aussen.Edges
             if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > h - 1e-6]
     koerper = aussen.makeFillet(rad, senk)
-    # Kernloch DURCHGEHEND, damit der Zapfen beidseitig verwendbar ist:
-    # laesst das Gewinde auf einer Seite nach, wird er umgedreht.
+    # Core hole THROUGH, so the peg is usable on both sides: if the thread
+    # gives way on one side, it is turned over.
     koerper = koerper.cut(Part.makeCylinder(
         sd / 2, h + 2, FreeCAD.Vector(x0 + b / 2, y0 + l / 2, -1)))
     return koerper.removeSplitter()
 
 
-if __name__ != "nicht_ausfuehren":
-    # Die beiden Zapfen werden fuer den DRUCK in die Luefteroeffnung gelegt -
-    # dort ist der Halter ohnehin leer, also kostet es keine Bettflaeche.
-    # Montiert werden sie unter den Blenden, an deren vorhandenen Loechern.
+if __name__ != "do_not_run":
+    # For PRINTING the pegs are placed in the fan opening - the mount is empty
+    # there anyway, so it costs no bed area. They are installed under the
+    # baffles, at their existing holes.
     zi = g("z_innen")
     zb, zl = g("zapfen_b"), g("zapfen_l")
-    ymid = g("a_tiefe") / 2 - zl / 2                  # mittig zur Blechtiefe
+    ymid = g("a_tiefe") / 2 - zl / 2                  # centred on the sheet depth
 
-    # Je zwei Zapfen fuer M2, M3 und M4 - welche Schrauben da sind, zeigt
-    # sich erst beim Zusammenbau. Gleichmaessig ueber die Oeffnung verteilt.
+    # Two pegs each for M2, M3 and M4 - which screws are at hand only shows
+    # during assembly. Evenly distributed across the opening.
     saetze = [("M2", g("kern_m2")), ("M3", g("zapfen_sd")), ("M4", g("kern_m4"))]
     stueck, n = [], 2 * len(saetze)
     luecke = (zi - n * zb) / (n + 1)
@@ -368,18 +378,17 @@ if __name__ != "nicht_ausfuehren":
     for t in stueck[1:]:
         ges_z = ges_z.fuse(t)
     oz.Shape = ges_z
-    oz.Label = "Zapfen A (je 2x M2/M3/M4)"
+    oz.Label = "Zapfen A (2x each M2/M3/M4)"
     d.recompute()
     bbz = oz.Shape.BoundBox
-    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  (%d Stueck: je 2x M2/M3/M4)" % (
+    print("  Zapfen A %.1fx%.1fx%.1f mm  %.2f cm3  (%d pieces: 2x each M2/M3/M4)" % (
         bbz.XLength, bbz.YLength, bbz.ZLength, oz.Shape.Volume / 1000, n))
 
-    # Eine Datei mit allen drei Koerpern: Halter + 2 Zapfen. Ein STL darf
-    # mehrere getrennte Volumen enthalten, der Slicer behandelt sie als
-    # eigene Objekte.
+    # One file with all bodies: mount + pegs. An STL may contain several
+    # separate volumes; the slicer treats them as objects of their own.
     ges = d.getObject("Halter_A").Shape.fuse(oz.Shape)
     mg = MeshPart.meshFromShape(Shape=ges, LinearDeflection=0.05,
                                 AngularDeflection=0.5, Relative=False)
     mg.write(os.path.join(out, "halter_A_komplett.stl"))
-    print("  Komplett: %d Volumenkoerper, %.2f cm3, solid=%s" % (
+    print("  complete: %d solids, %.2f cm3, solid=%s" % (
         len(ges.Solids), ges.Volume / 1000, mg.isSolid()))
