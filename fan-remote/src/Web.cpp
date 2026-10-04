@@ -322,6 +322,7 @@ static void handleNetconfig(AsyncWebServerRequest *r) {
     }
   }
   settingsSaveNet();
+  mqttRefreshDiscovery();   // a new friendly name shows up in Home Assistant at once
   logf(LOG_INFO, "network config changed (applies at next boot)");
   json(r, 200, "{\"ok\":true,\"note\":\"applies at next boot\"}");
 }
@@ -406,6 +407,7 @@ static void handleConfigPost(AsyncWebServerRequest *r) {
   settingsSaveAll();
   settingsSaveNet();
   fans.applyConfig();
+  mqttRefreshDiscovery();   // new names / enabled channels reach Home Assistant at once
   pushNow = true;
   logf(LOG_INFO, "settings changed");
   json(r, 200, configJson());

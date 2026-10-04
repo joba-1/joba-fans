@@ -327,6 +327,9 @@ void mqttBegin() {
   if (!settings().mqttHost[0]) resSet(resMqtt(), false, "unused");
 }
 
+static volatile bool refreshReq = false;
+void mqttRefreshDiscovery() { refreshReq = true; }   // done by mqttLoop(): PubSubClient is single-threaded
+
 bool mqttConnected() { return mq.connected(); }
 
 void mqttLoop() {
@@ -356,6 +359,12 @@ void mqttLoop() {
   }
 
   mq.loop();
+
+  if (refreshReq) {   // renamed device / fan, or a channel switched on or off
+    refreshReq = false;
+    discovery();
+    logf(LOG_INFO, "mqtt: discovery refreshed");
+  }
 
   uint32_t r = fans.revision();
   static uint32_t lastPub = 0;

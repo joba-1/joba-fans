@@ -56,6 +56,12 @@ problem sensor, plus WiFi signal and uptime. Entities appear within seconds of t
 board connecting to the broker. A fan entity at `0 %` is off; HA's percentage is the
 same 1…100 speed as the slider.
 
+Renaming the board or a fan in the settings updates the names in Home Assistant at once. The
+**entity ids** stay as they were when the entities were first created: Home Assistant remembers deleted
+entities and gives a returning unique id its old entity id back (tested with HA 2026.9: removing
+and re-announcing the discovery messages, as Zigbee2MQTT's `homeassistant_rename` does, restored
+the old ids). To change ids, use Home Assistant itself (entity settings, or the registry API).
+
 ## MQTT
 
 Topics are `fan-control/<id>/…`; the full list is in [spec.md](spec.md). Examples:

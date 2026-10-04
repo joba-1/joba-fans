@@ -5,3 +5,4 @@
 void mqttBegin();
 void mqttLoop();
 bool mqttConnected();
+void mqttRefreshDiscovery();   // names / enabled channels changed: tell Home Assistant now (any task)
