@@ -91,7 +91,7 @@ yourself when the fab does not fit the through-hole parts).
   a fan's own pull-up asks for full speed — a short burst of up to a few tenths of a second. The firmware
   drives the pins low first thing; fixing it fully would take a 10 kΩ pull-down per line (board revision 2).
 * **Total current:** the single 1.5 A polyfuse protects all four fan headers together. Add up the nameplate
-  currents of the fans on a board (at most 2 fans per header, 8 per board; see
+  currents of the fans on a board (chaining several fans on one header is possible, see
   [`fan-mount`](../fan-mount/README.md#how-it-fits-the-rest-of-the-system)) and stay below that.
 * **Jack and USB-C together:** the XIAO's VBUS pin is fed from the AMS1117; whether the module isolates its
   own USB 5 V from that pin has not been verified here. Flash over USB with the 12 V jack unplugged, or use
