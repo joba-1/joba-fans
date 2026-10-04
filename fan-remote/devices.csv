@@ -4,3 +4,4 @@
 # setup access point (fan-control-N-setup) and the Home Assistant ids. Never renumber or reuse a number.
 # Add a board with:  python3 scripts/register_device.py --port /dev/ttyACM0
 58:e6:c5:19:38:60,1,XIAO ESP32-C6 on the bench
+58:e6:c5:13:02:38,2,XIAO ESP32-C6 on fan PCB
