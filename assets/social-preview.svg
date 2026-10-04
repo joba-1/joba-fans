@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1280 640" width="1280" height="640">
+  <rect width="1280" height="640" fill="#0e2a3a"/>
+  <g transform="translate(230 320) scale(6)" fill="#4fd1e8">
+    <path id="b" d="M0 -3 C -9 -6 -9 -22 0 -26 C 9 -22 9 -8 3 -3 Z" transform="translate(0 0)"/>
+    <use xlink:href="#b" transform="rotate(120)"/>
+    <use xlink:href="#b" transform="rotate(240)"/>
+    <circle cx="0" cy="0" r="5" fill="#0e2a3a" stroke="#4fd1e8" stroke-width="2"/>
+  </g>
+  <text x="440" y="310" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="110" font-weight="700" fill="#ffffff">joba-fans</text>
+  <text x="444" y="385" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="38" fill="#4fd1e8">Quiet, networked fans for radiators</text>
+  <text x="444" y="450" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="28" fill="#9fb6c3">ESP32 board · case · firmware · mounts</text>
+</svg>

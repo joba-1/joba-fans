@@ -17,6 +17,10 @@ extern const uint8_t pageStart[] asm("_binary_web_index_html_gz_start");
 extern const uint8_t pageEnd[] asm("_binary_web_index_html_gz_end");
 extern const uint8_t logoStart[] asm("_binary_web_logo_svg_start");
 extern const uint8_t logoEnd[] asm("_binary_web_logo_svg_end");
+extern const uint8_t icon32Start[] asm("_binary_web_icon_32_png_start");
+extern const uint8_t icon32End[] asm("_binary_web_icon_32_png_end");
+extern const uint8_t icon180Start[] asm("_binary_web_icon_180_png_start");
+extern const uint8_t icon180End[] asm("_binary_web_icon_180_png_end");
 
 static AsyncWebServer server(80);
 static AsyncEventSource events("/events");
@@ -536,7 +540,14 @@ void webBegin() {
   server.on("/logo.svg", HTTP_GET, [](AsyncWebServerRequest *r) {
     sendEmbedded(r, "image/svg+xml", logoStart, logoEnd, false, "max-age=86400");
   });
-  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *r) { r->redirect("/logo.svg"); });
+  // Browsers that ignore SVG icons (Safari, older ones) ask for /favicon.ico and the touch icon:
+  // serve real PNGs. The content type decides, not the extension.
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *r) {
+    sendEmbedded(r, "image/png", icon32Start, icon32End, false, "max-age=86400");
+  });
+  server.on("/apple-touch-icon.png", HTTP_GET, [](AsyncWebServerRequest *r) {
+    sendEmbedded(r, "image/png", icon180Start, icon180End, false, "max-age=86400");
+  });
 
   // The page calls this when a finger touches it, so the radio is awake for the real command.
   server.on("/api/wake", HTTP_GET, [](AsyncWebServerRequest *r) {

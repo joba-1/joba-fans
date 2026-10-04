@@ -75,6 +75,8 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
             self.send(200, (ROOT / "index.html").read_bytes(), "text/html")
+        elif self.path in ("/favicon.ico", "/apple-touch-icon.png"):
+            self.send(200, (ROOT / ("icon-32.png" if self.path == "/favicon.ico" else "icon-180.png")).read_bytes(), "image/png")
         elif self.path == "/logo.svg":
             self.send(200, (ROOT / "logo.svg").read_bytes(), "image/svg+xml")
         elif self.path == "/api/wake":

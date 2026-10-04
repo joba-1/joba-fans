@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="" width="96"></p>
+
 # joba-fans — quiet, networked fans for radiators
 
 A small system that puts **PC fans on top of panel radiators** and controls them over WiFi. Its job is
@@ -81,6 +83,7 @@ fan-controller/   KiCad project, generator scripts, fab/ (fabrication package), 
 fan-housing/      OpenSCAD case, STLs, fit check
 fan-remote/       PlatformIO firmware, tests, docs/ (spec, user, admin, test)
 fan-mount/        FreeCAD models, STLs, scripts, docs/ (requirements, measurements, design notes)
+assets/           logo (the fan symbol, also used as favicon) and social-preview image
 LICENSE           CC BY-SA 4.0
 ```
 

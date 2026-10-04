@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="fan-remote">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0e2a3a"/>
+  <g transform="translate(32 32)" fill="#4fd1e8">
+    <path id="b" d="M0 -3 C -9 -6 -9 -22 0 -26 C 9 -22 9 -8 3 -3 Z"/>
+    <use href="#b" transform="rotate(120)"/>
+    <use href="#b" transform="rotate(240)"/>
+  </g>
+  <circle cx="32" cy="32" r="5" fill="#0e2a3a" stroke="#4fd1e8" stroke-width="2"/>
+</svg>
