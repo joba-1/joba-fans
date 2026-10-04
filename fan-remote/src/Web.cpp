@@ -191,6 +191,13 @@ static void resJson(JsonArray a, const char *name, const char *host, const Resou
   if (r.lastTryMs) o["lastTryAgoS"] = (millis() - r.lastTryMs) / 1000;
 }
 
+// Smallest amount of stack (bytes) a task has ever had left; -1 if the task is not found.
+// "async_tcp" runs every web handler (this one included), "loopTask" the network and MQTT code.
+static int stackLeft(const char *task) {
+  TaskHandle_t h = xTaskGetHandle(task);
+  return h ? (int)uxTaskGetStackHighWaterMark(h) : -1;
+}
+
 static String netstatusJson() {
   JsonDocument d;
   d["firmware"] = "fan-remote";
@@ -204,6 +211,12 @@ static String netstatusJson() {
   d["rssi"] = WiFi.RSSI();
   d["uptimeS"] = millis() / 1000;
   d["freeHeap"] = ESP.getFreeHeap();
+  d["minFreeHeap"] = ESP.getMinFreeHeap();       // lowest since boot
+  d["maxAllocHeap"] = ESP.getMaxAllocHeap();     // largest block that can still be allocated
+  JsonObject sk = d["stackLeft"].to<JsonObject>();
+  sk["async_tcp"] = stackLeft("async_tcp");
+  sk["loopTask"] = stackLeft("loopTask");
+  sk["fans"] = stackLeft("fans");
   JsonObject pw = d["power"].to<JsonObject>();
   pw["mode"] = powerIdle() ? "standby" : "active";
   pw["cpuMhz"] = powerCpuMhz();

@@ -157,7 +157,7 @@ normal soft start.
 | `GET /api/state` | – | same JSON once |
 | `POST /api/set` | optional | `ch=1..4|all`, plus `speed=0..100` **or** `preset=<id>` **or** `power=on|off` |
 | `GET /api/config`, `POST /api/config` | Basic | per-fan limits and names, presets, ramps, bootMode, protectControl |
-| `GET /api/netstatus` | – | firmware, version, build date, hostname, IP, SSID, RSSI, every external resource with host, last status, last access |
+| `GET /api/netstatus` | – | firmware, version, build date, hostname, IP, SSID, RSSI, heap (`freeHeap`, `minFreeHeap`, `maxAllocHeap`), stack left per task (`stackLeft`: lowest free bytes ever of `async_tcp`, `loopTask`, `fans`), every external resource with host, last status, last access |
 | `POST /api/netconfig` | Basic | `name`, `mqttHost`, `mqttPort`, `mqttUser`, `mqttPass`, `syslogHost`, `ntpHost`, `defaults=1`; stored in NVS, applied at next boot |
 | `POST /api/update` | Basic | firmware image (multipart field `firmware`); written to the next OTA slot, validated, then reboot. The host connects out to port 80: no host firewall port needed (ArduinoOTA remains as a fallback) |
 | `POST /api/discovery` | Basic | resend the Home Assistant discovery; `recreate=1` first removes the old entities and announces new ones under generation + 1 (unique ids and discovery topics carry `_gN`), so entity ids are rebuilt from the current names |
@@ -212,3 +212,17 @@ Credentials for the broker are stored in NVS, never in the repo.
 * A pull-down on the PWM lines (board revision) to make reset quiet.
 * Temperature-driven control belongs in HA; a simple "fan follows sensor X" blueprint
   can be added to `docs/` once real fans have been measured.
+
+## Stack and heap budget
+
+Measured on the real board with `/api/netstatus` (`stackLeft` is the lowest free stack since boot), after
+state/config reads, a settings save, a Home Assistant discovery resend and a rejected firmware upload:
+
+| Task | Stack | Lowest free | Used at most |
+|---|---|---|---|
+| `async_tcp` (all web handlers) | 16 384 B | 13 076 B | ~3.3 KB |
+| `loopTask` (WiFi, MQTT, power) | 8 192 B | 5 216 B | ~3.0 KB |
+| `fans` | 6 144 B | 5 740 B | ~0.4 KB |
+
+Heap: about 278 KB free, lowest 253 KB since boot, largest allocatable block 245 KB. Re-check after
+changes to the handlers or the discovery code (`curl http://fan-control-1/api/netstatus`).
