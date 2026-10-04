@@ -167,6 +167,10 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
 }
 .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
 .btn.danger { background: var(--warn-soft); color: var(--warn); }
+.btn.dirty::before { content: "\25CF\00a0"; }
+.unsaved-note { color: var(--warn); font-size: .85rem; align-self: center; }
+.unsaved-note[hidden] { display: none; }
+.dlg-h.unsaved h2::after { content: " \25CF"; color: var(--warn); }
 .btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 table.st { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
 table.st td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; word-break: break-word; }
@@ -199,7 +203,7 @@ table.st td:first-child { color: var(--muted); white-space: nowrap; }
 <div id="toast" role="status" aria-live="polite"></div>
 
 <dialog id="dlg" aria-labelledby="dlgT">
-  <div class="dlg-h"><h2 id="dlgT"></h2><button class="icon-btn" id="closeSet" aria-label="Close">✕</button></div>
+  <div class="dlg-h" id="dlgH"><h2 id="dlgT"></h2><button class="icon-btn" id="closeSet" aria-label="Close">✕</button></div>
   <div class="dlg-b" id="dlgB"></div>
 </dialog>
 
@@ -211,7 +215,7 @@ const T = {
     appName: "Fan controller", fan: "Fan", all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
     quiet: "Quiet", low: "Low", medium: "Medium", high: "High", max: "Max", mixed: "mixed",
     online: "Online", offline: "No connection", mqttOn: "MQTT", mqttOff: "MQTT off",
-    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", haRecreate: "Recreate Home Assistant entities", haAsk: "Remove this controller\u2019s entities in Home Assistant and create them again? The entity ids are built anew from the current names; history and customisations of the old entities are lost.", haDone: "Entities recreated", waiting: "Waiting for the controller …", noTach: "no tach",
+    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", unsaved: "Unsaved changes", discardAsk: "Discard unsaved changes?", haRecreate: "Recreate Home Assistant entities", haAsk: "Remove this controller\u2019s entities in Home Assistant and create them again? The entity ids are built anew from the current names; history and customisations of the old entities are lost.", haDone: "Entities recreated", waiting: "Waiting for the controller …", noTach: "no tach",
     power: "Power", speed: "Speed", settings: "Settings", close: "Close", save: "Save", saved: "Saved",
     device: "Device", devName: "Name", fansH: "Fans", presetsH: "Preset speeds", behaviour: "Behaviour",
     network: "Network", status: "Status",
@@ -230,7 +234,7 @@ const T = {
     appName: "Lüftersteuerung", fan: "Lüfter", all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
     quiet: "Leise", low: "Niedrig", medium: "Mittel", high: "Hoch", max: "Max", mixed: "gemischt",
     online: "Verbunden", offline: "Keine Verbindung", mqttOn: "MQTT", mqttOff: "MQTT aus",
-    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", haRecreate: "Home-Assistant-Entitäten neu anlegen", haAsk: "Die Entitäten dieser Steuerung in Home Assistant entfernen und neu anlegen? Die Entitäts-IDs werden aus den aktuellen Namen neu gebildet; Verlauf und Anpassungen der alten Entitäten gehen verloren.", haDone: "Entitäten neu angelegt", waiting: "Warte auf die Steuerung …", noTach: "kein Tacho",
+    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", unsaved: "Nicht gespeicherte Änderungen", discardAsk: "Nicht gespeicherte Änderungen verwerfen?", haRecreate: "Home-Assistant-Entitäten neu anlegen", haAsk: "Die Entitäten dieser Steuerung in Home Assistant entfernen und neu anlegen? Die Entitäts-IDs werden aus den aktuellen Namen neu gebildet; Verlauf und Anpassungen der alten Entitäten gehen verloren.", haDone: "Entitäten neu angelegt", waiting: "Warte auf die Steuerung …", noTach: "kein Tacho",
     power: "Ein/Aus", speed: "Drehzahl", settings: "Einstellungen", close: "Schließen", save: "Speichern", saved: "Gespeichert",
     device: "Gerät", devName: "Name", fansH: "Lüfter", presetsH: "Voreinstellungen", behaviour: "Verhalten",
     network: "Netzwerk", status: "Status",
@@ -549,8 +553,15 @@ async function openSettings() {
   if (!dlg.open) dlg.showModal();
 }
 $("openSet").onclick = openSettings;
-$("closeSet").onclick = () => dlg.close();
-dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+// "Save needed?": each section compares its fields with what was loaded or last saved.
+let unsavedCheck = null;
+const vals = el => [...el.querySelectorAll("input, select")].map(i => i.type === "checkbox" ? (i.checked ? "1" : "0") : i.value).join("\u0001");
+const mayClose = () => !(unsavedCheck && unsavedCheck.dirty()) || confirm(t("discardAsk"));
+$("closeSet").onclick = () => { if (mayClose()) dlg.close(); };
+dlg.addEventListener("click", e => { if (e.target === dlg && mayClose()) dlg.close(); });
+dlg.addEventListener("cancel", e => { if (!mayClose()) e.preventDefault(); });   // Esc
+dlg.addEventListener("close", () => { unsavedCheck = null; });
+for (const ev of ["input", "change"]) $("dlgB").addEventListener(ev, () => unsavedCheck && unsavedCheck.refresh());
 
 const fld = (label, input) => h("label", {}, label, input);
 const num = (v, min, max) => h("input", { type: "number", value: v, min, max, inputmode: "numeric" });
@@ -574,23 +585,26 @@ function buildSettings() {
   boot.value = cfg.bootMode;
   const [prL, pr] = chk(t("protect"), cfg.protectControl);
 
-  const save = h("button", { class: "btn", type: "button", onclick: async () => {
+  const noteA = h("span", { class: "unsaved-note", hidden: true }, t("unsaved"));
+  const save = h("button", { class: "btn ghost", type: "button", onclick: async () => {
     try {
       cfg = await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.value.trim(), rampUp: +ru.value, rampDown: +rd.value, bootMode: +boot.value,
           protectControl: pr.checked, presets: pre.map(i => +i.value), ch: rows.map(r => r.get()) }) });
+      baseA = vals(secA); unsavedCheck.refresh();
       toast(t("saved")); api("/api/state").then(applyState);
     } catch (e) { toast(t("err") + ": " + e.message); }
   } }, t("save"));
 
-  B.append(
+  const secA = h("div", {},
     h("fieldset", {}, h("legend", {}, t("device")), h("div", { class: "row one" }, fld(t("devName"), name))),
     h("fieldset", {}, h("legend", {}, t("fansH")), rows.map(r => r.el), h("p", { class: "hint" }, t("minHint"))),
     h("fieldset", {}, h("legend", {}, t("presetsH")),
       h("div", { class: "row", style: "grid-template-columns:repeat(5,1fr)" }, pre.map((i, k) => fld(t(PRESET_IDS[k]), i)))),
     h("fieldset", {}, h("legend", {}, t("behaviour")),
       h("div", { class: "row" }, fld(t("rampUp"), ru), fld(t("rampDown"), rd), fld(t("boot"), boot), prL)),
-    h("div", { class: "btns" }, save));
+    h("div", { class: "btns" }, save, noteA));
+  B.append(secA);
 
   // network
   const n = cfg.net;
@@ -598,22 +612,35 @@ function buildSettings() {
   const mu = h("input", { type: "text", maxlength: 31, value: n.mqttUser, autocomplete: "off" });
   const mw = h("input", { type: "password", maxlength: 63, placeholder: n.mqttPassSet ? t("mqttPassKeep") : "", autocomplete: "new-password" });
   const sh = h("input", { type: "text", maxlength: 63, value: n.syslogHost }), nh = h("input", { type: "text", maxlength: 63, value: n.ntpHost });
-  const netSave = h("button", { class: "btn", type: "button", onclick: async () => {
-    const d = { mqttHost: mh.value.trim(), mqttPort: mp.value, mqttUser: mu.value, syslogHost: sh.value.trim(), ntpHost: nh.value.trim(), name: name.value.trim() };
+  const noteB = h("span", { class: "unsaved-note", hidden: true }, t("unsaved"));
+  const netSave = h("button", { class: "btn ghost", type: "button", onclick: async () => {
+    const d = { mqttHost: mh.value.trim(), mqttPort: mp.value, mqttUser: mu.value, syslogHost: sh.value.trim(), ntpHost: nh.value.trim() };
     if (mw.value) d.mqttPass = mw.value;
-    try { await post("/api/netconfig", d); toast(t("saved")); mw.value = ""; }
+    try { await post("/api/netconfig", d); toast(t("saved")); mw.value = ""; baseB = vals(secNet); unsavedCheck.refresh(); }
     catch (e) { toast(t("err") + ": " + e.message); }
   } }, t("saveNet"));
   const rb = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("rebootAsk"))) post("/api/reboot", {}).then(() => { dlg.close(); toast(t("reboot") + "…"); }).catch(() => {}); } }, t("reboot"));
   const wr = h("button", { class: "btn danger", type: "button", onclick: () => { if (confirm(t("wifiAsk"))) post("/api/wifireset", {}).catch(() => {}); } }, t("wifiReset"));
   const ha = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("haAsk"))) post("/api/discovery", { recreate: 1 }).then(() => toast(t("haDone"))).catch(e => toast(t("err") + ": " + e.message)); } }, t("haRecreate"));
   const stBox = h("div");
-  B.append(h("fieldset", {}, h("legend", {}, t("network")),
+  const secNet = h("fieldset", {}, h("legend", {}, t("network")),
     h("div", { class: "row" }, fld(t("mqttHost"), mh), fld(t("mqttPort"), mp), fld(t("mqttUser"), mu), fld(t("mqttPass"), mw),
       fld(t("syslog"), sh), fld(t("ntp"), nh)),
     h("p", { class: "hint" }, t("netHint")),
-    h("div", { class: "btns" }, netSave, rb, wr), h("div", { class: "btns" }, ha)),
-    h("fieldset", {}, h("legend", {}, t("status")), stBox));
+    h("div", { class: "btns" }, netSave, noteB, rb, wr), h("div", { class: "btns" }, ha));
+  B.append(secNet, h("fieldset", {}, h("legend", {}, t("status")), stBox));
+
+  let baseA = vals(secA), baseB = vals(secNet);
+  unsavedCheck = {
+    dirty: () => vals(secA) !== baseA || vals(secNet) !== baseB,
+    refresh: () => {
+      const a = vals(secA) !== baseA, b = vals(secNet) !== baseB;
+      for (const [btn, note, d] of [[save, noteA, a], [netSave, noteB, b]]) {
+        btn.classList.toggle("dirty", d); btn.classList.toggle("ghost", !d); note.hidden = !d;
+      }
+      $("dlgH").classList.toggle("unsaved", a || b);
+    }
+  };
   api("/api/netstatus").then(ns => {
     const ago = s => s == null ? t("never") : (s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : Math.round(s / 3600) + " h") + " " + t("ago");
     const rows = [[t("fw"), "fan-remote " + ns.version + " (" + ns.git + ")"], [t("ip"), ns.ip + " · " + ns.hostname], [t("ssid"), ns.ssid + " · " + ns.rssi + " dBm"],

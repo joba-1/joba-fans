@@ -37,7 +37,11 @@ acknowledges the fault.
 
 ### Settings (gear icon)
 
-Asks for the admin login (user `admin`). Everything is stored on the board.
+Asks for the admin login (user `admin`). Everything is stored on the board. Nothing is saved
+automatically: a section with unsaved edits shows a dot in the dialog title, "Unsaved changes" next
+to its **Save** button, and the button turns solid; changing a value back removes the marker, and
+closing with unsaved edits asks first. **Save** covers name, fans, presets and behaviour (applies at
+once), **Save network** the broker, syslog and NTP (applies after a reboot).
 
 * **Fans**: name (empty = "Fan N" / "Lüfter N"), enabled, *Min* and *Max* duty, tach wired, pulses per revolution
   (PC fans: 2). Set *Min* to the lowest duty at which your fan still turns reliably
