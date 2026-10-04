@@ -21,7 +21,9 @@ ROOT = Path(__file__).resolve().parent.parent / "web"
 PRESETS = [("quiet", 10), ("low", 30), ("medium", 50), ("high", 75), ("max", 100)]
 lock = threading.Lock()
 DELAY = 0.0
-cfg = {"name": "fan-control-1", "rampUp": 10, "rampDown": 20, "bootMode": 0, "protectControl": False,
+NUM = int(sys.argv[3]) if len(sys.argv) > 3 else 1      # device number: sets the page hue
+VERSION = (ROOT / ".." / "VERSION").read_text().strip() if (ROOT / ".." / "VERSION").exists() else "1.0.0"
+cfg = {"name": "fan-control-%d" % NUM, "led": {"present": True, "mode": 1, "day": 30, "night": 3, "from": 22, "to": 7}, "rampUp": 10, "rampDown": 20, "bootMode": 0, "protectControl": False,
        "presets": [p[1] for p in PRESETS],
        "ch": [{"name": n, "enabled": e, "min": 20, "max": 100, "tach": True, "ppr": 2}
               for n, e in (("Radiator left", True), ("Radiator right", True), ("Window", True), ("", True))],
@@ -54,7 +56,7 @@ def state():
             ch.append({"n": i + 1, "name": c["name"], "enabled": c["enabled"], "speed": f["speed"],
                        "duty": round(f["duty"], 1), "rpm": f["rpm"], "state": f["state"], "fault": f["fault"],
                        "tach": c["tach"], "min": c["min"], "max": c["max"]})
-        return {"id": "fan-control-1", "name": cfg["name"], "v": "0.1.0", "up": 4242, "rssi": -58, "mqtt": True,
+        return {"id": "fan-control-%d" % NUM, "name": cfg["name"], "v": VERSION, "up": 4242, "rssi": -58, "mqtt": True,
                 "presets": [{"id": p[0], "speed": cfg["presets"][i]} for i, p in enumerate(PRESETS)], "ch": ch}
 
 
@@ -86,7 +88,8 @@ class H(BaseHTTPRequestHandler):
         elif self.path == "/api/config":
             self.send(200, json.dumps(cfg))
         elif self.path == "/api/netstatus":
-            self.send(200, json.dumps({"firmware": "fan-remote", "version": "0.1.0", "git": "mock", "hostname": "fan-control-1",
+            self.send(200, json.dumps({"firmware": "fan-remote", "version": VERSION, "git": "mock", "hostname": "fan-control-%d" % NUM,
+                "health": {"ok": False, "issues": ["no MQTT"]}, "led": {"present": True, "night": False, "percent": 30},
                 "ip": "192.168.1.50", "ssid": "home", "rssi": -58, "uptimeS": 4242, "freeHeap": 180000,
                 "power": {"mode": "standby", "cpuMhz": 80, "standbyInS": 0, "pwmHz": 25000},
                 "resources": [{"name": "mqtt", "host": "mqtt", "status": "connected", "lastOkAgoS": 2},
@@ -130,7 +133,7 @@ class H(BaseHTTPRequestHandler):
         elif self.path == "/api/config":
             new = json.loads(body)
             with lock:
-                for k in ("name", "rampUp", "rampDown", "bootMode", "protectControl", "presets", "ch"):
+                for k in ("name", "led", "rampUp", "rampDown", "bootMode", "protectControl", "presets", "ch"):
                     if k in new:
                         cfg[k] = new[k]
             self.send(200, json.dumps(cfg))

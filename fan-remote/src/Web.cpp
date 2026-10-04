@@ -7,6 +7,7 @@
 #include <mbedtls/base64.h>
 
 #include "Fans.h"
+#include "Led.h"
 #include "Mqtt.h"
 #include "Net.h"
 #include "NetLog.h"
@@ -158,6 +159,13 @@ static String configJson() {
   d["rampDown"] = s.rampDown;
   d["bootMode"] = s.bootMode;
   d["protectControl"] = s.protectControl;
+  JsonObject lo = d["led"].to<JsonObject>();
+  lo["present"] = ledAvailable();
+  lo["mode"] = s.ledMode;
+  lo["day"] = s.ledDay;
+  lo["night"] = s.ledNight;
+  lo["from"] = s.nightFrom;
+  lo["to"] = s.nightTo;
   JsonArray pr = d["presets"].to<JsonArray>();
   for (int i = 0; i < kPresets; i++) pr.add(s.presets[i]);
   JsonArray ch = d["ch"].to<JsonArray>();
@@ -217,6 +225,18 @@ static String netstatusJson() {
   sk["async_tcp"] = stackLeft("async_tcp");
   sk["loopTask"] = stackLeft("loopTask");
   sk["fans"] = stackLeft("fans");
+  const uint8_t issues = healthIssues();
+  JsonObject hl = d["health"].to<JsonObject>();
+  hl["ok"] = issues == 0;
+  JsonArray ia = hl["issues"].to<JsonArray>();
+  if (issues & 1) ia.add("fan stalled");
+  if (issues & 2) ia.add("no WiFi");
+  if (issues & 4) ia.add("no MQTT");
+  if (issues & 8) ia.add("clock not synced");
+  JsonObject lj = d["led"].to<JsonObject>();
+  lj["present"] = ledAvailable();
+  lj["night"] = ledNightNow();
+  lj["percent"] = ledPercentNow();
   JsonObject pw = d["power"].to<JsonObject>();
   pw["mode"] = powerIdle() ? "standby" : "active";
   pw["cpuMhz"] = powerCpuMhz();
@@ -401,6 +421,19 @@ static void handleConfigPost(AsyncWebServerRequest *r) {
     if (!d["protectControl"].is<bool>()) return err(r, 400, "protectControl bool");
     n.protectControl = d["protectControl"];
   }
+  if (!d["led"].isNull()) {
+    JsonObjectConst l = d["led"];
+    if ((x = num(l["mode"], 0, 1, n.ledMode)) < 0) return err(r, 400, "led.mode 0|1");
+    n.ledMode = x;
+    if ((x = num(l["day"], 0, 100, n.ledDay)) < 0) return err(r, 400, "led.day 0..100");
+    n.ledDay = x;
+    if ((x = num(l["night"], 0, 100, n.ledNight)) < 0) return err(r, 400, "led.night 0..100");
+    n.ledNight = x;
+    if ((x = num(l["from"], 0, 23, n.nightFrom)) < 0) return err(r, 400, "led.from 0..23");
+    n.nightFrom = x;
+    if ((x = num(l["to"], 0, 23, n.nightTo)) < 0) return err(r, 400, "led.to 0..23");
+    n.nightTo = x;
+  }
   if (!d["presets"].isNull()) {
     JsonArrayConst a = d["presets"];
     if (a.size() != kPresets) return err(r, 400, "presets needs 5 values");
@@ -437,6 +470,11 @@ static void handleConfigPost(AsyncWebServerRequest *r) {
   s.rampDown = n.rampDown;
   s.bootMode = n.bootMode;
   s.protectControl = n.protectControl;
+  s.ledMode = n.ledMode;
+  s.ledDay = n.ledDay;
+  s.ledNight = n.ledNight;
+  s.nightFrom = n.nightFrom;
+  s.nightTo = n.nightTo;
   memcpy(s.presets, n.presets, sizeof s.presets);
   for (int i = 0; i < kFans; i++) s.ch[i] = n.ch[i];
   settingsSaveAll();

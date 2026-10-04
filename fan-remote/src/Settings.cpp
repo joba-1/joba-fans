@@ -66,6 +66,11 @@ static void fillDefaults(Settings &s, bool netOnly) {
   s.rampUp = 10;
   s.rampDown = 20;
   s.bootMode = 0;
+  s.ledMode = CFG_LED_MODE;
+  s.ledDay = CFG_LED_DAY;
+  s.ledNight = CFG_LED_NIGHT;
+  s.nightFrom = CFG_NIGHT_FROM;
+  s.nightTo = CFG_NIGHT_TO;
   s.protectControl = false;
   s.haGen = 0;
 }
@@ -91,6 +96,11 @@ void settingsLoad() {
   g.rampUp = p.getUChar("rampUp", g.rampUp);
   g.rampDown = p.getUChar("rampDown", g.rampDown);
   g.bootMode = p.getUChar("bootMode", g.bootMode);
+  g.ledMode = p.getUChar("ledMode", g.ledMode);
+  g.ledDay = p.getUChar("ledDay", g.ledDay);
+  g.ledNight = p.getUChar("ledNight", g.ledNight);
+  g.nightFrom = p.getUChar("nFrom", g.nightFrom);
+  g.nightTo = p.getUChar("nTo", g.nightTo);
   g.protectControl = p.getBool("protect", g.protectControl);
   g.haGen = p.getUChar("hagen", 0);
   for (int i = 0; i < kPresets; i++) {
@@ -186,6 +196,11 @@ void settingsSaveAll() {
   u8("rampUp", g.rampUp, d.rampUp);
   u8("rampDown", g.rampDown, d.rampDown);
   u8("bootMode", g.bootMode, d.bootMode);
+  u8("ledMode", g.ledMode, d.ledMode);
+  u8("ledDay", g.ledDay, d.ledDay);
+  u8("ledNight", g.ledNight, d.ledNight);
+  u8("nFrom", g.nightFrom, d.nightFrom);
+  u8("nTo", g.nightTo, d.nightTo);
   flag("protect", g.protectControl, d.protectControl);
   u8("hagen", g.haGen, d.haGen);
   for (int i = 0; i < kPresets; i++) {

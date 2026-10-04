@@ -19,6 +19,17 @@ Every enabled fan has a card:
 
 The **All fans** card at the top sets every enabled fan at once.
 
+### Colour and status LED
+
+Every controller has its **own base colour** (from its number), so you can tell several of them apart; red and
+green always keep their meaning (problem / ok).
+
+Where the module has a LED (XIAO ESP32-C6: the yellow one) it shows the state: **steady = fans on**,
+**a short flash once a second = a problem, fans off**, **blinking = fans on and a problem**, dark = fans off and
+everything fine. Problems are: a fan stalled, no WiFi, no MQTT broker (when one is set), clock not synchronised.
+The brightness is lower at night; Settings → Status LED sets day and night brightness, the night hours, or
+switches the LED off completely (dark operation). Settings → Status shows the current health.
+
 ### Standby
 
 After a minute without any interaction the controller saves power (WiFi modem sleep, lower

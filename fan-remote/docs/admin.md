@@ -42,6 +42,14 @@ board** (or first moving one from MAC ids): publish an empty retained message to
 `homeassistant/+/<oldid>_*/config` topics before flashing, so HA drops the old entities
 and the new ones keep the entity ids, then clear the old `fan-control/<oldid>/#` retained topics.
 
+## Status LED
+
+Settings → Status LED (or `led` in `/api/config`). Build defaults are `led_mode`, `led_day`, `led_night`,
+`night_from`, `night_to` in `config.ini`. To test the problem signal on a board whose fan is off, unplug a
+running fan (stalled after about 8 s) or enter a wrong broker under Network and reboot; `curl
+http://fan-control-1/api/netstatus` shows `health.issues`. A different board with its own LED pins: set
+`LED_FAN_PIN` / `LED_ALERT_PIN` / `LED_ACTIVE_LOW` in the environment's `build_flags`.
+
 ## Runtime configuration
 
 Compile-time values are only defaults. Per board, behind the admin login:

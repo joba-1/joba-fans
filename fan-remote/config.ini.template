@@ -32,3 +32,12 @@ idle_seconds = 60
 cpu_active_mhz = 160
 cpu_idle_mhz = 80
 timezone = CET-1CEST,M3.5.0,M10.5.0/3
+; Status LED (boards that have one; the XIAO ESP32-C6 has a yellow user LED). led_mode 0 = off
+; (dark operation), 1 = on. Brightness in percent, lower at night; the night window is in whole
+; hours of local time (night_from > night_to wraps over midnight). All of it is editable in the
+; web settings; these are only the defaults of a fresh board.
+led_mode = 1
+led_day = 30
+led_night = 5
+night_from = 22
+night_to = 7

@@ -33,6 +33,11 @@ struct Settings {
   uint8_t haGen;               // Home Assistant entity generation: part of every unique id
   uint8_t lastSpeed[kFans];    // target speeds, restored at boot
   uint8_t lastOn[kFans];       // last non-zero speed ("ON" brings this back)
+  uint8_t ledMode;             // status LED: 0 = off (dark), 1 = on
+  uint8_t ledDay;              // brightness by day, percent
+  uint8_t ledNight;            // brightness at night, percent
+  uint8_t nightFrom;           // night window, local hours 0..23 (from > to wraps midnight)
+  uint8_t nightTo;
 };
 
 extern const char *const kPresetIds[kPresets];  // "quiet", "low", "medium", "high", "max"

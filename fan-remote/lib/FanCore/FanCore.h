@@ -119,4 +119,35 @@ class PowerPolicy {
   bool seen_ = false;
 };
 
+// ---- status LED and health ---------------------------------------------------------------
+// What is wrong with the device, as a bit mask (0 = healthy).
+constexpr uint8_t kIssueFan = 1;    // an enabled fan is stalled
+constexpr uint8_t kIssueWifi = 2;   // not connected to WiFi
+constexpr uint8_t kIssueMqtt = 4;   // a broker is configured but not connected
+constexpr uint8_t kIssueTime = 8;   // clock not synchronised (NTP)
+
+struct HealthInput {
+  int stalledFans = 0;
+  bool wifi = false;
+  bool mqttWanted = false;   // a broker host is configured
+  bool mqtt = false;
+  bool timeSynced = false;
+};
+uint8_t healthIssues(const HealthInput &h);
+
+// Night window in whole hours, wrapping over midnight (22 -> 7). from == to: no night.
+bool inNightWindow(int hour, int from, int to);
+// Brightness in percent for day or night.
+uint8_t ledPercent(bool night, uint8_t dayPct, uint8_t nightPct);
+
+// One LED can show two facts. With a LED each for "fans" and "problem" the second one is
+// simply on / off; with a single LED the pattern carries both:
+//   fans off, healthy   dark
+//   fans on, healthy    steady
+//   fans off, problem   short flash once a second
+//   fans on, problem    blinking, 2 Hz
+enum class LedPattern : uint8_t { Dark, Steady, Flash, Blink };
+LedPattern ledPatternCombined(bool fansOn, bool healthy);
+bool ledPhaseOn(LedPattern p, uint32_t nowMs);
+
 }  // namespace fancore

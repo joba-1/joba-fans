@@ -11,24 +11,30 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>
 :root {
-  --bg: #eef3f6; --card: #ffffff; --ink: #0f2430; --muted: #5b7080; --line: #d6e0e6;
-  --accent: #0b7f98; --accent-ink: #ffffff; --accent-soft: #dcf1f6;
-  --warn: #b3261e; --warn-soft: #fde8e6; --ok: #1b7f4b; --track: #d3dee4;
+  /* Base hue of this device (set from its number, see applyHue). Red and green are the signal
+     colours (warn / ok): the hues used here keep well clear of both. */
+  --h: 190;
+  --bg: hsl(calc(var(--h) + 12) 30% 95%); --card: #ffffff; --ink: hsl(calc(var(--h) + 12) 52% 12%);
+  --muted: hsl(calc(var(--h) + 16) 17% 42%); --line: hsl(calc(var(--h) + 13) 25% 87%);
+  --accent: hsl(var(--h) 87% 33%); --accent-ink: #ffffff; --accent-soft: hsl(calc(var(--h) + 2) 60% 91%);
+  --warn: #b3261e; --warn-soft: #fde8e6; --ok: #1b7f4b; --track: hsl(calc(var(--h) + 12) 22% 86%);
   --shadow: 0 1px 2px rgba(15,36,48,.06), 0 6px 20px rgba(15,36,48,.07);
   --r: 18px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0a1820; --card: #11252f; --ink: #e6f1f5; --muted: #8aa3b1; --line: #223b47;
-    --accent: #3cc9e3; --accent-ink: #052029; --accent-soft: #123845;
-    --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: #27414d;
+    --bg: hsl(calc(var(--h) + 10) 52% 8%); --card: hsl(calc(var(--h) + 9) 47% 13%); --ink: hsl(calc(var(--h) + 7) 40% 93%);
+    --muted: hsl(calc(var(--h) + 11) 19% 61%); --line: hsl(calc(var(--h) + 10) 34% 20%);
+    --accent: hsl(var(--h) 74% 56%); --accent-ink: hsl(calc(var(--h) + 2) 84% 7%); --accent-soft: hsl(calc(var(--h) + 6) 59% 16%);
+    --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: hsl(calc(var(--h) + 10) 33% 24%);
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0a1820; --card: #11252f; --ink: #e6f1f5; --muted: #8aa3b1; --line: #223b47;
-  --accent: #3cc9e3; --accent-ink: #052029; --accent-soft: #123845;
-  --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: #27414d;
+  --bg: hsl(calc(var(--h) + 10) 52% 8%); --card: hsl(calc(var(--h) + 9) 47% 13%); --ink: hsl(calc(var(--h) + 7) 40% 93%);
+  --muted: hsl(calc(var(--h) + 11) 19% 61%); --line: hsl(calc(var(--h) + 10) 34% 20%);
+  --accent: hsl(var(--h) 74% 56%); --accent-ink: hsl(calc(var(--h) + 2) 84% 7%); --accent-soft: hsl(calc(var(--h) + 6) 59% 16%);
+  --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: hsl(calc(var(--h) + 10) 33% 24%);
   --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
 }
 * { box-sizing: border-box; }
@@ -237,7 +243,11 @@ const T = {
     saveNet: "Save network", reboot: "Reboot", rebootAsk: "Reboot the controller? The fans keep their speeds, but briefly float during the restart.",
     wifiReset: "Forget WiFi", wifiAsk: "Forget the WiFi credentials and open the setup access point?",
     loginNeeded: "Login required", err: "Request failed", fw: "Firmware", uptime: "Uptime", ip: "IP", ssid: "WiFi", heap: "Free heap",
-    never: "never", ago: "ago", st: "status", empty: "No fan enabled. Enable one in the settings.", sec: "s"
+    never: "never", ago: "ago", st: "status", empty: "No fan enabled. Enable one in the settings.", sec: "s",
+    ledH: "Status LED", ledMode: "LED", ledOff: "Off (dark)", ledOnM: "On", ledDay: "Brightness by day, %", ledNight: "Brightness at night, %",
+    ledFrom: "Night from (hour)", ledTo: "Night until (hour)",
+    ledHint: "One LED: steady = fans on, short flash = problem, blinking = fans on and a problem. Two LEDs: one for fans on, one for a problem. Problems: a fan stalled, no WiFi, no MQTT, clock not synced.",
+    health: "Health", healthOk: "all good"
   },
   de: {
     appName: "Lüftersteuerung", fan: "Lüfter", all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
@@ -256,7 +266,11 @@ const T = {
     saveNet: "Netzwerk speichern", reboot: "Neustart", rebootAsk: "Controller neu starten? Die Lüfter behalten ihre Stufen, laufen während des Neustarts aber kurz unkontrolliert.",
     wifiReset: "WLAN vergessen", wifiAsk: "WLAN-Zugangsdaten vergessen und den Einrichtungs-Zugangspunkt öffnen?",
     loginNeeded: "Anmeldung erforderlich", err: "Anfrage fehlgeschlagen", fw: "Firmware", uptime: "Laufzeit", ip: "IP", ssid: "WLAN", heap: "Freier Heap",
-    never: "nie", ago: "her", st: "Status", empty: "Kein Lüfter aktiv. In den Einstellungen einen aktivieren.", sec: "s"
+    never: "nie", ago: "her", st: "Status", empty: "Kein Lüfter aktiv. In den Einstellungen einen aktivieren.", sec: "s",
+    ledH: "Status-LED", ledMode: "LED", ledOff: "Aus (dunkel)", ledOnM: "An", ledDay: "Helligkeit tagsüber, %", ledNight: "Helligkeit nachts, %",
+    ledFrom: "Nacht ab (Stunde)", ledTo: "Nacht bis (Stunde)",
+    ledHint: "Eine LED: Dauerlicht = Lüfter an, kurzes Blitzen = Problem, Blinken = Lüfter an und ein Problem. Zwei LEDs: eine für Lüfter an, eine für ein Problem. Probleme: Lüfter blockiert, kein WLAN, kein MQTT, Uhr nicht synchron.",
+    health: "Zustand", healthOk: "alles in Ordnung"
   }
 };
 const L = (navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en";
@@ -459,9 +473,27 @@ function updateChips(c, n, presets, speedForActive) {
   presets.forEach((p, i) => c.chipEls[i].setAttribute("aria-pressed", speedForActive === p.speed ? "true" : "false"));
 }
 
+/* Every device gets its own base hue from its number (fan-control-N), so several controllers can
+   be told apart at a glance. The list stays between blue and purple: clear of red and green,
+   which mean "problem" and "ok". */
+const HUES = [190, 245, 285, 215, 265, 205, 295, 230];
+function applyHue(id) {
+  const m = /(\d+)$/.exec(id || "");
+  const n = m ? parseInt(m[1], 10) : 1;
+  const hue = HUES[((n > 0 ? n : 1) - 1) % HUES.length];
+  const root = document.documentElement;
+  if (root.dataset.hue === String(hue)) return;
+  root.dataset.hue = String(hue);
+  root.style.setProperty("--h", hue);
+  const tc = document.querySelector('meta[name="theme-color"]');
+  if (tc) tc.content = "hsl(" + (hue + 12) + " 55% 15%)";
+}
+applyHue(location.hostname);   // from the host name straight away, before any data arrives
+
 function applyState(s) {
   if (!s || !s.ch) return;
   S = s; lastEvent = performance.now();
+  applyHue(s.id);
   $("title").textContent = s.name;
   document.title = s.name;
   $("dot").className = "dot on"; $("conn").textContent = t("online");
@@ -593,13 +625,18 @@ function buildSettings() {
   const boot = h("select", {}, h("option", { value: 0 }, t("bootLast")), h("option", { value: 1 }, t("bootOff")));
   boot.value = cfg.bootMode;
   const [prL, pr] = chk(t("protect"), cfg.protectControl);
+  const led = cfg.led || { present: false };
+  const lm = h("select", {}, h("option", { value: 0 }, t("ledOff")), h("option", { value: 1 }, t("ledOnM")));
+  lm.value = led.mode;
+  const ld = num(led.day, 0, 100), ln = num(led.night, 0, 100), lf = num(led.from, 0, 23), lt = num(led.to, 0, 23);
 
   const noteA = h("span", { class: "unsaved-note", hidden: true }, t("unsaved"));
   const save = h("button", { class: "btn ghost", type: "button", onclick: async () => {
     try {
       cfg = await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.value.trim(), rampUp: +ru.value, rampDown: +rd.value, bootMode: +boot.value,
-          protectControl: pr.checked, presets: pre.map(i => +i.value), ch: rows.map(r => r.get()) }) });
+          protectControl: pr.checked, presets: pre.map(i => +i.value), ch: rows.map(r => r.get()),
+          ...(led.present ? { led: { mode: +lm.value, day: +ld.value, night: +ln.value, from: +lf.value, to: +lt.value } } : {}) }) });
       baseA = vals(secA); unsavedCheck.refresh();
       toast(t("saved")); api("/api/state").then(applyState);
     } catch (e) { toast(t("err") + ": " + e.message); }
@@ -612,6 +649,9 @@ function buildSettings() {
       h("div", { class: "row", style: "grid-template-columns:repeat(5,1fr)" }, pre.map((i, k) => fld(t(PRESET_IDS[k]), i)))),
     h("fieldset", {}, h("legend", {}, t("behaviour")),
       h("div", { class: "row" }, fld(t("rampUp"), ru), fld(t("rampDown"), rd), fld(t("boot"), boot), prL)),
+    led.present ? h("fieldset", {}, h("legend", {}, t("ledH")),
+      h("div", { class: "row" }, fld(t("ledMode"), lm), fld(t("ledDay"), ld), fld(t("ledNight"), ln), fld(t("ledFrom"), lf), fld(t("ledTo"), lt)),
+      h("p", { class: "hint" }, t("ledHint"))) : null,
     h("div", { class: "btns" }, save, noteA));
   B.append(secA);
 
@@ -655,6 +695,7 @@ function buildSettings() {
     const rows = [[t("fw"), "fan-remote " + ns.version + " (" + ns.git + ")"], [t("ip"), ns.ip + " · " + ns.hostname], [t("ssid"), ns.ssid + " · " + ns.rssi + " dBm"],
       [t("uptime"), Math.floor(ns.uptimeS / 3600) + " h " + Math.floor(ns.uptimeS % 3600 / 60) + " min"], [t("heap"), (ns.freeHeap / 1024).toFixed(0) + " kB"],
       [t("pwrMode"), t(ns.power.mode === "standby" ? "modeStandby" : "modeActive") + " · " + ns.power.cpuMhz + " MHz · PWM " + ns.power.pwmHz + " Hz"],
+      [t("health"), ns.health ? (ns.health.ok ? t("healthOk") : ns.health.issues.join(", ")) : "–"],
       ...ns.resources.map(r => [r.name, (r.host || "–") + " · " + r.status + " · " + ago(r.lastOkAgoS)])];
     stBox.append(h("table", { class: "st" }, rows.map(r => h("tr", {}, h("td", {}, r[0]), h("td", {}, r[1])))));
   }).catch(() => {});

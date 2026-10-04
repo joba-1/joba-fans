@@ -272,8 +272,55 @@ void test_power_policy_millis_wrap() {
   TEST_ASSERT_TRUE(p.idle(0xFFFFFF00u + 60000u, false));
 }
 
+void test_health_issues() {
+  HealthInput h;
+  TEST_ASSERT_EQUAL_UINT8(kIssueWifi | kIssueTime, healthIssues(h));   // fresh boot
+  h.wifi = true; h.timeSynced = true;
+  TEST_ASSERT_EQUAL_UINT8(0, healthIssues(h));
+  h.mqttWanted = true;
+  TEST_ASSERT_EQUAL_UINT8(kIssueMqtt, healthIssues(h));                // broker configured, not connected
+  h.mqtt = true;
+  TEST_ASSERT_EQUAL_UINT8(0, healthIssues(h));
+  h.stalledFans = 2;
+  TEST_ASSERT_EQUAL_UINT8(kIssueFan, healthIssues(h));
+  h.mqttWanted = false; h.mqtt = false; h.timeSynced = false;
+  TEST_ASSERT_EQUAL_UINT8(kIssueFan | kIssueTime, healthIssues(h));    // no broker configured: not an issue
+}
+
+void test_night_window() {
+  TEST_ASSERT_TRUE(inNightWindow(23, 22, 7));
+  TEST_ASSERT_TRUE(inNightWindow(0, 22, 7));
+  TEST_ASSERT_TRUE(inNightWindow(6, 22, 7));
+  TEST_ASSERT_FALSE(inNightWindow(7, 22, 7));
+  TEST_ASSERT_FALSE(inNightWindow(12, 22, 7));
+  TEST_ASSERT_TRUE(inNightWindow(22, 22, 7));
+  TEST_ASSERT_TRUE(inNightWindow(3, 1, 5));        // window inside one day
+  TEST_ASSERT_FALSE(inNightWindow(5, 1, 5));
+  TEST_ASSERT_FALSE(inNightWindow(3, 4, 4));       // from == to: never night
+  TEST_ASSERT_EQUAL_UINT8(30, ledPercent(false, 30, 3));
+  TEST_ASSERT_EQUAL_UINT8(3, ledPercent(true, 30, 3));
+  TEST_ASSERT_EQUAL_UINT8(100, ledPercent(false, 250, 3));
+}
+
+void test_led_patterns() {
+  TEST_ASSERT_EQUAL((int)LedPattern::Dark, (int)ledPatternCombined(false, true));
+  TEST_ASSERT_EQUAL((int)LedPattern::Steady, (int)ledPatternCombined(true, true));
+  TEST_ASSERT_EQUAL((int)LedPattern::Flash, (int)ledPatternCombined(false, false));
+  TEST_ASSERT_EQUAL((int)LedPattern::Blink, (int)ledPatternCombined(true, false));
+  TEST_ASSERT_FALSE(ledPhaseOn(LedPattern::Dark, 50));
+  TEST_ASSERT_TRUE(ledPhaseOn(LedPattern::Steady, 12345));
+  TEST_ASSERT_TRUE(ledPhaseOn(LedPattern::Flash, 2050));
+  TEST_ASSERT_FALSE(ledPhaseOn(LedPattern::Flash, 2150));
+  TEST_ASSERT_TRUE(ledPhaseOn(LedPattern::Blink, 100));
+  TEST_ASSERT_FALSE(ledPhaseOn(LedPattern::Blink, 300));
+  TEST_ASSERT_TRUE(ledPhaseOn(LedPattern::Blink, 600));
+}
+
 int main() {
   UNITY_BEGIN();
+  RUN_TEST(test_health_issues);
+  RUN_TEST(test_night_window);
+  RUN_TEST(test_led_patterns);
   RUN_TEST(test_device_number_lookup);
   RUN_TEST(test_device_id_format);
   RUN_TEST(test_power_policy);

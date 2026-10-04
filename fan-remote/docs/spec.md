@@ -213,6 +213,35 @@ Credentials for the broker are stored in NVS, never in the repo.
 * Temperature-driven control belongs in HA; a simple "fan follows sensor X" blueprint
   can be added to `docs/` once real fans have been measured.
 
+## Status LED and health
+
+Optional; a build without `LED_FAN_PIN` has no LED code path. Pins and polarity are build flags in
+`platformio.ini`: `LED_FAN_PIN` (+ `LED_ALERT_PIN` for a second LED) and `LED_ACTIVE_LOW`. The XIAO
+ESP32-C6 build drives its yellow user LED (GPIO15, active low); the red LED beside it is the battery charge
+indicator and is not under software control. The C3 build points at D8, the pin the housing README suggests
+for a retrofitted LED (harmless without one).
+
+**Health** is a bit mask (`netstatus.health`): a stalled fan, no WiFi, no MQTT (only if a broker is
+configured), clock not synchronised. 0 = healthy.
+
+| LEDs | Pattern |
+|---|---|
+| one | fans off, healthy: dark · fans on, healthy: steady · fans off, problem: 100 ms flash once a second · fans on, problem: blinking 2 Hz |
+| two | first LED: fans on · second LED: problem |
+
+**Brightness** is PWM (1 kHz, 10 bit), in percent: `ledDay` by day, `ledNight` at night (defaults 30 % and 5 %),
+night = local hours `nightFrom`..`nightTo` (default 22..7, wraps over midnight). `ledMode` 0 switches the LED off
+completely (dark operation). Without a synchronised clock it is always day. All of it is in `/api/config`
+(`led`) and the settings dialog; defaults come from `config.ini`. The pure logic (night window, brightness,
+patterns, health mask) is in `FanCore` and unit tested.
+
+## Web page colour
+
+The base hue of the page comes from the device number (`fan-control-N`, read from the host name first and
+from the state's id after that): eight hues between blue and violet (190, 245, 285, 215, 265, 205, 295, 230°),
+wrapping for N > 8. Red and green are the signal colours of the page (problem / ok) and stay fixed; the hue set
+keeps clear of both. Board 1 keeps the original blue.
+
 ## Stack and heap budget
 
 Measured on the real board with `/api/netstatus` (`stackLeft` is the lowest free stack since boot), after

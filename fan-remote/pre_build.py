@@ -70,6 +70,11 @@ ints = {
     "CFG_SYSLOG_PORT": int(opt("syslog_port", "514")),
     "CFG_POWER_SAVE": int(opt("power_save", "1")),
     "CFG_IDLE_S": int(opt("idle_seconds", "60")),
+    "CFG_LED_MODE": int(opt("led_mode", "1")),
+    "CFG_LED_DAY": int(opt("led_day", "30")),
+    "CFG_LED_NIGHT": int(opt("led_night", "5")),
+    "CFG_NIGHT_FROM": int(opt("night_from", "22")),
+    "CFG_NIGHT_TO": int(opt("night_to", "7")),
     "CFG_CPU_ACTIVE_MHZ": int(opt("cpu_active_mhz", "160")),
     "CFG_CPU_IDLE_MHZ": int(opt("cpu_idle_mhz", "80")),
 }

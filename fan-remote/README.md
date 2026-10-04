@@ -4,7 +4,7 @@ Firmware for the four-channel fan controller board in [`../fan-controller/`](../
 ESP32-C3), part of the [joba-fans](../README.md) project. One board drives four 4-pin PC fans with 25 kHz
 PWM and reads their RPM.
 
-**Status:** version 0.1.0 (git tag `fan-remote-v0.1.0`). Unit tests pass on the PC and the image builds for
+**Status:** version 1.0.0 (git tag `fan-remote-v1.0.0`), running on two boards. Unit tests pass on the PC and the image builds for
 the XIAO ESP32-C3 (the module the board is designed for) and the pin-compatible ESP32-C6. It has been run
 on a bench C6 with one fan; the hardware bring-up on the real fan board is still open (see
 [docs/test.md](docs/test.md)). The pin table matches the board's pad nets.
@@ -15,6 +15,8 @@ on a bench C6 with one fan; the hardware bring-up on the real fan board is still
   turning, then slewed to the target; a blocked fan is detected and retried with
   backoff instead of being driven hard.
 * **MQTT** with **Home Assistant discovery**; any number of boards, one image.
+* **Each board has its own colour** on the web page (from its number), so several controllers can be told apart.
+* **Status LED** where the module has one (XIAO ESP32-C6): fans on/off and a health signal, dimmed at night, or dark.
 * Fans keep running without WiFi, broker or browser: control runs in its own task.
 
 ```text

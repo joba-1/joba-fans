@@ -188,4 +188,39 @@ void formatDeviceId(char *out, unsigned n, int number, const uint8_t mac[6]) {
   else snprintf(out, n, "fan-control-new-%02x%02x%02x", mac[3], mac[4], mac[5]);
 }
 
+uint8_t healthIssues(const HealthInput &h) {
+  uint8_t m = 0;
+  if (h.stalledFans > 0) m |= kIssueFan;
+  if (!h.wifi) m |= kIssueWifi;
+  if (h.mqttWanted && !h.mqtt) m |= kIssueMqtt;
+  if (!h.timeSynced) m |= kIssueTime;
+  return m;
+}
+
+bool inNightWindow(int hour, int from, int to) {
+  if (from == to) return false;
+  if (from < to) return hour >= from && hour < to;
+  return hour >= from || hour < to;
+}
+
+uint8_t ledPercent(bool night, uint8_t dayPct, uint8_t nightPct) {
+  uint8_t v = night ? nightPct : dayPct;
+  return v > 100 ? 100 : v;
+}
+
+LedPattern ledPatternCombined(bool fansOn, bool healthy) {
+  if (healthy) return fansOn ? LedPattern::Steady : LedPattern::Dark;
+  return fansOn ? LedPattern::Blink : LedPattern::Flash;
+}
+
+bool ledPhaseOn(LedPattern p, uint32_t nowMs) {
+  switch (p) {
+    case LedPattern::Dark: return false;
+    case LedPattern::Steady: return true;
+    case LedPattern::Flash: return nowMs % 1000 < 100;
+    case LedPattern::Blink: return nowMs % 500 < 250;
+  }
+  return false;
+}
+
 }  // namespace fancore

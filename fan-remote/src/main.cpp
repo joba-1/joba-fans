@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "Fans.h"
+#include "Led.h"
 #include "Mqtt.h"
 #include "Net.h"
 #include "Power.h"
@@ -47,6 +48,7 @@ void setup() {
       if (s.lastSpeed[i] && s.ch[i].enabled) fans.setSpeed(i, s.lastSpeed[i]);  // soft start
   }
 
+  ledBegin();
   mqttBegin();
   netBegin();     // may take up to ~20 s; the fans do not care
 }
@@ -62,6 +64,7 @@ void loop() {
     webUp = true;
   }
   fans.logEvents();
+  ledLoop();
   powerLoop();
   netlogLoop();
   mqttLoop();
