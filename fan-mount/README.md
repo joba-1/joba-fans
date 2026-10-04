@@ -45,10 +45,11 @@ The mounts are 226.6 mm wide (230 mm bed) and 28 mm tall; print flat, no support
   15 mm slim fans also fit and leave more intake space where the sill is low.
 * **Controller:** each fan plugs into one of the four 4-pin headers of
   [`fan-controller`](../fan-controller/) (pin order GND, +12 V, tach, PWM). A radiator needs several
-  fans (one per 250–300 mm of length), more than a board has channels, so the plan is to **chain
-  2–3 fans per channel** with a PWM splitter cable: they then run at the same speed and only one
-  fan's tach is read back (this chaining is not yet tried on the real board). Keep the
-  *total* current of all four channels below the board's 1.5 A polyfuse.
+  fans (one per 250–300 mm of length), more than a board has channels, so the rule is **at most 2 fans per channel**, joined with a PWM
+  splitter cable: the pair runs at the same speed and only one fan's tach is read back (not yet tried
+  on the real board). That makes **8 fans per board at most**; a radiator that needs more (the living
+  room, 7–9) gets a second board. Keep the *total* current of all fans on a board below the 1.5 A
+  polyfuse — about 0.18 A per fan with 8 fans.
 * **Control:** [`fan-remote`](../fan-remote/) sets the speeds (web page, MQTT, Home Assistant). The
   mounts do not depend on it.
 

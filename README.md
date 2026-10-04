@@ -33,7 +33,7 @@ flowchart LR
 ```
 
 * A **radiator** carries up to ~9 fans in `fan-mount` parts. The fans are standard 120 × 25 mm PC fans.
-* Each **controller board** drives four channels; several fans can share a channel (same speed, one tach).
+* Each **controller board** drives four channels; up to **two fans share a channel** (same speed, one tach), so a board carries at most 8 fans.
   A 12 V supply feeds the board, which passes 12 V on to the fans.
 * The **firmware** gives each board a web page, MQTT topics and a Home Assistant device. Speeds are set
   there — by hand, or by automation (for instance a heat-pump cooling signal in Home Assistant). The
@@ -58,7 +58,7 @@ READMEs:
    ([fan-controller](fan-controller/README.md#known-issues)).
 2. The PWM lines **float during an ESP reset**, so fans can burst briefly (also fan-controller; a pull-down
    is a candidate for board revision 2).
-3. A radiator needs **more fans than a board has channels**, so fans must be chained per channel
+3. A radiator needs **more fans than a board has channels**, so fans are paired per channel (**max. 2 per channel, 8 per board**)
    ([fan-mount](fan-mount/README.md#how-it-fits-the-rest-of-the-system)); this has not been tried yet.
 4. The firmware has not yet run **on the real board** — only on a bench XIAO with one fan.
 
