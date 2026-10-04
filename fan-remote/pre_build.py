@@ -56,7 +56,7 @@ strings = {
     "CFG_MQTT_HOST": opt("mqtt_host"),
     "CFG_MQTT_USER": opt("mqtt_user"),
     "CFG_MQTT_PASSWORD": opt("mqtt_password"),
-    "CFG_MQTT_PREFIX": opt("mqtt_prefix", "fans"),
+    "CFG_MQTT_PREFIX": opt("mqtt_prefix", "fan-control"),
     "CFG_HA_PREFIX": opt("ha_prefix", "homeassistant"),
     "CFG_SYSLOG_HOST": opt("syslog_host"),
     "CFG_NTP_HOST": opt("ntp_host", "pool.ntp.org"),

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Give a board its number in devices.csv (host name fan-N, topics fans/fan-N/..., HA ids).
+"""Give a board its number in devices.csv (host name fan-control-N, topics fan-control/fan-control-N/..., HA ids).
 
     python3 scripts/register_device.py --port /dev/ttyACM0     # read the MAC from the board
     python3 scripts/register_device.py 58:e6:c5:19:38:60 "kitchen"
@@ -51,12 +51,12 @@ def main():
             rows.append((norm(f[0]), int(f[1])))
     known = dict(rows)
     if mac in known:
-        print("fan-%d  (already registered: %s)" % (known[mac], mac))
+        print("fan-control-%d  (already registered: %s)" % (known[mac], mac))
         return
     n = max([r[1] for r in rows] + [0]) + 1
     with CSV.open("a", encoding="utf-8") as f:
         f.write("%s,%d,%s\n" % (mac, n, a.note))
-    print("fan-%d  (registered %s). Rebuild and flash this board." % (n, mac))
+    print("fan-control-%d  (registered %s). Rebuild and flash this board." % (n, mac))
 
 
 if __name__ == "__main__":

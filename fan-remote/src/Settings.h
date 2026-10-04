@@ -7,7 +7,7 @@ constexpr int kFans = 4;
 constexpr int kPresets = 5;
 
 struct ChannelCfg {
-  char name[24];
+  char name[24];    // empty = default label ("Fan N" / "Lüfter N")
   bool enabled;
   uint8_t minPct;   // lowest duty that keeps the fan turning
   uint8_t maxPct;   // duty at speed 100
@@ -44,5 +44,5 @@ void settingsSaveSpeeds();               // lastSpeed / lastOn
 void settingsDefaults(bool netOnly);     // back to config.ini defaults (not saved)
 void settingsEraseNet();                 // forget runtime network targets
 
-const char *deviceId();                  // "fan-3": the number registered for this MAC in devices.csv
-bool deviceRegistered();                 // false: temporary id "fan-new-xxxxxx", register the board
+const char *deviceId();                  // "fan-control-3": the number registered for this MAC in devices.csv
+bool deviceRegistered();                 // false: temporary id "fan-control-new-xxxxxx", register the board

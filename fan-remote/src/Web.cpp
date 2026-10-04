@@ -3,6 +3,7 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
+#include <Update.h>
 #include <mbedtls/base64.h>
 
 #include "Fans.h"
@@ -34,12 +35,12 @@ static bool ctEqual(const char *a, const char *b) {
   return d == 0;
 }
 
-// Basic auth against admin_user / adminPass; sends the challenge itself on failure.
-static bool authed(AsyncWebServerRequest *r) {
-  if (millis() < lockUntil) {
-    r->send(429, "text/plain", "too many attempts, wait a moment");
-    return false;
-  }
+enum AuthResult { AUTH_OK, AUTH_LOCKED, AUTH_BAD };
+
+// Basic auth against admin_user / adminPass, including the lockout after repeated failures.
+// Sends nothing: callers decide how to answer (the firmware upload must refuse early).
+static AuthResult checkAuth(AsyncWebServerRequest *r) {
+  if (millis() < lockUntil) return AUTH_LOCKED;
   bool ok = false;
   if (r->hasHeader("Authorization")) {
     const String &h = r->header("Authorization");
@@ -58,12 +59,23 @@ static bool authed(AsyncWebServerRequest *r) {
   }
   if (ok) {
     authFails = 0;
-    return true;
+    return AUTH_OK;
   }
   if (r->hasHeader("Authorization") && ++authFails >= 5) {
     lockUntil = millis() + 30000;
     authFails = 0;
     logf(LOG_WARN, "web: repeated failed logins, locked for 30 s");
+  }
+  return AUTH_BAD;
+}
+
+// Same, and answers the request itself on failure.
+static bool authed(AsyncWebServerRequest *r) {
+  AuthResult a = checkAuth(r);
+  if (a == AUTH_OK) return true;
+  if (a == AUTH_LOCKED) {
+    r->send(429, "text/plain", "too many attempts, wait a moment");
+    return false;
   }
   // 401 without WWW-Authenticate for fetch() would be silent; the header makes the browser ask.
   AsyncWebServerResponse *resp = r->beginResponse(401, "text/plain", "login required");
@@ -82,6 +94,14 @@ static bool sameOrigin(AsyncWebServerRequest *r) {
   if (host == r->host()) return true;
   r->send(403, "text/plain", "cross-origin request refused");
   return false;
+}
+
+// Origin check without answering (the upload callback cannot send).
+static bool originOk(AsyncWebServerRequest *r) {
+  if (!r->hasHeader("Origin")) return true;
+  String o = r->header("Origin");
+  int s = o.indexOf("://");
+  return (s >= 0 ? o.substring(s + 3) : o) == r->host();
 }
 
 static bool controlAllowed(AsyncWebServerRequest *r) {
@@ -361,7 +381,7 @@ static void handleConfigPost(AsyncWebServerRequest *r) {
       ChannelCfg &t = n.ch[i];
       if (!c["name"].isNull()) {
         const char *nm = c["name"] | "";
-        if (!*nm || strlen(nm) >= sizeof t.name) return err(r, 400, "bad channel name");
+        if (strlen(nm) >= sizeof t.name) return err(r, 400, "bad channel name");   // empty = default label
         strcpy(t.name, nm);
       }
       if (!c["enabled"].isNull()) t.enabled = c["enabled"] | true;
@@ -389,6 +409,65 @@ static void handleConfigPost(AsyncWebServerRequest *r) {
   pushNow = true;
   logf(LOG_INFO, "settings changed");
   json(r, 200, configJson());
+}
+
+// ---- firmware update over HTTP -------------------------------------------------------------
+// POST /api/update (multipart, field "firmware", Basic auth). The host makes an outbound
+// connection to the board's port 80: no port has to be opened on the host, unlike ArduinoOTA,
+// where the board connects back. Refused up front when the login or the origin is wrong; an
+// image for another chip fails Update.end() and leaves the running firmware alone.
+static AsyncWebServerRequest *upOwner = nullptr;   // request that is allowed to write
+static String upError;
+static bool upDone = false;   // an image was written AND validated by Update.end()
+
+static void onUpdateBody(AsyncWebServerRequest *r, const String &, size_t index, uint8_t *data, size_t len, bool final) {
+  powerActivity();
+  if (index == 0) {
+    upOwner = nullptr;
+    upDone = false;
+    upError = "";
+    if (checkAuth(r) != AUTH_OK) { upError = "login required"; return; }
+    if (!originOk(r)) { upError = "cross-origin request refused"; return; }
+    if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) { upError = Update.errorString(); return; }
+    upOwner = r;
+    logf(LOG_WARN, "firmware update started");
+  }
+  if (upOwner != r) return;   // refused, or another upload owns the flash
+  if (Update.write(data, len) != len) {
+    upError = Update.errorString();
+    Update.abort();
+    upOwner = nullptr;
+    return;
+  }
+  if (final) {
+    if (!Update.end(true)) upError = Update.errorString();   // validates the image, incl. the chip
+    else upDone = true;
+    upOwner = nullptr;
+  }
+}
+
+static void onUpdateDone(AsyncWebServerRequest *r) {
+  // State of this request only: copy it out and reset, so the next request starts clean even
+  // if it carries no file part (then the upload callback never runs at all).
+  const bool done = upDone;
+  String error = upError;
+  upDone = false;
+  upError = "";
+  if (done && error.length() == 0) {   // never from a request that carried no image
+    AsyncWebServerResponse *resp = r->beginResponse(200, "application/json", "{\"ok\":true,\"note\":\"rebooting\"}");
+    resp->addHeader("Connection", "close");
+    r->send(resp);
+    logf(LOG_WARN, "firmware update done, rebooting");
+    r->onDisconnect([]() { delay(200); ESP.restart(); });
+    return;
+  }
+  if (upOwner == r) { Update.abort(); upOwner = nullptr; }
+  int code = error == "login required" ? 401 : (error.startsWith("cross") ? 403 : 500);
+  if (error.length() == 0) error = "no firmware received";
+  AsyncWebServerResponse *resp = r->beginResponse(code, "application/json", String("{\"error\":\"") + error + "\"}");
+  if (code == 401) resp->addHeader("WWW-Authenticate", "Basic realm=\"fan-remote\"");
+  r->send(resp);
+  logf(LOG_WARN, "firmware update refused: %s", error.c_str());
 }
 
 static void sendEmbedded(AsyncWebServerRequest *r, const char *type, const uint8_t *start,
@@ -428,6 +507,7 @@ void webBegin() {
   server.on("/api/netconfig", HTTP_POST, handleNetconfig);
   server.on("/api/config", HTTP_GET, handleConfigGet);
   server.on("/api/config", HTTP_POST, handleConfigPost);
+  server.on("/api/update", HTTP_POST, onUpdateDone, onUpdateBody);
   server.on("/api/reboot", HTTP_POST, [](AsyncWebServerRequest *r) {
     if (!sameOrigin(r) || !authed(r)) return;
     json(r, 200, "{\"ok\":true}");

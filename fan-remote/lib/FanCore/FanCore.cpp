@@ -184,8 +184,8 @@ int deviceNumber(const DeviceEntry *table, unsigned len, const uint8_t mac[6]) {
 }
 
 void formatDeviceId(char *out, unsigned n, int number, const uint8_t mac[6]) {
-  if (number > 0) snprintf(out, n, "fan-%d", number);
-  else snprintf(out, n, "fan-new-%02x%02x%02x", mac[3], mac[4], mac[5]);
+  if (number > 0) snprintf(out, n, "fan-control-%d", number);
+  else snprintf(out, n, "fan-control-new-%02x%02x%02x", mac[3], mac[4], mac[5]);
 }
 
 }  // namespace fancore

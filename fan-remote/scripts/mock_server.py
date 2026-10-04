@@ -21,10 +21,10 @@ ROOT = Path(__file__).resolve().parent.parent / "web"
 PRESETS = [("quiet", 10), ("low", 30), ("medium", 50), ("high", 75), ("max", 100)]
 lock = threading.Lock()
 DELAY = 0.0
-cfg = {"name": "Fans Living room", "rampUp": 10, "rampDown": 20, "bootMode": 0, "protectControl": False,
+cfg = {"name": "fan-control-1", "rampUp": 10, "rampDown": 20, "bootMode": 0, "protectControl": False,
        "presets": [p[1] for p in PRESETS],
        "ch": [{"name": n, "enabled": e, "min": 20, "max": 100, "tach": True, "ppr": 2}
-              for n, e in (("Radiator left", True), ("Radiator right", True), ("Window", True), ("Fan 4", True))],
+              for n, e in (("Radiator left", True), ("Radiator right", True), ("Window", True), ("", True))],
        "net": {"mqttHost": "mqtt", "mqttPort": 1883, "mqttUser": "fans", "mqttPassSet": True,
                "syslogHost": "syslog", "ntpHost": "de.pool.ntp.org"}}
 fans = [{"speed": 50, "duty": 60.0, "rpm": 1480, "state": "run", "fault": False},
@@ -54,7 +54,7 @@ def state():
             ch.append({"n": i + 1, "name": c["name"], "enabled": c["enabled"], "speed": f["speed"],
                        "duty": round(f["duty"], 1), "rpm": f["rpm"], "state": f["state"], "fault": f["fault"],
                        "tach": c["tach"], "min": c["min"], "max": c["max"]})
-        return {"id": "fan-a1b2c3", "name": cfg["name"], "v": "0.1.0", "up": 4242, "rssi": -58, "mqtt": True,
+        return {"id": "fan-control-1", "name": cfg["name"], "v": "0.1.0", "up": 4242, "rssi": -58, "mqtt": True,
                 "presets": [{"id": p[0], "speed": cfg["presets"][i]} for i, p in enumerate(PRESETS)], "ch": ch}
 
 
@@ -84,7 +84,7 @@ class H(BaseHTTPRequestHandler):
         elif self.path == "/api/config":
             self.send(200, json.dumps(cfg))
         elif self.path == "/api/netstatus":
-            self.send(200, json.dumps({"firmware": "fan-remote", "version": "0.1.0", "git": "mock", "hostname": "fan-a1b2c3",
+            self.send(200, json.dumps({"firmware": "fan-remote", "version": "0.1.0", "git": "mock", "hostname": "fan-control-1",
                 "ip": "192.168.1.50", "ssid": "home", "rssi": -58, "uptimeS": 4242, "freeHeap": 180000,
                 "power": {"mode": "standby", "cpuMhz": 80, "standbyInS": 0, "pwmHz": 25000},
                 "resources": [{"name": "mqtt", "host": "mqtt", "status": "connected", "lastOkAgoS": 2},

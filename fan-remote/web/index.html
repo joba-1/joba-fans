@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0e2a3a">
-<title>Fan remote</title>
+<title>Fan controller</title>
 <link rel="icon" href="/logo.svg" type="image/svg+xml">
 <style>
 :root {
@@ -184,7 +184,7 @@ table.st td:first-child { color: var(--muted); white-space: nowrap; }
   <header>
     <img src="/logo.svg" alt="">
     <div>
-      <h1 id="title">Fan remote</h1>
+      <h1 id="title">Fan controller</h1>
       <div class="sub"><span><i class="dot" id="dot"></i><span id="conn">…</span></span><span id="wifi"></span><span id="mq"></span></div>
     </div>
     <div class="sp"></div>
@@ -208,10 +208,10 @@ table.st td:first-child { color: var(--muted); white-space: nowrap; }
 /* ---------- i18n ---------- */
 const T = {
   en: {
-    all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
+    appName: "Fan controller", fan: "Fan", all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
     quiet: "Quiet", low: "Low", medium: "Medium", high: "High", max: "Max", mixed: "mixed",
     online: "Online", offline: "No connection", mqttOn: "MQTT", mqttOff: "MQTT off",
-    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", noTach: "no tach",
+    stalled: "Fan blocked or not connected. Retrying with backoff.", pwrMode: "Power", modeActive: "full power", modeStandby: "standby", noAck: "The controller did not confirm the change", waiting: "Waiting for the controller …", noTach: "no tach",
     power: "Power", speed: "Speed", settings: "Settings", close: "Close", save: "Save", saved: "Saved",
     device: "Device", devName: "Name", fansH: "Fans", presetsH: "Preset speeds", behaviour: "Behaviour",
     network: "Network", status: "Status",
@@ -227,10 +227,10 @@ const T = {
     never: "never", ago: "ago", st: "status", empty: "No fan enabled. Enable one in the settings.", sec: "s"
   },
   de: {
-    all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
+    appName: "Lüftersteuerung", fan: "Lüfter", all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
     quiet: "Leise", low: "Niedrig", medium: "Mittel", high: "Hoch", max: "Max", mixed: "gemischt",
     online: "Verbunden", offline: "Keine Verbindung", mqttOn: "MQTT", mqttOff: "MQTT aus",
-    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", noTach: "kein Tacho",
+    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", pwrMode: "Energie", modeActive: "Vollbetrieb", modeStandby: "Standby", noAck: "Der Controller hat die Änderung nicht bestätigt", waiting: "Warte auf die Steuerung …", noTach: "kein Tacho",
     power: "Ein/Aus", speed: "Drehzahl", settings: "Einstellungen", close: "Schließen", save: "Speichern", saved: "Gespeichert",
     device: "Gerät", devName: "Name", fansH: "Lüfter", presetsH: "Voreinstellungen", behaviour: "Verhalten",
     network: "Netzwerk", status: "Status",
@@ -249,6 +249,7 @@ const T = {
 const L = (navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en";
 const t = k => (T[L][k] ?? T.en[k] ?? k);
 document.documentElement.lang = L;
+document.title = t("appName"); document.getElementById("title").textContent = t("appName");
 document.getElementById("openSet").setAttribute("aria-label", t("settings"));
 document.getElementById("closeSet").setAttribute("aria-label", t("close"));
 
@@ -265,6 +266,9 @@ function h(tag, attrs, ...kids) {
   return e;
 }
 const $ = id => document.getElementById(id);
+// Channels without a name of their own are called "Fan N" / "Lüfter N" by the page language.
+const isDefaultName = nm => !nm || /^Fan \d$/.test(nm);
+const fanName = ch => isDefaultName(ch.name) ? t("fan") + " " + ch.n : ch.name;
 const FAN_SVG = `<svg class="fan" viewBox="0 0 64 64" aria-hidden="true"><g class="rot">
   <g fill="currentColor"><path id="bl" d="M32 29 C23 26 22 9 32 5 C42 9 41 24 35 29 Z"/>
   <use href="#bl" transform="rotate(120 32 32)"/><use href="#bl" transform="rotate(240 32 32)"/></g></g>
@@ -284,7 +288,11 @@ const drag = new Map();      // ch -> true while the slider is held
 let lastEvent = 0;
 
 async function api(path, opts) {
-  const r = await fetch(path, opts);
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 20000);
+  let r;
+  try { r = await fetch(path, { ...opts, signal: ctl.signal }); }
+  catch (e) { const er = new Error(e.name === "AbortError" ? "timeout" : e.message); er.status = 0; throw er; }
+  finally { clearTimeout(timer); }
   if (!r.ok) {
     let m = ""; try { m = (await r.json()).error || ""; } catch (e) {}
     const er = new Error(m || r.status); er.status = r.status; throw er;
@@ -307,6 +315,8 @@ function markPending(c, want, ui) {
   if (!c) return;
   clearPending(c, true);
   c.pend = { want, ui, since: performance.now() };
+  const mine = c.pend;
+  setTimeout(() => { if (c.pend === mine) toast(t("waiting")); }, 1500);   // slow wake-up or weak link
   if (ui.kind === "chip" && c.chipEls[ui.i]) c.chipEls[ui.i].classList.add("pending");
   if (ui.kind === "pwr") c.pwr.classList.add("pending");
   if (ui.kind === "slider") c.out.classList.add("pending");
@@ -332,14 +342,24 @@ function confirmed(w, chs) {
 function settle(c, chs) {
   if (!c || !c.pend) return;
   if (confirmed(c.pend.want, chs)) clearPending(c);
-  else if (performance.now() - c.pend.since > 3000) { clearPending(c); toast(t("noAck")); }
+  // A request still on its way is not a failure, however long it takes (the request itself
+  // times out after 20 s). Only an answer that does not match gets the "not confirmed" hint.
+  else if (!c.inflight && performance.now() - c.pend.since > 3000) { clearPending(c); toast(t("noAck")); }
+}
+// run a request for card c; pending stays on while it is in flight
+function track(c, promise) {
+  c.inflight = (c.inflight || 0) + 1;
+  return promise.then(applyState).catch(e => failed(c, e)).finally(() => {
+    c.inflight--;
+    if (c.pend) c.pend.since = performance.now();   // the "not confirmed" clock starts at the answer
+  });
 }
 
 function postSpeed(n, v) {
   const c = cards.get(n);
   c.sent = v;
   markPending(c, { speed: v }, { kind: "slider" });
-  post("/api/set", { ch: n || "all", speed: v }).then(applyState).catch(e => failed(c, e));
+  track(c, post("/api/set", { ch: n || "all", speed: v }));
 }
 function sendSpeed(n, v, final) {
   const c = cards.get(n), g = gate.get(n);
@@ -363,7 +383,7 @@ function flushSpeed(n) {
 function command(n, data, want, ui) {
   const c = cards.get(n);
   markPending(c, want, ui);
-  post("/api/set", { ch: n || "all", ...data }).then(applyState).catch(e => failed(c, e));
+  track(c, post("/api/set", { ch: n || "all", ...data }));
 }
 
 /* ---------- cards ---------- */
@@ -452,7 +472,7 @@ function applyState(s) {
 
   for (const ch of active) {
     const c = cards.get(ch.n);
-    c.name.textContent = ch.name;
+    c.name.textContent = fanName(ch);
     c.speed = ch.speed;
     c.badge.textContent = t(ch.state);
     c.rpmV.textContent = ch.tach ? ch.rpm.toLocaleString(L) : "–";
@@ -541,12 +561,12 @@ function buildSettings() {
   const name = h("input", { type: "text", maxlength: 31, value: cfg.name });
 
   const rows = cfg.ch.map((c, i) => {
-    const nm = h("input", { type: "text", maxlength: 23, value: c.name });
+    const nm = h("input", { type: "text", maxlength: 23, value: isDefaultName(c.name) ? "" : c.name, placeholder: t("fan") + " " + (i + 1) });
     const mn = num(c.min, 0, 90), mx = num(c.max, 10, 100), pp = num(c.ppr, 1, 8);
     const [enL, en] = chk(t("chOn"), c.enabled), [taL, ta] = chk(t("chTach"), c.tach);
     const el = h("div", { class: "chrow" }, h("div", { class: "nm" }, fld(t("chName") + " " + (i + 1), nm)),
       fld(t("chMin"), mn), fld(t("chMax"), mx), fld(t("chPpr"), pp), h("div", { class: "ck" }, enL, taL));
-    return { el, get: () => ({ name: nm.value.trim() || "Fan " + (i + 1), enabled: en.checked, tach: ta.checked, min: +mn.value, max: +mx.value, ppr: +pp.value }) };
+    return { el, get: () => ({ name: nm.value.trim(), enabled: en.checked, tach: ta.checked, min: +mn.value, max: +mx.value, ppr: +pp.value }) };
   });
   const pre = cfg.presets.map((v, i) => num(v, 0, 100));
   const ru = num(cfg.rampUp, 1, 100), rd = num(cfg.rampDown, 1, 100);

@@ -3,7 +3,7 @@
 Firmware for the four-channel fan controller in `../fan-controller/` (XIAO ESP32-C3).
 One board drives four 4-pin PC fans with 25 kHz PWM and reads their RPM.
 
-* **Web remote** on every board (`http://fan-1.local/`): live RPM, on/off, preset
+* **Web remote** on every board (`http://fan-control-1.local/`): live RPM, on/off, preset
   speeds, a free slider, per fan and for all fans. Phone first, German and English.
 * **Safe, quiet start.** The duty is raised slowly until the tach shows the fan
   turning, then slewed to the target; a blocked fan is detected and retried with
@@ -26,18 +26,18 @@ docs/test.md    test plan and the hardware bring-up checklist
 ```
 
 Boards are numbered in `devices.csv` (MAC → number): register a new one first, then flash.
-The number is the host name (`fan-N`), the MQTT topic and the Home Assistant id.
+The number is the host name (`fan-control-N`), the MQTT topic and the Home Assistant id.
 
 ```sh
-python3 scripts/register_device.py --port /dev/ttyACM0     # prints fan-N
+python3 scripts/register_device.py --port /dev/ttyACM0     # prints fan-control-N
 ```
 
 The first build creates `config.ini` (gitignored). One password, `<admin password>`, does the
 settings login, the setup access point and OTA. A fresh board opens the access point
-`fan-N-setup`; join it and enter WiFi, name and broker. Later updates go over WiFi:
+`fan-control-N-setup`; join it and enter WiFi, name and broker. Later updates go over WiFi:
 
 ```sh
-pio run -e ota -t upload --upload-port fan-1.local
+pio run -e ota -t upload --upload-port fan-control-1.local     # no firewall port needed
 ```
 
 Details in [docs/admin.md](docs/admin.md).

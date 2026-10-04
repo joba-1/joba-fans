@@ -13,7 +13,7 @@
 static WiFiClient net;
 static PubSubClient mq(net);
 
-static char base[48];       // fans/<id>
+static char base[56];       // <prefix>/<id>
 static uint32_t lastTry = 0;
 static uint32_t retryMs = 2000;
 static uint32_t lastInfo = 0;
@@ -86,6 +86,14 @@ static void publishInfo() {
 
 // ---- Home Assistant discovery -------------------------------------------------------
 
+// Channel label for Home Assistant: the name set in the settings, else "Fan N".
+static const char *label(int i, char *buf, size_t n) {
+  const char *nm = settings().ch[i].name;
+  if (*nm) return nm;
+  snprintf(buf, n, "Fan %d", i + 1);
+  return buf;
+}
+
 static void addDevice(JsonDocument &d) {
   JsonObject dev = d["device"].to<JsonObject>();
   dev["identifiers"][0] = deviceId();
@@ -121,6 +129,8 @@ static void discovery() {
   for (int i = 0; i < kFans; i++) {
     const int n = i + 1;
     const ChannelCfg &c = settings().ch[i];
+    char lbl[24];
+    const char *cname = label(i, lbl, sizeof lbl);
     char objFan[40], objNum[40], objRpm[40], objFault[40];
     topic(objNum, sizeof objNum, "%s_%d_speed", id, n);
     topic(objFan, sizeof objFan, "%s_%d", id, n);
@@ -136,7 +146,7 @@ static void discovery() {
 
     {
       JsonDocument d;
-      d["name"] = c.name;
+      d["name"] = cname;
       d["unique_id"] = objFan;
       d["availability_topic"] = status;
       d["icon"] = "mdi:fan";
@@ -163,7 +173,7 @@ static void discovery() {
       // A plain 0..100 % slider on the device page and in every default dashboard (the fan
       // entity's own speed control hides behind its more-info dialog).
       JsonDocument d;
-      snprintf(uid, sizeof uid, "%s %s", c.name, "speed");
+      snprintf(uid, sizeof uid, "%s %s", cname, "speed");
       d["name"] = uid;
       d["unique_id"] = objNum;
       d["availability_topic"] = status;
@@ -182,7 +192,7 @@ static void discovery() {
     }
     if (c.tach) {
       JsonDocument d;
-      snprintf(uid, sizeof uid, "%s %s", c.name, "RPM");
+      snprintf(uid, sizeof uid, "%s %s", cname, "RPM");
       d["name"] = uid;
       d["unique_id"] = objRpm;
       d["availability_topic"] = status;
@@ -196,7 +206,7 @@ static void discovery() {
       send(ha, "sensor", objRpm, &d);
 
       JsonDocument f;
-      snprintf(uid, sizeof uid, "%s %s", c.name, "stalled");
+      snprintf(uid, sizeof uid, "%s %s", cname, "stalled");
       f["name"] = uid;
       f["unique_id"] = objFault;
       f["availability_topic"] = status;

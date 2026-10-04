@@ -24,7 +24,7 @@ static int deviceNo() {
 
 bool deviceRegistered() { return deviceNo() > 0; }
 
-// "fan-3" from devices.csv; "fan-new-xxxxxx" for a board that is not registered yet.
+// "fan-control-3" from devices.csv; "fan-control-new-xxxxxx" for a board that is not registered yet.
 const char *deviceId() {
   static char id[24];
   if (!id[0]) {
@@ -49,11 +49,10 @@ static void fillDefaults(Settings &s, bool netOnly) {
   cpy(s.ntpHost, sizeof s.ntpHost, CFG_NTP_HOST);
   if (netOnly) return;
 
-  if (deviceRegistered()) snprintf(s.name, sizeof s.name, "Fans %d", deviceNo());
-  else cpy(s.name, sizeof s.name, "Fans (new)");
+  cpy(s.name, sizeof s.name, deviceId());   // friendly name starts out as the id
   cpy(s.adminPass, sizeof s.adminPass, CFG_ADMIN_PASSWORD);
   for (int i = 0; i < kFans; i++) {
-    snprintf(s.ch[i].name, sizeof s.ch[i].name, "Fan %d", i + 1);
+    s.ch[i].name[0] = 0;   // empty = default label, "Fan N" or "Lüfter N" by language
     s.ch[i].enabled = true;
     s.ch[i].minPct = 20;
     s.ch[i].maxPct = 100;
@@ -121,6 +120,9 @@ void settingsLoad() {
   // Whatever is in flash, keep the values inside what the firmware can handle.
   for (int i = 0; i < kFans; i++) {
     ChannelCfg &c = g.ch[i];
+    char dflt[12];
+    snprintf(dflt, sizeof dflt, "Fan %d", i + 1);
+    if (strcmp(c.name, dflt) == 0) c.name[0] = 0;   // older firmware stored the default
     if (c.minPct > 90) c.minPct = 90;
     if (c.maxPct > 100) c.maxPct = 100;
     if (c.maxPct < c.minPct) c.maxPct = c.minPct;

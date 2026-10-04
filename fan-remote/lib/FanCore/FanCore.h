@@ -93,7 +93,7 @@ struct DeviceEntry {
 };
 // Number registered for this MAC, or 0.
 int deviceNumber(const DeviceEntry *table, unsigned len, const uint8_t mac[6]);
-// "fan-3" for a registered board, "fan-new-a1b2c3" (last three MAC bytes) otherwise.
+// "fan-control-3" for a registered board, "fan-control-new-a1b2c3" (last three MAC bytes) otherwise.
 void formatDeviceId(char *out, unsigned n, int number, const uint8_t mac[6]);
 
 // ---- idle / active policy ---------------------------------------------------------------

@@ -17,7 +17,7 @@ mqtt_host = mqtt
 mqtt_port = 1883
 mqtt_user =
 mqtt_password =
-mqtt_prefix = fans               ; topics: <prefix>/<device id>/...
+mqtt_prefix = fan-control        ; topics: <prefix>/<device id>/...
 ha_prefix = homeassistant        ; Home Assistant discovery prefix
 syslog_host = syslog             ; empty = no syslog
 syslog_port = 514

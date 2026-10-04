@@ -72,7 +72,8 @@ Verified against `fan-controller.kicad_pcb`, not just the net plan:
 | Speed 1…100 maps onto the *usable* duty range `[min, max]` per fan | "1 %" is the quietest speed that really runs; HA's percentage slider has no dead zone below the stall point. `0` is off. |
 | Presets stored as speeds, edited in the UI | Fans differ; "Low" should be what the user finds quiet, not a fixed number. |
 | Channel numbers 1…4 in topics and the UI | Matches the silkscreen (FAN1…FAN4). |
-| Device id = `fan-N`, N from `devices.csv` (MAC → number), never reused | Readable, stable MQTT topics and HA unique ids instead of MAC digits; the friendly name is separate and renameable. An unregistered board runs as `fan-new-xxxxxx` so it is still unique and recognisable. |
+| Device id = `fan-control-N`, N from `devices.csv` (MAC → number), never reused | Readable, stable MQTT topics and HA unique ids instead of MAC digits; the friendly name is separate and renameable. An unregistered board runs as `fan-control-new-xxxxxx` so it is still unique and recognisable. |
+| Friendly name starts as the id (`fan-control-N`); a fan without a name of its own has an empty name | The page labels it "Fan N" or "Lüfter N" by browser language, Home Assistant "Fan N". No language is baked into the stored data. |
 | One fixed admin password, `<admin password>`, for settings, AP and OTA | Home network: a per-board secret to look up is more trouble than protection. Still HTTP Basic with a constant-time compare and a lockout; changeable per board via `/api/netconfig`. |
 | Control endpoints open on the LAN, settings behind Basic auth | The remote must work from any phone without a login dance. `protectControl` turns the login on for control as well. Deviation from "UI needs auth" is limited to the LAN-only case. |
 
@@ -158,25 +159,26 @@ normal soft start.
 | `GET /api/config`, `POST /api/config` | Basic | per-fan limits and names, presets, ramps, bootMode, protectControl |
 | `GET /api/netstatus` | – | firmware, version, build date, hostname, IP, SSID, RSSI, every external resource with host, last status, last access |
 | `POST /api/netconfig` | Basic | `name`, `mqttHost`, `mqttPort`, `mqttUser`, `mqttPass`, `syslogHost`, `ntpHost`, `defaults=1`; stored in NVS, applied at next boot |
+| `POST /api/update` | Basic | firmware image (multipart field `firmware`); written to the next OTA slot, validated, then reboot. The host connects out to port 80: no host firewall port needed (ArduinoOTA remains as a fallback) |
 | `POST /api/reboot`, `POST /api/wifireset` | Basic | |
 
 `netstatus` / `netconfig` follow the reference in `Joba_Modbus` (CodingStandards §2).
 
 ### MQTT
 
-Base `fans/<id>` (prefix configurable at build time). `<n>` is 1…4.
+Base `fan-control/<id>` (prefix configurable at build time). `<n>` is 1…4.
 
 | Topic | Dir | Payload |
 |---|---|---|
-| `fans/<id>/status` | pub, retained, LWT | `online` / `offline` |
-| `fans/<id>/<n>/speed/state` | pub, retained | `0…100` |
-| `fans/<id>/<n>/speed/set` | sub | `0…100` |
-| `fans/<id>/<n>/power/state`, `…/power/set` | pub / sub | `ON` / `OFF` (ON restores the last non-zero speed) |
-| `fans/<id>/<n>/preset/state`, `…/preset/set` | pub / sub | preset id, or `None` |
-| `fans/<id>/<n>/rpm` | pub | integer rpm, on change ≥ 10 rpm or every 30 s |
-| `fans/<id>/<n>/fault` | pub, retained | `ON` / `OFF` (stalled) |
-| `fans/<id>/all/speed/set`, `…/all/preset/set` | sub | all fans |
-| `fans/<id>/info` | pub, retained | JSON: version, ip, rssi, uptime |
+| `fan-control/<id>/status` | pub, retained, LWT | `online` / `offline` |
+| `fan-control/<id>/<n>/speed/state` | pub, retained | `0…100` |
+| `fan-control/<id>/<n>/speed/set` | sub | `0…100` |
+| `fan-control/<id>/<n>/power/state`, `…/power/set` | pub / sub | `ON` / `OFF` (ON restores the last non-zero speed) |
+| `fan-control/<id>/<n>/preset/state`, `…/preset/set` | pub / sub | preset id, or `None` |
+| `fan-control/<id>/<n>/rpm` | pub | integer rpm, on change ≥ 10 rpm or every 30 s |
+| `fan-control/<id>/<n>/fault` | pub, retained | `ON` / `OFF` (stalled) |
+| `fan-control/<id>/all/speed/set`, `…/all/preset/set` | sub | all fans |
+| `fan-control/<id>/info` | pub, retained | JSON: version, ip, rssi, uptime |
 
 Home Assistant discovery (`homeassistant/…`, retained, re-sent on every connect):
 one `fan` per enabled channel (on/off, percentage 1…100, preset modes), a `number` "speed"

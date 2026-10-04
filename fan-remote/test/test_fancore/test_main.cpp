@@ -245,11 +245,11 @@ void test_device_id_format() {
   const uint8_t m[6] = {0x58, 0xe6, 0xc5, 0x19, 0x38, 0x60};
   char id[24];
   formatDeviceId(id, sizeof id, 3, m);
-  TEST_ASSERT_EQUAL_STRING("fan-3", id);
+  TEST_ASSERT_EQUAL_STRING("fan-control-3", id);
   formatDeviceId(id, sizeof id, 12, m);
-  TEST_ASSERT_EQUAL_STRING("fan-12", id);
+  TEST_ASSERT_EQUAL_STRING("fan-control-12", id);
   formatDeviceId(id, sizeof id, 0, m);
-  TEST_ASSERT_EQUAL_STRING("fan-new-193860", id);
+  TEST_ASSERT_EQUAL_STRING("fan-control-new-193860", id);
 }
 
 void test_power_policy() {
