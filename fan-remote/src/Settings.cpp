@@ -57,7 +57,8 @@ void settingsDefaults(bool netOnly) {
 void settingsLoad() {
   settingsDefaults(false);
   Preferences p;
-  if (!p.begin(NS, true)) return;
+  // Read-only open fails on a fresh board (namespace not created yet): open read-write once.
+  if (!p.begin(NS, false)) return;
   auto str = [&](const char *key, char *dst, size_t n) {
     if (p.isKey(key)) cpy(dst, n, p.getString(key));
   };
