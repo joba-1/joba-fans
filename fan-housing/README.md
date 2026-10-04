@@ -30,6 +30,13 @@ The light guide is shown lifted off and is **printed separately** — transparen
 cream. It is inserted from the inside of the lid, in this upside-down position from above. Its collar then
 rests against the underside of the lid and keeps it from falling out.
 
+**Printing lid and light guide in one multi-colour job** works, with two caveats found the hard way. The slicer
+refuses the job (`gcode path conflicts … found slicing result conflict`) if the guide's collar overhangs the window by
+more than about 1 mm (`guide_collar_o`, now 1.0), and — for reasons not understood — also for some positions on the
+plate (e.g. at the far front right). Keep lid and guide as one group, so they keep their positions to each other, and
+check that the slicer accepts the placement; turning the lid and guide together by 90° and putting them left of the
+tray did it here.
+
 All three are already exported in print orientation and need **no supports**. The lid lies upside down so
 the visible face comes smoothly off the bed and the latch tabs point up.
 

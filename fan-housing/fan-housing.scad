@@ -17,6 +17,7 @@
 include <board_params.scad>
 
 part = "all";
+only_tray = false;  // view option for part="all": show just the tray (with mouse ears), lid/board/guide hidden
 $fn  = 48;
 
 // Colours for the views only - cream PETG, clear light guide
@@ -76,8 +77,12 @@ vents          = true;   // slots above the voltage regulator
 light_window   = true;   // window + light guide above the XIAO
 guide_loose    = false;  // true: clearance for inserting the guide afterwards,
                          // false: exact fit, printed together in one go
+guide_collar_z = 0;      // extra gap between collar and lid underside (mm)
+lid_recess     = false;  // recess in the lid for the collar (only for printing the guide in place)
+guide_gap      = guide_loose ? 0.3 : 0;   // total clearance of the head in the window (mm)
 guide_collar_h = 1.0;    // height of the collar (0 = none)
-guide_collar_o = 2.4;    // overhang beyond the window, total
+guide_collar_o = 1.0;    // overhang beyond the window, total. At 2.4 mm the slicer refuses lid and guide in one
+                         // print ("gcode path conflicts ... found slicing result conflict"); 1.0 slices.
 
 // ------------------------------------------------------------------ levels
 // Z = 0 is the underside of the board.
@@ -175,7 +180,7 @@ module tray() {
         snap_pockets();
         if (vents) side_vents();
     }
-    if (ears && part == "tray") mouse_ears();   // only in the print export, not in the views
+    if (ears && (part == "tray" || (part == "all" && only_tray))) mouse_ears();   // only in the print export, not in the views
     }
 }
 
@@ -279,7 +284,7 @@ module light_hole() {
     // window, and the slicer aborts with "found slicing result conflict"
     // (measured 2026-09-08: up to 1.0 mm overhang works, 2.4 mm does not).
     // The recess works since lid_t sits on a layer boundary - see there.
-    if (!guide_loose && guide_collar_h > 0)
+    if (lid_recess && !guide_loose && guide_collar_h > 0)
         translate([win_cx, win_cy, z_rim - 0.01])
             linear_extrude(guide_collar_h + 0.01)
                 rrect_c(win_w + guide_collar_o, win_d + guide_collar_o, 1.4);
@@ -304,10 +309,9 @@ module guide() {
     // two materials fuse at the joint like two adjacent lines of the same
     // material, and that is exactly what is meant to hold it. A gap is only
     // needed if the guide is inserted afterwards - then set guide_loose = true.
-    translate([win_cx, win_cy, z_rim])
-        linear_extrude(lid_t)
-            rrect_c(win_w - (guide_loose ? 0.3 : 0),
-                    win_d - (guide_loose ? 0.3 : 0), 1.2);
+    translate([win_cx, win_cy, z_rim - guide_collar_z])
+        linear_extrude(lid_t + guide_collar_z)
+            rrect_c(win_w - guide_gap, win_d - guide_gap, 1.2);
     // Collar: keeps the guide in the lid. It always sits UNDER the head,
     // i.e. below z_rim. When printed together, the recess in the lid
     // (see light_hole) takes it up; when inserted afterwards, it rests
@@ -316,7 +320,7 @@ module guide() {
     // Without the recess the collar would be wider than the window and rest
     // on the lid, which the slicer rejects as an overlap
     // ("found slicing result conflict", 2026-09-08).
-    translate([win_cx, win_cy, z_rim - guide_collar_h])
+    translate([win_cx, win_cy, z_rim - guide_collar_h - guide_collar_z])
         linear_extrude(guide_collar_h)
             rrect_c(win_w + guide_collar_o - (guide_loose ? 0 : 0.3),
                     win_d + guide_collar_o - (guide_loose ? 0 : 0.3), 1.4);
@@ -444,9 +448,13 @@ else if (part == "closed") {
     color(col_guide) guide();
 }
 else {
-    // Default view: solid tray, translucent lid, so you look through the lid at the board.
-    color(col_case) tray();
-    board_mock(0.9);
-    color("ivory", 0.40) lid();
-    color("skyblue", 0.70) guide();
+    // Default view, all parts see-through in different colours:
+    // tray slightly transparent, board medium (the support shoulders show through),
+    // lid very transparent but still visible, light guide practically clear.
+    color("slategray", 0.78) tray();
+    if (!only_tray) {
+        board_mock(0.55);
+        color("orangered", 0.25) lid();
+        color("cyan", 0.18) guide();
+    }
 }
