@@ -1,0 +1,7 @@
+.pio/
+.vscode/
+config.ini
+web/index.html.gz
+src/BuildInfo.h
+__pycache__/
+*.pyc

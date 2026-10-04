@@ -1,0 +1,6 @@
+{
+  "name": "FanCore",
+  "version": "1.0.0",
+  "description": "Hardware-independent fan channel logic: speed mapping, soft start with spin detection, stall handling, RPM estimation",
+  "build": { "flags": "-std=gnu++17" }
+}

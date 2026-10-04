@@ -1,0 +1,7 @@
+// Mqtt.h — MQTT control/state and Home Assistant discovery. See docs/spec.md for the topics.
+#pragma once
+#include <Arduino.h>
+
+void mqttBegin();
+void mqttLoop();
+bool mqttConnected();

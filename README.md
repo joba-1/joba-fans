@@ -12,6 +12,7 @@ Seeed XIAO ESP32-C3. KiCad-Projekt, Platine 72,9 × 25,0 mm, zweilagig.
 | `fan-controller/` | KiCad-Projekt und die Skripte, die Schaltplan und Fertigungsdaten erzeugen |
 | `fab/` | Fertigungspaket: Gerber, Bohrdaten, BOM und Bestückungsdaten für JLCPCB und PCBWay |
 | `enclosure/` | Gehäuse um die Platine, parametrisch in OpenSCAD |
+| `fan-remote/` | Firmware für die Platine: Weboberfläche, MQTT und Home Assistant, sanfter Anlauf (PlatformIO) |
 | `fan-stand/` | Lüfterhalterungen am Heizkörper — die Lüfter, die diese Platine ansteuert |
 | `docs/` | Projektdokumentation |
 

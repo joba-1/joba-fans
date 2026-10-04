@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0e2a3a">
+<title>Fan remote</title>
+<link rel="icon" href="/logo.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #eef3f6; --card: #ffffff; --ink: #0f2430; --muted: #5b7080; --line: #d6e0e6;
+  --accent: #0b7f98; --accent-ink: #ffffff; --accent-soft: #dcf1f6;
+  --warn: #b3261e; --warn-soft: #fde8e6; --ok: #1b7f4b; --track: #d3dee4;
+  --shadow: 0 1px 2px rgba(15,36,48,.06), 0 6px 20px rgba(15,36,48,.07);
+  --r: 18px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a1820; --card: #11252f; --ink: #e6f1f5; --muted: #8aa3b1; --line: #223b47;
+    --accent: #3cc9e3; --accent-ink: #052029; --accent-soft: #123845;
+    --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: #27414d;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1820; --card: #11252f; --ink: #e6f1f5; --muted: #8aa3b1; --line: #223b47;
+  --accent: #3cc9e3; --accent-ink: #052029; --accent-soft: #123845;
+  --warn: #ff8a80; --warn-soft: #3a1b1a; --ok: #5bd69a; --track: #27414d;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 0 16px calc(24px + env(safe-area-inset-bottom));
+}
+main { max-width: 1040px; margin: 0 auto; }
+header { display: flex; align-items: center; gap: 12px; padding: 18px 0 14px; }
+header img { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+header h1 { font-size: 1.25rem; margin: 0; line-height: 1.15; }
+header .sub { color: var(--muted); font-size: .82rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; margin-right: 5px; }
+.dot.on { background: var(--ok); } .dot.bad { background: var(--warn); }
+header .sp { flex: 1; }
+.icon-btn {
+  appearance: none; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card {
+  background: var(--card); border-radius: var(--r); box-shadow: var(--shadow);
+  padding: 16px; border: 1px solid transparent; transition: border-color .2s, background .2s;
+}
+.card.fault { border-color: var(--warn); }
+.card.all { grid-column: 1 / -1; }
+.top { display: flex; align-items: center; gap: 14px; }
+.fan { width: 56px; height: 56px; flex: none; color: var(--accent); transition: color .3s; }
+.card.off .fan { color: var(--muted); }
+.card.fault .fan { color: var(--warn); }
+.id { flex: 1; min-width: 0; }
+.id h2 { margin: 0; font-size: 1.05rem; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.badge {
+  display: inline-block; margin-top: 3px; padding: 1px 9px; border-radius: 99px; font-size: .75rem;
+  font-weight: 600; background: var(--accent-soft); color: var(--accent);
+}
+.card.off .badge { background: var(--track); color: var(--muted); }
+.card.fault .badge { background: var(--warn-soft); color: var(--warn); }
+.rpm { text-align: right; font-variant-numeric: tabular-nums; min-width: 78px; }
+.rpm b { font-size: 1.7rem; font-weight: 700; line-height: 1; display: block; }
+.rpm small { color: var(--muted); font-size: .75rem; }
+.pwr {
+  appearance: none; flex: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--line); background: transparent; color: var(--muted); display: grid; place-items: center;
+  transition: all .15s;
+}
+.card:not(.off) .pwr { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.pwr:active { transform: scale(.94); }
+
+.slider { margin: 16px 2px 6px; display: flex; align-items: center; gap: 14px; }
+.slider output { width: 3.4em; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.meta { color: var(--muted); font-size: .78rem; margin: 0 2px 10px; display: flex; justify-content: space-between; }
+input[type=range] {
+  -webkit-appearance: none; appearance: none; flex: 1; height: 44px; background: transparent; margin: 0; cursor: pointer;
+  touch-action: pan-y;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 10px; border-radius: 99px;
+  background: linear-gradient(to right, var(--accent) var(--p, 0%), var(--track) var(--p, 0%));
+}
+input[type=range]::-moz-range-track { height: 10px; border-radius: 99px; background: var(--track); }
+input[type=range]::-moz-range-progress { height: 10px; border-radius: 99px; background: var(--accent); }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; margin-top: -10px;
+  background: var(--card); border: 3px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+input[type=range]::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+.chips { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.chip {
+  appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+  border-radius: 12px; padding: 7px 2px 6px; font: inherit; font-size: .8rem; line-height: 1.2; min-height: 48px;
+  transition: background .12s, border-color .12s;
+}
+.chip small { display: block; color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chip[aria-pressed="true"] small { color: inherit; opacity: .85; }
+.warn { margin: 12px 0 0; padding: 8px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: .85rem; }
+.warn[hidden] { display: none; }
+@media (max-width: 380px) { .chip { font-size: .72rem; } .rpm b { font-size: 1.45rem; } }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 0; }
+footer { color: var(--muted); font-size: .76rem; text-align: center; margin-top: 22px; }
+#toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translate(-50%, 30px);
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: .88rem;
+  opacity: 0; pointer-events: none; transition: all .25s; max-width: 90vw; z-index: 10;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* settings */
+dialog {
+  border: 0; border-radius: var(--r); padding: 0; background: var(--card); color: var(--ink);
+  width: min(640px, 100vw); max-height: 92vh; box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+dialog::backdrop { background: rgba(5,15,20,.6); }
+.dlg-h { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card); z-index: 1; }
+.dlg-h h2 { margin: 0; font-size: 1.1rem; }
+.dlg-b { padding: 6px 18px 18px; overflow: auto; max-height: calc(92vh - 70px); }
+fieldset { border: 0; border-top: 1px solid var(--line); margin: 14px 0 0; padding: 12px 0 0; }
+legend { font-weight: 700; padding: 0 8px 0 0; font-size: .92rem; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin: 8px 0; }
+.row.one { grid-template-columns: 1fr; }
+label { display: flex; flex-direction: column; gap: 3px; font-size: .78rem; color: var(--muted); }
+label.chk { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); font-size: .9rem; min-height: 40px; }
+input[type=text], input[type=number], input[type=password], select {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; min-height: 42px; width: 100%;
+}
+input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
+.chrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 10px; align-items: end; margin: 8px 0 16px; padding-bottom: 12px; border-bottom: 1px dashed var(--line); }
+.chrow .nm, .chrow .ck { grid-column: 1 / -1; }
+.chrow .ck { display: flex; gap: 20px; flex-wrap: wrap; }
+.hint { color: var(--muted); font-size: .8rem; margin: 4px 0 0; }
+.btn {
+  appearance: none; border: 0; border-radius: 12px; padding: 11px 18px; font: inherit; font-weight: 600; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); min-height: 44px;
+}
+.btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+.btn.danger { background: var(--warn-soft); color: var(--warn); }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+table.st { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
+table.st td { padding: 4px 6px 4px 0; border-bottom: 1px solid var(--line); vertical-align: top; word-break: break-word; }
+table.st td:first-child { color: var(--muted); white-space: nowrap; }
+@media (max-width: 560px) {
+  dialog { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+  .dlg-b { max-height: calc(100vh - 62px); }
+  .row { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/logo.svg" alt="">
+    <div>
+      <h1 id="title">Fan remote</h1>
+      <div class="sub"><span><i class="dot" id="dot"></i><span id="conn">…</span></span><span id="wifi"></span><span id="mq"></span></div>
+    </div>
+    <div class="sp"></div>
+    <button class="icon-btn" id="openSet" aria-label="Settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden></p>
+  <footer id="foot"></footer>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dlg" aria-labelledby="dlgT">
+  <div class="dlg-h"><h2 id="dlgT"></h2><button class="icon-btn" id="closeSet" aria-label="Close">✕</button></div>
+  <div class="dlg-b" id="dlgB"></div>
+</dialog>
+
+<script>
+"use strict";
+/* ---------- i18n ---------- */
+const T = {
+  en: {
+    all: "All fans", off: "Off", spinup: "Starting", run: "Running", fault: "Stalled", rpm: "rpm", duty: "PWM",
+    quiet: "Quiet", low: "Low", medium: "Medium", high: "High", max: "Max", mixed: "mixed",
+    online: "Online", offline: "No connection", mqttOn: "MQTT", mqttOff: "MQTT off",
+    stalled: "Fan blocked or not connected. Retrying with backoff.", noTach: "no tach",
+    power: "Power", speed: "Speed", settings: "Settings", close: "Close", save: "Save", saved: "Saved",
+    device: "Device", devName: "Name", fansH: "Fans", presetsH: "Preset speeds", behaviour: "Behaviour",
+    network: "Network", status: "Status",
+    chName: "Name", chOn: "Enabled", chMin: "Min duty %", chMax: "Max duty %", chTach: "Tach wired", chPpr: "Pulses/rev",
+    minHint: "Min = lowest PWM at which the fan keeps turning. Speed 1 maps to it, speed 100 to Max.",
+    rampUp: "Speed up, %/s", rampDown: "Slow down, %/s", boot: "After power-up", bootLast: "Restore last speeds",
+    bootOff: "All off", protect: "Require login for control too",
+    mqttHost: "MQTT broker", mqttPort: "Port", mqttUser: "MQTT user", mqttPass: "MQTT password", mqttPassKeep: "(unchanged)",
+    syslog: "Syslog host", ntp: "NTP host", newPass: "New admin password", netHint: "Network changes apply after the next reboot. Empty fields stay unchanged.",
+    saveNet: "Save network", reboot: "Reboot", rebootAsk: "Reboot the controller? The fans keep their speeds, but briefly float during the restart.",
+    wifiReset: "Forget WiFi", wifiAsk: "Forget the WiFi credentials and open the setup access point?",
+    loginNeeded: "Login required", err: "Request failed", fw: "Firmware", uptime: "Uptime", ip: "IP", ssid: "WiFi", heap: "Free heap",
+    never: "never", ago: "ago", st: "status", empty: "No fan enabled. Enable one in the settings.", sec: "s"
+  },
+  de: {
+    all: "Alle Lüfter", off: "Aus", spinup: "Startet", run: "Läuft", fault: "Blockiert", rpm: "U/min", duty: "PWM",
+    quiet: "Leise", low: "Niedrig", medium: "Mittel", high: "Hoch", max: "Max", mixed: "gemischt",
+    online: "Verbunden", offline: "Keine Verbindung", mqttOn: "MQTT", mqttOff: "MQTT aus",
+    stalled: "Lüfter blockiert oder nicht angeschlossen. Neuer Versuch mit Wartezeit.", noTach: "kein Tacho",
+    power: "Ein/Aus", speed: "Drehzahl", settings: "Einstellungen", close: "Schließen", save: "Speichern", saved: "Gespeichert",
+    device: "Gerät", devName: "Name", fansH: "Lüfter", presetsH: "Voreinstellungen", behaviour: "Verhalten",
+    network: "Netzwerk", status: "Status",
+    chName: "Name", chOn: "Aktiv", chMin: "Min. PWM %", chMax: "Max. PWM %", chTach: "Tacho angeschlossen", chPpr: "Impulse/Umdr.",
+    minHint: "Min = kleinstes PWM, bei dem der Lüfter noch dreht. Stufe 1 entspricht Min, Stufe 100 entspricht Max.",
+    rampUp: "Hochfahren, %/s", rampDown: "Runterfahren, %/s", boot: "Nach dem Einschalten", bootLast: "Letzte Stufen wiederherstellen",
+    bootOff: "Alles aus", protect: "Auch die Steuerung nur mit Login",
+    mqttHost: "MQTT-Broker", mqttPort: "Port", mqttUser: "MQTT-Benutzer", mqttPass: "MQTT-Passwort", mqttPassKeep: "(unverändert)",
+    syslog: "Syslog-Host", ntp: "NTP-Host", newPass: "Neues Admin-Passwort", netHint: "Netzwerkänderungen gelten nach dem nächsten Neustart. Leere Felder bleiben unverändert.",
+    saveNet: "Netzwerk speichern", reboot: "Neustart", rebootAsk: "Controller neu starten? Die Lüfter behalten ihre Stufen, laufen während des Neustarts aber kurz unkontrolliert.",
+    wifiReset: "WLAN vergessen", wifiAsk: "WLAN-Zugangsdaten vergessen und den Einrichtungs-Zugangspunkt öffnen?",
+    loginNeeded: "Anmeldung erforderlich", err: "Anfrage fehlgeschlagen", fw: "Firmware", uptime: "Laufzeit", ip: "IP", ssid: "WLAN", heap: "Freier Heap",
+    never: "nie", ago: "her", st: "Status", empty: "Kein Lüfter aktiv. In den Einstellungen einen aktivieren.", sec: "s"
+  }
+};
+const L = (navigator.language || "en").toLowerCase().startsWith("de") ? "de" : "en";
+const t = k => (T[L][k] ?? T.en[k] ?? k);
+document.documentElement.lang = L;
+document.getElementById("openSet").setAttribute("aria-label", t("settings"));
+document.getElementById("closeSet").setAttribute("aria-label", t("close"));
+
+/* ---------- tiny DOM helper (all server strings go through textContent) ---------- */
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null) e.append(c);
+  return e;
+}
+const $ = id => document.getElementById(id);
+const FAN_SVG = `<svg class="fan" viewBox="0 0 64 64" aria-hidden="true"><g class="rot">
+  <g fill="currentColor"><path id="bl" d="M32 29 C23 26 22 9 32 5 C42 9 41 24 35 29 Z"/>
+  <use href="#bl" transform="rotate(120 32 32)"/><use href="#bl" transform="rotate(240 32 32)"/></g></g>
+  <circle cx="32" cy="32" r="5" fill="var(--card)" stroke="currentColor" stroke-width="2.5"/></svg>`;
+const PWR_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 3v9"/><path d="M6.4 6.6a8 8 0 1 0 11.2 0"/></svg>`;
+
+let toastTimer;
+function toast(msg) {
+  const e = $("toast"); e.textContent = msg; e.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => e.classList.remove("show"), 2600);
+}
+
+/* ---------- state ---------- */
+let S = null;                // last state from the device
+const cards = new Map();     // ch number (or 0 = all) -> {el, ...}
+const drag = new Map();      // ch -> true while the slider is held
+let lastEvent = 0;
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    let m = ""; try { m = (await r.json()).error || ""; } catch (e) {}
+    const er = new Error(m || r.status); er.status = r.status; throw er;
+  }
+  return r.json();
+}
+const post = (path, data) => api(path, {
+  method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  body: new URLSearchParams(data).toString()
+});
+
+let sendTimers = new Map(), pending = new Map();
+function sendSpeed(ch, speed, now) {
+  // While dragging, send at most every 120 ms; the last value always goes out.
+  pending.set(ch, speed);
+  const go = () => {
+    sendTimers.delete(ch);
+    const v = pending.get(ch); pending.delete(ch);
+    if (v == null) return;
+    post("/api/set", { ch: ch || "all", speed: v }).then(applyState).catch(e => {
+      if (e.status === 401) toast(t("loginNeeded")); else toast(t("err") + ": " + e.message);
+    });
+  };
+  if (now) { clearTimeout(sendTimers.get(ch)); go(); return; }
+  if (!sendTimers.has(ch)) sendTimers.set(ch, setTimeout(go, 120));
+}
+function command(ch, data) {
+  post("/api/set", { ch: ch || "all", ...data }).then(applyState)
+    .catch(e => toast(e.status === 401 ? t("loginNeeded") : t("err") + ": " + e.message));
+}
+
+/* ---------- cards ---------- */
+const PRESET_IDS = ["quiet", "low", "medium", "high", "max"];
+
+function makeCard(n) {
+  const isAll = n === 0;
+  const name = h("h2"), badge = h("span", { class: "badge" });
+  const rpmV = h("b"), rpmU = h("small", {}, t("rpm"));
+  const pwr = h("button", { class: "pwr", "aria-label": t("power"), type: "button", onclick: () => {
+      const c = cards.get(n);
+      command(n, { power: c.speed > 0 ? "off" : "on" });
+    } });
+  pwr.innerHTML = PWR_SVG;
+  const fan = h("div"); fan.innerHTML = FAN_SVG;
+  const svg = fan.firstElementChild;
+  const out = h("output");
+  const range = h("input", { type: "range", min: 0, max: 100, step: 1, value: 0, "aria-label": t("speed") + " " + (isAll ? t("all") : "") });
+  const meta = h("div", { class: "meta" }, h("span", { class: "dutyT" }), h("span", { class: "tachT" }));
+  const chips = h("div", { class: "chips" });
+  const warn = h("p", { class: "warn", hidden: true }, t("stalled"));
+  const el = h("section", { class: "card off" + (isAll ? " all" : ""), "data-ch": n },
+    h("div", { class: "top" }, svg,
+      h("div", { class: "id" }, name, badge),
+      isAll ? null : h("div", { class: "rpm" }, rpmV, rpmU), pwr),
+    h("div", { class: "slider" }, range, out), isAll ? null : meta, chips, warn);
+
+  range.addEventListener("input", () => {
+    drag.set(n, true);
+    out.textContent = range.value + " %";
+    range.style.setProperty("--p", range.value + "%");
+    sendSpeed(n, +range.value, false);
+  });
+  const release = () => { if (drag.has(n)) { sendSpeed(n, +range.value, true); setTimeout(() => drag.delete(n), 900); } };
+  range.addEventListener("change", release);
+  range.addEventListener("pointerup", release);
+  range.addEventListener("keyup", () => { sendSpeed(n, +range.value, true); });
+
+  const c = { el, name, badge, rpmV, range, out, svg, chips, warn, meta, speed: 0, w: 0, wT: 0, ang: 0,
+              chipEls: [], presetKey: "" };
+  cards.set(n, c);
+  return c;
+}
+
+function updateChips(c, n, presets, speedForActive) {
+  const key = presets.map(p => p.speed).join(",");
+  if (c.presetKey !== key) {
+    c.presetKey = key;
+    c.chips.replaceChildren();
+    c.chipEls = presets.map(p => {
+      const b = h("button", { class: "chip", type: "button", "aria-pressed": "false",
+                              onclick: () => command(n, { preset: p.id }) },
+                  t(p.id), h("small", {}, p.speed + " %"));
+      c.chips.append(b);
+      return b;
+    });
+  }
+  presets.forEach((p, i) => c.chipEls[i].setAttribute("aria-pressed", speedForActive === p.speed ? "true" : "false"));
+}
+
+function applyState(s) {
+  if (!s || !s.ch) return;
+  S = s; lastEvent = performance.now();
+  $("title").textContent = s.name;
+  document.title = s.name;
+  $("dot").className = "dot on"; $("conn").textContent = t("online");
+  $("wifi").textContent = s.rssi + " dBm";
+  $("mq").textContent = s.mqtt ? t("mqttOn") : t("mqttOff");
+  $("foot").textContent = s.id + " · v" + s.v;
+
+  const grid = $("grid");
+  const active = s.ch.filter(c => c.enabled);
+  $("empty").hidden = active.length > 0; $("empty").textContent = t("empty");
+  const wanted = new Set(active.map(c => c.n));
+  if (active.length > 1) wanted.add(0);
+  for (const [n, c] of cards) if (!wanted.has(n)) { c.el.remove(); cards.delete(n); }
+
+  // order: all-card first, then fans in channel order
+  const order = [...wanted].sort((a, b) => a - b);
+  order.forEach((n, i) => {
+    const c = cards.get(n) || makeCard(n);
+    if (grid.children[i] !== c.el) grid.insertBefore(c.el, grid.children[i] || null);
+  });
+
+  for (const ch of active) {
+    const c = cards.get(ch.n);
+    c.name.textContent = ch.name;
+    c.speed = ch.speed;
+    c.badge.textContent = t(ch.state);
+    c.rpmV.textContent = ch.tach ? ch.rpm.toLocaleString(L) : "–";
+    c.el.classList.toggle("off", ch.state === "off");
+    c.el.classList.toggle("fault", ch.fault);
+    c.warn.hidden = !ch.fault;
+    c.meta.querySelector(".dutyT").textContent = t("duty") + " " + Math.round(ch.duty) + " %";
+    c.meta.querySelector(".tachT").textContent = ch.tach ? "" : t("noTach");
+    if (!drag.has(ch.n)) {
+      c.range.value = ch.speed;
+      c.range.style.setProperty("--p", ch.speed + "%");
+      c.out.textContent = ch.speed + " %";
+    }
+    updateChips(c, ch.n, s.presets, ch.speed);
+    // target angular speed in deg/s from rpm: slow enough to see, capped
+    c.wT = ch.state === "off" || ch.rpm === 0 && ch.state !== "spinup" ? 0 : Math.min(900, 40 + ch.rpm * 0.28);
+  }
+  const all = cards.get(0);
+  if (all) {
+    const sp = active.map(c => c.speed);
+    const same = sp.every(v => v === sp[0]);
+    all.name.textContent = t("all");
+    const anyOn = active.some(c => c.state !== "off");
+    all.el.classList.toggle("off", !anyOn);
+    all.el.classList.toggle("fault", active.some(c => c.fault));
+    all.speed = anyOn ? 1 : 0;
+    all.badge.textContent = same ? t(active[0].state) : t("mixed");
+    if (!drag.has(0)) {
+      const avg = Math.round(sp.reduce((a, b) => a + b, 0) / sp.length);
+      all.range.value = avg; all.range.style.setProperty("--p", avg + "%");
+      all.out.textContent = same ? avg + " %" : "~" + avg + " %";
+    }
+    updateChips(all, 0, s.presets, same ? sp[0] : -1);
+    all.wT = Math.max(...active.map(c => cards.get(c.n).wT));
+  }
+}
+
+/* smooth fan rotation: the angular speed eases towards the target, so spin-up and
+   spin-down look like the real thing */
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let prevT = performance.now();
+function frame(now) {
+  const dt = Math.min(0.1, (now - prevT) / 1000); prevT = now;
+  if (!reduce) for (const c of cards.values()) {
+    c.w += (c.wT - c.w) * Math.min(1, dt * 2.2);
+    if (Math.abs(c.w) < 0.5 && c.wT === 0) c.w = 0;
+    c.ang = (c.ang + c.w * dt) % 360;
+    c.svg.firstElementChild.setAttribute("transform", "rotate(" + c.ang.toFixed(1) + " 32 32)");
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- live connection ---------- */
+function connectEvents() {
+  const es = new EventSource("/events");
+  es.addEventListener("state", e => { try { applyState(JSON.parse(e.data)); } catch (x) {} });
+  es.onerror = () => { markOffline(); };
+}
+function markOffline() { $("dot").className = "dot bad"; $("conn").textContent = t("offline"); }
+setInterval(() => { if (lastEvent && performance.now() - lastEvent > 4500) markOffline(); }, 1500);
+// fallback / catch-up when the stream is blocked (some proxies) or just re-opened
+setInterval(() => { if (!lastEvent || performance.now() - lastEvent > 4500) api("/api/state").then(applyState).catch(() => {}); }, 3000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) api("/api/state").then(applyState).catch(() => {}); });
+
+/* ---------- settings ---------- */
+const dlg = $("dlg"); let cfg = null;
+async function openSettings() {
+  try { cfg = await api("/api/config"); }
+  catch (e) { toast(e.status === 401 ? t("loginNeeded") : t("err") + ": " + e.message); return; }
+  buildSettings(); $("dlgT").textContent = t("settings");
+  if (!dlg.open) dlg.showModal();
+}
+$("openSet").onclick = openSettings;
+$("closeSet").onclick = () => dlg.close();
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+
+const fld = (label, input) => h("label", {}, label, input);
+const num = (v, min, max) => h("input", { type: "number", value: v, min, max, inputmode: "numeric" });
+const chk = (label, v) => { const i = h("input", { type: "checkbox" }); i.checked = !!v; return [h("label", { class: "chk" }, i, label), i]; };
+
+function buildSettings() {
+  const B = $("dlgB"); B.replaceChildren();
+  const name = h("input", { type: "text", maxlength: 31, value: cfg.name });
+
+  const rows = cfg.ch.map((c, i) => {
+    const nm = h("input", { type: "text", maxlength: 23, value: c.name });
+    const mn = num(c.min, 0, 90), mx = num(c.max, 10, 100), pp = num(c.ppr, 1, 8);
+    const [enL, en] = chk(t("chOn"), c.enabled), [taL, ta] = chk(t("chTach"), c.tach);
+    const el = h("div", { class: "chrow" }, h("div", { class: "nm" }, fld(t("chName") + " " + (i + 1), nm)),
+      fld(t("chMin"), mn), fld(t("chMax"), mx), fld(t("chPpr"), pp), h("div", { class: "ck" }, enL, taL));
+    return { el, get: () => ({ name: nm.value.trim() || "Fan " + (i + 1), enabled: en.checked, tach: ta.checked, min: +mn.value, max: +mx.value, ppr: +pp.value }) };
+  });
+  const pre = cfg.presets.map((v, i) => num(v, 0, 100));
+  const ru = num(cfg.rampUp, 1, 100), rd = num(cfg.rampDown, 1, 100);
+  const boot = h("select", {}, h("option", { value: 0 }, t("bootLast")), h("option", { value: 1 }, t("bootOff")));
+  boot.value = cfg.bootMode;
+  const [prL, pr] = chk(t("protect"), cfg.protectControl);
+
+  const save = h("button", { class: "btn", type: "button", onclick: async () => {
+    try {
+      cfg = await api("/api/config", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.value.trim(), rampUp: +ru.value, rampDown: +rd.value, bootMode: +boot.value,
+          protectControl: pr.checked, presets: pre.map(i => +i.value), ch: rows.map(r => r.get()) }) });
+      toast(t("saved")); api("/api/state").then(applyState);
+    } catch (e) { toast(t("err") + ": " + e.message); }
+  } }, t("save"));
+
+  B.append(
+    h("fieldset", {}, h("legend", {}, t("device")), h("div", { class: "row one" }, fld(t("devName"), name))),
+    h("fieldset", {}, h("legend", {}, t("fansH")), rows.map(r => r.el), h("p", { class: "hint" }, t("minHint"))),
+    h("fieldset", {}, h("legend", {}, t("presetsH")),
+      h("div", { class: "row", style: "grid-template-columns:repeat(5,1fr)" }, pre.map((i, k) => fld(t(PRESET_IDS[k]), i)))),
+    h("fieldset", {}, h("legend", {}, t("behaviour")),
+      h("div", { class: "row" }, fld(t("rampUp"), ru), fld(t("rampDown"), rd), fld(t("boot"), boot), prL)),
+    h("div", { class: "btns" }, save));
+
+  // network
+  const n = cfg.net;
+  const mh = h("input", { type: "text", maxlength: 63, value: n.mqttHost }), mp = num(n.mqttPort, 1, 65535);
+  const mu = h("input", { type: "text", maxlength: 31, value: n.mqttUser, autocomplete: "off" });
+  const mw = h("input", { type: "password", maxlength: 63, placeholder: n.mqttPassSet ? t("mqttPassKeep") : "", autocomplete: "new-password" });
+  const sh = h("input", { type: "text", maxlength: 63, value: n.syslogHost }), nh = h("input", { type: "text", maxlength: 63, value: n.ntpHost });
+  const ap = h("input", { type: "password", maxlength: 47, autocomplete: "new-password" });
+  const netSave = h("button", { class: "btn", type: "button", onclick: async () => {
+    const d = { mqttHost: mh.value.trim(), mqttPort: mp.value, mqttUser: mu.value, syslogHost: sh.value.trim(), ntpHost: nh.value.trim(), name: name.value.trim() };
+    if (mw.value) d.mqttPass = mw.value;
+    if (ap.value) d.adminPass = ap.value;
+    try { await post("/api/netconfig", d); toast(t("saved")); mw.value = ""; ap.value = ""; }
+    catch (e) { toast(t("err") + ": " + e.message); }
+  } }, t("saveNet"));
+  const rb = h("button", { class: "btn ghost", type: "button", onclick: () => { if (confirm(t("rebootAsk"))) post("/api/reboot", {}).then(() => { dlg.close(); toast(t("reboot") + "…"); }).catch(() => {}); } }, t("reboot"));
+  const wr = h("button", { class: "btn danger", type: "button", onclick: () => { if (confirm(t("wifiAsk"))) post("/api/wifireset", {}).catch(() => {}); } }, t("wifiReset"));
+  const stBox = h("div");
+  B.append(h("fieldset", {}, h("legend", {}, t("network")),
+    h("div", { class: "row" }, fld(t("mqttHost"), mh), fld(t("mqttPort"), mp), fld(t("mqttUser"), mu), fld(t("mqttPass"), mw),
+      fld(t("syslog"), sh), fld(t("ntp"), nh)),
+    h("div", { class: "row one" }, fld(t("newPass"), ap)),
+    h("p", { class: "hint" }, t("netHint")),
+    h("div", { class: "btns" }, netSave, rb, wr)),
+    h("fieldset", {}, h("legend", {}, t("status")), stBox));
+  api("/api/netstatus").then(ns => {
+    const ago = s => s == null ? t("never") : (s < 90 ? s + " s" : s < 5400 ? Math.round(s / 60) + " min" : Math.round(s / 3600) + " h") + " " + t("ago");
+    const rows = [[t("fw"), "fan-remote " + ns.version + " (" + ns.git + ")"], [t("ip"), ns.ip + " · " + ns.hostname], [t("ssid"), ns.ssid + " · " + ns.rssi + " dBm"],
+      [t("uptime"), Math.floor(ns.uptimeS / 3600) + " h " + Math.floor(ns.uptimeS % 3600 / 60) + " min"], [t("heap"), (ns.freeHeap / 1024).toFixed(0) + " kB"],
+      ...ns.resources.map(r => [r.name, (r.host || "–") + " · " + r.status + " · " + ago(r.lastOkAgoS)])];
+    stBox.append(h("table", { class: "st" }, rows.map(r => h("tr", {}, h("td", {}, r[0]), h("td", {}, r[1])))));
+  }).catch(() => {});
+}
+
+/* ---------- go ---------- */
+api("/api/state").then(applyState).catch(markOffline);
+connectEvents();
+</script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+; config.ini.template — fan-remote
+; Build-time defaults. pre_build.py copies this to config.ini on the first build
+; (and puts a random admin password in it). config.ini is gitignored.
+;
+; Everything below except admin_password can be changed per board at runtime
+; (web UI settings or POST /api/netconfig) and is then kept in NVS; these values
+; are only the defaults of a fresh board. See docs/admin.md.
+
+[user_config]
+; Password for the settings pages, OTA and the setup access point of every board
+; flashed from this tree. A board's own password (set in the WiFi setup portal)
+; overrides it. Keep this file mode 600.
+admin_password = @RANDOM@
+admin_user = admin
+
+; Service aliases (dnsmasq CNAMEs); never hard-code hosts or IPs.
+mqtt_host = mqtt
+mqtt_port = 1883
+mqtt_user =
+mqtt_password =
+mqtt_prefix = fans               ; topics: <prefix>/<device id>/...
+ha_prefix = homeassistant        ; Home Assistant discovery prefix
+syslog_host = syslog             ; empty = no syslog
+syslog_port = 514
+ntp_host = de.pool.ntp.org
+timezone = CET-1CEST,M3.5.0,M10.5.0/3
