@@ -37,24 +37,26 @@ lid_t    = 3.1;   // lid. Deliberately thicker than the walls: cream PETG is
                   // aborts with "found slicing result conflict".
                   // Found on the printed part on 2026-09-09: the window sat
                   // one layer too far back on the inside.
-fit      = 0.3;   // clearance between board and inner wall
+fit      = 0.4;   // clearance between board and inner wall (left, right, front, back)
 ledge    = 1.2;   // width of the shoulder the board rests on
 standoff = 2.5;   // space under the board for the solder joints
 pcb_t    = 1.6;
-inner_h  = 15.0;  // space above the top of the board. The component heights
-                  // below are catalogue values, not measurements - this
-                  // margin absorbs one of them being 1mm off.
-corner_r = 2.5;
+inner_h  = 19.0;  // space above the top of the board. 15 + 4: the socketed XIAO
+                  // sits 4mm higher than the catalogue values (see h_socket).
+                  // The margin above the tallest part absorbs a 1mm error.
+outer_r  = 4.9;   // outside corner radius (plan view). The inside is sharp-cornered
+                  // like the board.
 
 // ------------------------------------------------- component heights above PCB
 // Not derivable from the .kicad_pcb - footprints carry no height.
-h_socket   =  8.5;  // 2.54mm female header, usual height
+h_socket   = 12.5;  // socketed XIAO: board underside above the PCB. Measured on the
+                  // real assembly, 4mm more than the 8.5mm of a plain header.
 h_xiao_pcb =  1.0;  // XIAO circuit board
 h_usbc     =  3.3;  // USB-C receptacle above the XIAO board
 h_fan      = 12.0;  // plugged-in fan connector (figure supplied by the owner)
 h_jack     = 11.0;  // PJ-102AH body
 
-h_xiao     = h_socket + h_xiao_pcb + h_usbc;   // 12.8 - tallest component
+h_xiao     = h_socket + h_xiao_pcb + h_usbc;   // 16.8 - tallest component
 
 // The plugged-in fan connector is larger than the header underneath. The
 // courtyard in the .kicad_pcb only describes the pin header, not its mating
@@ -63,7 +65,13 @@ fan_grow_x = 0.8;
 fan_grow_y = 0.7;
 
 // ---------------------------------------------------------------- options
-usb_opening    = true;   // slot for re-flashing without opening
+usb_opening    = true;   // window for re-flashing without opening
+usb_h          = 4.0;    // height of that window, centred on the USB-C receptacle
+jack_trim      = 1.4;    // the jack opening is this much narrower than the jack, per side
+ears           = true;   // 'mouse ears': thin discs at the four bottom corners that hold
+                         // the tray down while it cools. Cut them off after printing.
+ear_r          = 8.0;    // radius of an ear, centred on the outer corner
+ear_t          = 0.3;    // thickness = one first layer
 vents          = true;   // slots above the voltage regulator
 light_window   = true;   // window + light guide above the XIAO
 guide_loose    = false;  // true: clearance for inserting the guide afterwards,
@@ -101,7 +109,8 @@ snap_pk_d  = 0.9;        // depth of the pocket in the wall (out of 2.4mm)
 
 // ------------------------------------------------------- cable exits
 notch_w     = 8.0;   // width of the slots for the fan cables
-notch_depth = 6.0;   // depth below the top edge of the tray
+notch_depth = 1.0;   // depth below the top edge of the tray: the cable only just fits
+                     // between tray and lid
 
 fan_x = [ (J2_x[0]+J2_x[1])/2, (J3_x[0]+J3_x[1])/2 ];   // lower long wall
 fan_o = [ (J4_x[0]+J4_x[1])/2, (J5_x[0]+J5_x[1])/2 ];   // upper long wall
@@ -132,30 +141,41 @@ module box(x0, y0, z0, x1, y1, z1) {
 //  Tray
 // ===========================================================================
 
+// Mouse ears: one-layer discs at the four bottom corners. A long, tall tray
+// shrinks while it cools and peels up at its ends; the ears add bed contact
+// exactly there. They are cut off after printing.
+module mouse_ears() {
+    for (x = [ox0, ox0 + outer_l], y = [oy0, oy0 + outer_w])
+        translate([x, y, z_floor_out]) cylinder(r = ear_r, h = ear_t, $fn = 64);
+}
+
 module tray() {
+    union() {
     difference() {
         translate([ox0, oy0, z_floor_out])
             linear_extrude(z_rim - z_floor_out)
-                rrect(outer_l, outer_w, corner_r + wall);
+                rrect(outer_l, outer_w, outer_r);
 
         // Interior above the underside of the board: the board drops in
         // from above
         translate([-fit, -fit, 0])
             linear_extrude(z_rim - 0 + 1)
-                rrect(board_l + 2*fit, board_w + 2*fit, corner_r);
+                square([board_l + 2*fit, board_w + 2*fit]);
 
         // Space under the board. The difference to the interior above is the
         // shoulder the board rests on.
         translate([-fit + ledge, -fit + ledge, z_floor_in])
             linear_extrude(0 - z_floor_in + 0.01)
-                rrect(board_l + 2*fit - 2*ledge,
-                      board_w + 2*fit - 2*ledge, corner_r);
+                square([board_l + 2*fit - 2*ledge,
+                        board_w + 2*fit - 2*ledge]);
 
         cable_notches();
         jack_opening();
         if (usb_opening) usb_notch();
         snap_pockets();
         if (vents) side_vents();
+    }
+    if (ears && part == "tray") mouse_ears();   // only in the print export, not in the views
     }
 }
 
@@ -174,15 +194,16 @@ module cable_notches() {
 // Cut-out for the barrel jack. It overhangs the board edge anyway and so
 // sticks out of the wall.
 module jack_opening() {
-    box(board_l - 1,               J1_y[0] - 0.5, z_pcb_top - 0.6,
-        ox0 + outer_l + 1,         J1_y[1] + 0.5, z_pcb_top + h_jack + 0.6);
+    box(board_l - 1,               J1_y[0] - 0.5 + jack_trim, z_pcb_top - 0.6,
+        ox0 + outer_l + 1,         J1_y[1] + 0.5 - jack_trim, z_pcb_top + h_jack + 0.6);
 }
 
-// USB-C: open towards the top, otherwise the cable's strain relief does not fit in.
+// USB-C: a window usb_h high, centred on the receptacle of the socketed XIAO.
 module usb_notch() {
-    w = 13; 
-    box(win_cx - w/2, oy0 - 1, z_pcb_top + h_socket - 1.0,
-        win_cx + w/2, 1,       z_rim + 1);
+    w  = 13;
+    zc = z_pcb_top + h_socket + h_xiao_pcb + h_usbc/2;
+    box(win_cx - w/2, oy0 - 1, zc - usb_h/2,
+        win_cx + w/2, 1,       zc + usb_h/2);
 }
 
 // Pockets the lid's latch noses snap into.
@@ -214,7 +235,7 @@ module lid() {
         union() {
             translate([ox0, oy0, z_rim])
                 linear_extrude(lid_t)
-                    rrect(outer_l, outer_w, corner_r + wall);
+                    rrect(outer_l, outer_w, outer_r);
             snap_tabs();
         }
         if (light_window) light_hole();

@@ -1,7 +1,7 @@
 # fan-housing — case for the 4-channel fan controller
 
 A snap-fit case for the [`fan-controller`](../fan-controller/) board, no screws. Outer size
-**78.3 × 30.4 × 24.2 mm**, parametric in OpenSCAD.
+**78.5 × 30.6 × 28.2 mm**, parametric in OpenSCAD.
 
 ![Closed case](img/fan-housing-assembled.png)
 
@@ -17,7 +17,7 @@ only the case changes from here on.
 
 | File | Material | Position on the bed |
 |---|---|---|
-| `stl/fan-housing-tray.stl` | cream PETG | as exported, floor down |
+| `stl/fan-housing-tray.stl` | cream PETG | as exported, floor down; has four **mouse ears** (see below) |
 | `stl/fan-housing-lid.stl` | cream PETG | as exported, visible face down, tabs up |
 | `stl/fan-housing-guide.stl` | transparent PETG | as exported |
 
@@ -33,7 +33,8 @@ rests against the underside of the lid and keeps it from falling out.
 All three are already exported in print orientation and need **no supports**. The lid lies upside down so
 the visible face comes smoothly off the bed and the latch tabs point up.
 
-Recommendation: 0.2 mm layers, 4 perimeters. The four perimeters are not cosmetic — the spring tabs are
+Recommendation: 0.2 mm layers, 4 perimeters, and a **large brim** for the tray (8–10 mm, or keep the
+mouse ears and add a brim around them). The four perimeters are not cosmetic — the spring tabs are
 1.4 mm thick and should consist of perimeters, not infill.
 
 ## Assembly
@@ -44,9 +45,9 @@ Recommendation: 0.2 mm layers, 4 perimeters. The four perimeters are not cosmeti
    underside of the lid; it sits tight, but a drop of glue on the collar does no harm.
 2. Put the board into the tray from above; it rests on the surrounding shoulder. 2.5 mm remain under it for
    the solder joints.
-3. Plug in the fan connectors and lay the cables into the slots of the long walls. The slots are open at
-   the top so that you lay the cables in instead of threading them — the connector does not fit through a
-   closed hole.
+3. Plug in the fan connectors and lay the cables into the notches of the long walls. The notches are open
+   at the top so that you lay the cables in instead of threading them — the connector does not fit through
+   a closed hole. They are only 1 mm deep: the lid pinches the cable lightly, which is also the strain relief.
 4. Press the lid on until the four noses click in. To open, press the long walls outward a little at the
    latch points (at X 27.5 and 67 mm).
 
@@ -54,18 +55,33 @@ Recommendation: 0.2 mm layers, 4 perimeters. The four perimeters are not cosmeti
 
 ![Tray from the inside](img/fan-housing-tray.png)
 
-Inside, the support shoulder for the board runs all around; below it 2.5 mm remain for the solder joints.
+The inside is **sharp-cornered**, like the board (only the outside is rounded). The board has 0.4 mm
+clearance (`fit`) to the walls on all four sides. Inside, the support shoulder for the board runs all around; below it 2.5 mm remain for the solder joints.
 At the top of the long walls sit the four latch pockets as shallow recesses — they only mill into the wall,
 a through-cut would be visible from outside. On the left the vent slots.
 
-* **Barrel jack:** right end wall. It overhangs the board edge anyway and so sticks out of the wall.
-* **Four cable slots**, 8 mm wide each, above the fan connectors in the long walls. The lid closes them at
-  the top; the cable is then captive.
-* **USB-C** in the lower long wall, for re-flashing without opening. Can be switched off with
-  `usb_opening = false`.
+* **Barrel jack:** right end wall. It overhangs the board edge anyway and so sticks out of the wall. The
+  opening is the jack's width minus `jack_trim` = 1.4 mm on each side.
+* **Four cable notches**, 8 mm wide and 1 mm deep (`notch_depth`), above the fan connectors in the long
+  walls. The lid closes them at the top; the cable is then captive.
+* **USB-C** in the lower long wall, for re-flashing without opening: a closed window `usb_h` = 4 mm high,
+  centred on the receptacle of the socketed XIAO. Can be switched off with `usb_opening = false`.
 * **Vent slots** in the left end wall and in the lid above the AMS1117. At a 12 V input it dissipates about
   0.7 W; in a tight box this size that becomes noticeable. Can be switched off with `vents = false`.
 * **Light window** in the lid above the XIAO — see below.
+
+## Keeping the tray on the bed
+
+A long, tall, thin-walled PETG tray shrinks while it cools and peels up at its ends. Two measures, one by
+construction and one in the slicer:
+
+* **Mouse ears** (`ears = true`): four 8 mm radius, one-layer (0.3 mm) discs centred on the bottom corners
+  of the tray — they are part of `fan-housing-tray.stl` and add bed contact exactly where the lifting starts.
+  Cut them off with a knife after printing; the tray's own walls are untouched. Set `ears = false` and
+  re-export for a clean model.
+* **A large brim** (8–10 mm) on top of that, a clean and warm bed (PETG: ~80 °C), no part-cooling fan for
+  the first layers, and no draught. If it still lifts, the next step by construction would be to open the
+  floor (slots) to relieve the stress — not done yet because it also reduces the bed contact.
 
 ## Dimension chains on layer boundaries
 
@@ -114,11 +130,13 @@ transparent light guide.
 
 ## Check before printing
 
-The board dimensions are exact, the **component heights are catalogue values**: female header 8.5 mm, XIAO
-board 1.0 mm, USB-C socket 3.3 mm, fan connector 12.0 mm (a figure supplied by the owner), electrolytic cap
-12.5 mm. That gives 15 mm of inner height with a margin of 2.2 mm above the tallest part.
+The board dimensions are exact. The component heights are measured or catalogue values: socketed XIAO
+module underside 12.5 mm above the board (**measured on the real assembly**; a plain 8.5 mm header was assumed
+at first), XIAO board 1.0 mm, USB-C socket 3.3 mm (catalogue), fan connector 12.0 mm (a figure supplied by
+the owner), electrolytic cap 12.5 mm. That gives 19 mm of inner height with a margin of 2.2 mm above the
+tallest part (the XIAO).
 
-If you can measure the socketed XIAO beforehand: adjust `h_socket`, `h_xiao_pcb` and `h_usbc` in
+If a value turns out to be different: adjust `h_socket`, `h_xiao_pcb`, `h_usbc` and `inner_h` in
 `fan-housing.scad`, run `check_fit.py` and export again.
 
 ## Changing and checking
