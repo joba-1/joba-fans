@@ -101,7 +101,7 @@ refer to **tags** instead:
 | Tag | Meaning |
 |---|---|
 | `fan-controller-v1` | the board layout that was ordered (schematic and PCB unchanged since) |
-| `fan-remote-v1.0.0` | firmware 1.0.0 (the firmware's build info is derived from `fan-remote-v*` tags) |
+| `fan-remote-v1.1.0` | firmware 1.1.0 (the firmware's build info is derived from `fan-remote-v*` tags) |
 
 ## Language and licence
 
