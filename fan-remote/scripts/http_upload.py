@@ -8,12 +8,17 @@ The host only makes an outbound connection to the board's port 80, so no firewal
 to be opened on the host (ArduinoOTA needs one: the board connects back). Password: env
 FAN_OTA_PASSWORD, else admin_password from config.ini. A weak WiFi link can drop an upload;
 it is retried.
+
+Version guard: the upload is refused unless VERSION is higher than the version the board runs
+now and VERSION is committed, so a bump made in one session cannot be lost or forgotten in
+the next. FAN_SKIP_VERSION_CHECK=1 overrides it (development builds).
 """
 import base64
 import configparser
 import http.client
 import json
 import os
+import subprocess
 import sys
 import time
 import uuid
@@ -71,10 +76,40 @@ def wait_back(host: str, seconds: int = 60):
     return None
 
 
+def vtuple(v: str) -> tuple:
+    try:
+        return tuple(int(x) for x in v.strip().split("."))
+    except ValueError:
+        return ()
+
+
+def check_version(host: str):
+    """Refuse an upload whose version is not a committed bump over the running one."""
+    if os.environ.get("FAN_SKIP_VERSION_CHECK"):
+        return
+    new = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", "VERSION"], cwd=ROOT,
+                           capture_output=True, text=True).stdout.strip()
+    if dirty:
+        sys.exit("VERSION %s is not committed. Commit the bump first, then flash, so the version on "
+                 "the board always exists in the repository (FAN_SKIP_VERSION_CHECK=1 overrides)." % new)
+    try:
+        c = http.client.HTTPConnection(host, 80, timeout=5)
+        c.request("GET", "/api/netstatus")
+        running = json.loads(c.getresponse().read()).get("version", "")
+        c.close()
+    except (OSError, ValueError, http.client.HTTPException):
+        return   # unreachable or an old firmware: the upload itself reports that
+    if vtuple(new) and vtuple(running) and vtuple(new) <= vtuple(running):
+        sys.exit("%s runs %s, this build is %s: bump VERSION (and commit it) before flashing "
+                 "(FAN_SKIP_VERSION_CHECK=1 overrides)." % (host, running, new))
+
+
 def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
     host, path = sys.argv[1], sys.argv[2]
+    check_version(host)
     image = Path(path).read_bytes()
     print("uploading %s (%d bytes) to http://%s/api/update" % (path, len(image), host))
     last = ""

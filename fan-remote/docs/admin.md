@@ -74,6 +74,9 @@ syslog name is re-resolved hourly and after a failed send.
 * **Updating over WiFi:** `pio run -e ota -t upload --upload-port fan-control-N`
   (`ota_c6` for a C6) pushes the image to the board's own web server (`POST /api/update`,
   admin login). The host only makes an outbound connection, so **no firewall port is needed**.
+  The script refuses unless `VERSION` is committed and higher than what the board runs, so
+  bump it (patch for fixes, minor for features) in the commit that changes behaviour, before
+  flashing; `FAN_SKIP_VERSION_CHECK=1` overrides for throwaway builds.
   The script retries on a flaky link; a board that was flashed with an older firmware without
   `/api/update` answers 404 and needs one USB or ArduinoOTA flash first. A wrong chip image is
   rejected at the end of the upload and leaves the running firmware alone. By hand:
