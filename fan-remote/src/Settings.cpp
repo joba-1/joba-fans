@@ -61,7 +61,8 @@ static void fillDefaults(Settings &s, bool netOnly) {
     s.lastSpeed[i] = 0;
     s.lastOn[i] = 40;
   }
-  const uint8_t p[kPresets] = {10, 30, 50, 75, 100};
+  // the steps where the fans' noise changes audibly
+  const uint8_t p[kPresets] = {10, 40, 70, 90, 100};
   memcpy(s.presets, p, sizeof p);
   s.rampUp = 10;
   s.rampDown = 20;

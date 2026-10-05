@@ -18,7 +18,7 @@ from pathlib import Path
 from urllib.parse import parse_qs
 
 ROOT = Path(__file__).resolve().parent.parent / "web"
-PRESETS = [("quiet", 10), ("low", 30), ("medium", 50), ("high", 75), ("max", 100)]
+PRESETS = [("quiet", 10), ("low", 40), ("medium", 70), ("high", 90), ("max", 100)]
 lock = threading.Lock()
 DELAY = 0.0
 NUM = int(sys.argv[3]) if len(sys.argv) > 3 else 1      # device number: sets the page hue
