@@ -92,6 +92,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 
 .slider { margin: 16px 2px 6px; display: flex; align-items: center; gap: 14px; }
 .slider output { width: 3.4em; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.meta[hidden] { display: none; }
 .meta { color: var(--muted); font-size: .78rem; margin: 0 2px 10px; display: flex; justify-content: space-between; }
 input[type=range] {
   -webkit-appearance: none; appearance: none; flex: 1; height: 44px; background: transparent; margin: 0; cursor: pointer;
@@ -429,7 +430,7 @@ function makeCard(n) {
   const svg = fan.firstElementChild;
   const out = h("output");
   const range = h("input", { type: "range", min: 0, max: 100, step: 1, value: 0, "aria-label": t("speed") + " " + (isAll ? t("all") : "") });
-  const meta = h("div", { class: "meta" }, h("span", { class: "dutyT" }), h("span", { class: "tachT" }));
+  const meta = h("div", { class: "meta" }, h("span", { class: "tachT" }));
   const chips = h("div", { class: "chips" });
   const warn = h("p", { class: "warn", hidden: true }, t("stalled"));
   const el = h("section", { class: "card off" + (isAll ? " all" : ""), "data-ch": n },
@@ -451,7 +452,7 @@ function makeCard(n) {
   range.addEventListener("pointerup", release);
   range.addEventListener("keyup", release);
 
-  const c = { n, pwr, sent: null, pend: null, el, name, badge, rpmV, range, out, svg, chips, warn, meta, speed: 0, w: 0, wT: 0, ang: 0,
+  const c = { n, pwr, sent: null, pend: null, el, name, badge, rpmV, range, out, svg, chips, warn, meta, speed: 0, duty: null, dutyAt: 0, w: 0, wT: 0, ang: 0,
               chipEls: [], presetKey: "" };
   cards.set(n, c);
   return c;
@@ -489,9 +490,10 @@ function applyHue(id) {
   if (tc) tc.content = "hsl(" + (hue + 12) + " 55% 15%)";
 }
 applyHue(location.hostname);   // from the host name straight away, before any data arrives
-
+const DUTY_SETTLE_MS = 5000;   // PWM shown in the badge until it has held still this long
 function applyState(s) {
   if (!s || !s.ch) return;
+  const now = performance.now();
   S = s; lastEvent = performance.now();
   applyHue(s.id);
   $("title").textContent = s.name;
@@ -519,12 +521,14 @@ function applyState(s) {
     const c = cards.get(ch.n);
     c.name.textContent = fanName(ch);
     c.speed = ch.speed;
-    c.badge.textContent = t(ch.state);
+    if (c.duty === null || Math.abs(ch.duty - c.duty) > 0.05) { if (c.duty !== null) c.dutyAt = now; c.duty = ch.duty; }
+    c.moving = ch.state === "run" && now - c.dutyAt < DUTY_SETTLE_MS;
+    c.badge.textContent = c.moving ? t("duty") + " " + Math.round(ch.duty) + " %" : t(ch.state);
     c.rpmV.textContent = ch.tach ? ch.rpm.toLocaleString(L) : "–";
     c.el.classList.toggle("off", ch.state === "off");
     c.el.classList.toggle("fault", ch.fault);
     c.warn.hidden = !ch.fault;
-    c.meta.querySelector(".dutyT").textContent = t("duty") + " " + Math.round(ch.duty) + " %";
+    c.meta.hidden = ch.tach;
     c.meta.querySelector(".tachT").textContent = ch.tach ? "" : t("noTach");
     if (!drag.has(ch.n)) {
       c.range.value = ch.speed;
@@ -544,7 +548,12 @@ function applyState(s) {
     all.el.classList.toggle("off", !anyOn);
     all.el.classList.toggle("fault", active.some(c => c.fault));
     all.speed = anyOn ? 1 : 0;
-    all.badge.textContent = same ? t(active[0].state) : t("mixed");
+    const states = active.map(c => c.state), sameState = states.every(v => v === states[0]);
+    const moving = active.some(c => cards.get(c.n).moving);
+    const dr = active.map(c => Math.round(c.duty)), sameDuty = dr.every(v => v === dr[0]);
+    all.badge.textContent = !sameState ? t("mixed")
+      : moving && states[0] === "run" ? t("duty") + (sameDuty ? " " + dr[0] + " %" : "")
+      : t(states[0]);
     if (!drag.has(0)) {
       const avg = Math.round(sp.reduce((a, b) => a + b, 0) / sp.length);
       all.range.value = avg; all.range.style.setProperty("--p", avg + "%");
